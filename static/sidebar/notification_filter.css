@@ -1,0 +1,271 @@
+/* ==========================================================================
+   Notification filter popup (extends popup.html)
+   Used with sidebar/popup/notification_filter.html + sidebar/notification.js.
+   ========================================================================== */
+
+#notification-filter-popup {
+  z-index: 3000;
+}
+
+.Base-notificationFilterPopover {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.Base-notificationFilterGroup {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.Base-notificationFilterGroupTitle {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color);
+  opacity: 0.65;
+  margin-bottom: 10px;
+}
+
+.Base-notificationFilterOptions {
+  display: flex;
+  gap: 12px;
+}
+
+.Base-notificationFilterOption {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color);
+  user-select: none;
+  padding: 10px 16px;
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 8px;
+  background: rgba(127, 127, 127, 0.06);
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.Base-notificationFilterOption:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.Base-notificationFilterOption input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 2px solid rgba(127, 127, 127, 0.45);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.Base-notificationFilterOption input[type="checkbox"]:hover {
+  border-color: dodgerblue;
+}
+
+.Base-notificationFilterOption input[type="checkbox"]:checked {
+  background: dodgerblue;
+  border-color: dodgerblue;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px;
+}
+
+/* --- Date filter --- */
+.Base-notificationFilterDatePicker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.Base-notifCalendarWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Calendar card */
+.Base-notifCalendar {
+  background: var(--background);
+  border: 1px solid rgba(127, 127, 127, 0.22);
+  border-radius: 10px;
+  padding: 10px;
+  user-select: none;
+}
+
+.Base-notifCalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.Base-notifCalMonthYear {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color);
+}
+
+.Base-notifCalNav {
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color);
+  opacity: 0.55;
+  padding: 2px 6px;
+  border-radius: 5px;
+  transition: opacity 0.1s, background 0.1s;
+}
+
+.Base-notifCalNav:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.Base-notifCalGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.Base-notifCalDayName {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color);
+  opacity: 0.45;
+  padding: 2px 0 5px;
+}
+
+.Base-notifCalDay {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color);
+  border-radius: 5px;
+  padding: 5px 0;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.1s;
+}
+
+.Base-notifCalDay:hover {
+  background: rgba(127, 127, 127, 0.14);
+}
+
+.Base-notifCalDay.is-past {
+  color: rgba(127, 127, 127, 0.4);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.Base-notifCalDay.is-today {
+  font-weight: 700;
+  color: dodgerblue;
+}
+
+.Base-notifCalDay.is-selected {
+  background: dodgerblue;
+  color: #fff;
+}
+
+.Base-notifCalDay.is-selected:hover {
+  background: #1a8fff;
+}
+
+.Base-notifCalDay.is-today.is-selected {
+  color: #fff;
+}
+
+.Base-notifCalDay.is-drag-range {
+  background: rgba(30, 144, 255, 0.28);
+}
+
+.Base-notifCalDay.is-drag-range.is-selected {
+  background: rgba(30, 144, 255, 0.5);
+}
+
+.Base-notificationFilterDateTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.Base-notificationFilterDateTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  background: rgba(30, 144, 255, 0.12);
+  border: 1px solid rgba(30, 144, 255, 0.35);
+  border-radius: 6px;
+  color: var(--color);
+}
+
+
+.Base-notificationFilterDateHint {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+.Base-notificationFilterActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  border-top: 1px solid rgba(127, 127, 127, 0.15);
+}
+
+.Base-notificationFilterResetBtn {
+  background: rgba(127, 127, 127, 0.10);
+  border: 1px solid #7f7f7f40;
+  color: var(--color);
+  cursor: pointer;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.Base-notificationFilterResetBtn:hover {
+  background: rgba(127, 127, 127, 0.14);
+}
+
+.Base-notificationFilterApplyBtn {
+  background: dodgerblue;
+  border: 1px solid dodgerblue;
+  color: #fff;
+  cursor: pointer;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.Base-notificationFilterApplyBtn:hover {
+  background: #1a7de8;
+}
+
+/* Mobile: keep popup height stable when the browser viewport changes (e.g. first tap/focus). */
+#notification-filter-popup .Popup-box {
+  max-height: calc(100svh - 48px);
+}

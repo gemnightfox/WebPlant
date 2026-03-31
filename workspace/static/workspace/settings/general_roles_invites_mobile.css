@@ -1,0 +1,125 @@
+/* ==========================================================================
+   Workspace settings – roles/invites/mobile
+   ========================================================================== */
+
+.WsSettings-rolesList { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+.WsSettings-roleCard {
+  display: flex; align-items: center; justify-content: space-between; padding: 14px 16px;
+  background: var(--secondary-background); border: 1px solid rgba(127, 127, 127, 0.18);
+  border-radius: 10px; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.WsSettings-roleCard:hover { border-color: rgba(127, 127, 127, 0.35); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+.WsSettings-roleCard--empty { opacity: 0.55; font-style: italic; }
+.WsSettings-roleCard--empty:hover { border-color: rgba(127, 127, 127, 0.18); box-shadow: none; }
+.WsSettings-roleCardInfo { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.WsSettings-roleCardName {
+  font-size: 14.8px; font-weight: 500; color: var(--color);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.WsSettings-roleCardBadge {
+  font-size: 12px; font-weight: 500; color: var(--color); opacity: 0.5;
+  white-space: nowrap; padding: 2px 8px; background: rgba(127, 127, 127, 0.1);
+  border-radius: 12px; margin-left: auto;
+}
+.WsSettings-roleCardActions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.WsSettings-roleCardBtn {
+  display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 7px;
+  border: none; background: transparent; color: var(--color); opacity: 0.45; cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+}
+.WsSettings-roleCardBtn:hover { opacity: 1; background: rgba(127, 127, 127, 0.12); }
+.WsSettings-roleCardBtn--delete:hover { color: #dc2626; background: rgba(220, 38, 38, 0.1); }
+.WsSettings-roleCardBtn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: auto; }
+.WsSettings-roleCardBtn:disabled:hover { background: none; }
+
+.WsSettings-inviteCodeCard { flex-direction: column; align-items: stretch; gap: 0; }
+.WsSettings-inviteCodeCardRow { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.WsSettings-inviteCode { font-family: 'Courier New', Courier, monospace; font-size: 14.4px; letter-spacing: 0.06em; font-weight: 600; }
+.WsSettings-showPwBtn {
+  background: rgba(127, 127, 127, 0.14); border: 1px solid rgba(127, 127, 127, 0.28);
+  padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500;
+  color: var(--color); text-decoration: none;
+}
+.WsSettings-showPwBtn:hover { background: rgba(127, 127, 127, 0.22); border-color: rgba(127, 127, 127, 0.42); }
+.WsSettings-showPwIcon { display: none; vertical-align: middle; }
+.WsSettings-showPwIcon--open { display: none; }
+.WsSettings-showPwIcon--closed { display: none; }
+.WsSettings-showPwBtn.is-showing .WsSettings-showPwIcon--closed { display: none; }
+.WsSettings-showPwBtn.is-showing .WsSettings-showPwIcon--open { display: none; }
+.WsSettings-pwRevealValue {
+  font-family: 'Courier New', Courier, monospace; font-size: 16px; font-weight: 600;
+  letter-spacing: 0.06em; color: var(--color); margin: 0; word-break: break-all;
+}
+.WsSettings-pwRevealInline {
+  margin-top: 8px; padding: 10px 12px; background: rgba(30, 144, 255, 0.08);
+  border: 1px solid rgba(30, 144, 255, 0.35); border-radius: 8px;
+}
+.WsSettings-pwRevealInline[hidden] { display: none; }
+.WsSettings-inviteCodeInlineForm {
+  display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; padding: 14px 16px;
+  background: var(--secondary-background); border: 1px solid rgba(127, 127, 127, 0.2); border-radius: 10px;
+}
+.WsSettings-inviteCodeInlineForm[hidden] { display: none; }
+.WsSettings-inviteCodeEditForm {
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(127, 127, 127, 0.15);
+  margin-bottom: 0; padding-left: 0; padding-right: 0; background: transparent;
+  border-left: none; border-right: none; border-bottom: none; border-radius: 0;
+}
+.WsSettings-inviteCodeFormActions { display: flex; gap: 8px; }
+.WsSettings-modalChoices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+.WsSettings-modalChoiceBtn {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px;
+  border-radius: 8px; border: 1.5px solid rgba(127, 127, 127, 0.25); background: none; cursor: pointer;
+  text-align: left; transition: border-color 0.15s, background 0.15s; color: var(--color); width: 100%; font-family: inherit;
+}
+.WsSettings-modalChoiceBtn:hover { border-color: dodgerblue; background: rgba(30, 144, 255, 0.06); }
+.WsSettings-modalChoiceName { font-weight: 500; font-size: 14.4px; }
+.WsSettings-modalChoiceDesc { font-size: 12.48px; opacity: 0.6; }
+#ws-add-invite-code-form[hidden] { display: none; }
+
+.WsSettings-mobileRoleSwitch {
+  display: none; font-size: 17px; position: relative; width: 3.5em; height: 2em; flex-shrink: 0;
+}
+.WsSettings-mobileRoleSwitch input {
+  position: absolute; z-index: 1; top: 0; left: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer;
+}
+.WsSettings-mobileRoleSlider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #adb5bd; border: 1px solid #adb5bd; transition: 0.4s; border-radius: 30px;
+}
+.WsSettings-mobileRoleSlider:before {
+  position: absolute; content: ""; height: 1.4em; width: 1.4em; border-radius: 20px;
+  left: 0.27em; bottom: 0.25em; background-color: #fff; transition: 0.4s;
+}
+.WsSettings-mobileRoleSwitch input:checked + .WsSettings-mobileRoleSlider { background-color: #007bff; border-color: #007bff; }
+.WsSettings-mobileRoleSwitch input:focus + .WsSettings-mobileRoleSlider { box-shadow: 0 0 1px #007bff; }
+.WsSettings-mobileRoleSwitch input:checked + .WsSettings-mobileRoleSlider:before { transform: translateX(1.4em); }
+
+@media (max-width: 900px) {
+  .WsSettings-title { font-size: 15.2px; }
+  .WsSettings-headerTop .WsSettings-btn { font-size: 12px; padding: 6px 10px; }
+  .WsSettings-inviteCode { font-size: 12.48px; }
+  .WsSettings-showPwBtn {
+    display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0;
+    border-radius: 7px; border: none; background: transparent; color: var(--color); opacity: 0.45;
+  }
+  .WsSettings-showPwBtn:hover { opacity: 1; background: rgba(127, 127, 127, 0.12); border-color: transparent; }
+  .WsSettings-showPwText { display: none; }
+  .WsSettings-showPwIcon--closed { display: inline-block; }
+  .WsSettings-showPwBtn.is-showing .WsSettings-showPwIcon--closed { display: none; }
+  .WsSettings-showPwBtn.is-showing .WsSettings-showPwIcon--open { display: inline-block; }
+  .WsSettings-sliderRow { gap: 10px; }
+  .WsSettings-sliderLabel { min-width: 0; }
+  .WsSettings-slider { display: none; }
+  .WsSettings-mobileRoleSwitch { display: inline-block; font-size: 13px; }
+  .WsSettings-roleCard { flex-wrap: wrap; align-items: center; gap: 6px; }
+  .WsSettings-roleCardInfo { flex-basis: 100%; }
+  .WsSettings-roleCardName { font-size: 12.8px; }
+  .WsSettings-roleCardBadge { font-size: 10.88px; order: 2; margin-left: 0; }
+  .WsSettings-roleCardActions { order: 3; margin-left: auto; }
+  .WsSettings-rolesHeader .WsSettings-sectionTitle { font-size: 14.4px; }
+  .WsSettings-rolesHeader .WsSettings-btn { font-size: 12px; padding: 6px 10px; }
+  .WsSettings-rolesTitleGroup { flex: 1; min-width: 0; }
+  .WsSettings-defaultRoleInline { flex: 1; min-width: 0; }
+  #id_default_role { width: 100%; max-width: none; }
+}

@@ -1,0 +1,340 @@
+/* --- Deadline floating calendar picker --- */
+#edit-task-deadline-picker {
+  position: fixed;
+  z-index: 1100;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  padding: 16px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#edit-task-deadline-picker[hidden] {
+  display: none;
+}
+
+#edit-task-deadline-picker .Base-notifCalendar {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+#edit-task-deadline-picker .Base-notifCalGrid {
+  gap: 4px;
+}
+
+#edit-task-deadline-picker .Base-notifCalDay {
+  font-size: 15px;
+  padding: 7px 0;
+  border-radius: 7px;
+}
+
+#edit-task-deadline-picker .Base-notifCalDayName {
+  font-size: 12px;
+  padding-bottom: 6px;
+}
+
+#edit-task-deadline-picker .Base-notifCalMonthYear {
+  font-size: 15px;
+}
+
+#edit-task-deadline-picker .Base-notifCalNav {
+  font-size: 28px;
+}
+
+#edit-task-deadline-picker .DeadlinePicker-clearBtn {
+  width: 100%;
+  padding: 6px;
+}
+
+.DeadlinePicker {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.DeadlinePicker-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.DeadlinePicker-dateInput {
+  width: 100%;
+}
+
+.DatePicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.DatePicker-part {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.DatePicker-val {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color);
+  text-align: center;
+  line-height: 1.6;
+  min-width: 2ch;
+}
+
+.DatePicker-sep {
+  font-size: 16px;
+  color: rgba(128, 128, 128, 0.4);
+  align-self: center;
+  margin-bottom: 1px;
+}
+
+.DatePicker-btn {
+  background: rgba(127, 127, 127, 0.07);
+  border: none;
+  color: var(--color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: inherit;
+  opacity: 0.55;
+  transition: opacity 0.1s, background 0.1s;
+}
+
+.DatePicker-btn:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.16);
+}
+
+.DatePicker-btn:active {
+  background: rgba(127, 127, 127, 0.26);
+}
+
+.DatePicker-btn--double {
+  opacity: 0.3;
+}
+
+.DeadlinePicker-timeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.DeadlinePicker-colon {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color);
+  line-height: 1;
+}
+
+.DeadlinePicker-clearBtn {
+  align-self: center;
+  background: transparent;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  color: var(--color);
+  font-size: 13px;
+  padding: 4px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+
+.DeadlinePicker-clearBtn:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.ClockSpinner {
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.ClockSpinner-track {
+  width: 54px;
+  height: 108px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 10px;
+  background: var(--background);
+  cursor: ns-resize;
+}
+
+.ClockSpinner-track::before,
+.ClockSpinner-track::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 24px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ClockSpinner-track::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--background) 0%, transparent 100%);
+}
+
+.ClockSpinner-track::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--background) 0%, transparent 100%);
+}
+
+.ClockSpinner-selector {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: rgba(127, 127, 127, 0.09);
+  border-top: 1px solid rgba(127, 127, 127, 0.18);
+  border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ClockSpinner-isDragging,
+.ClockSpinner-isDragging * {
+  cursor: ns-resize !important;
+  user-select: none !important;
+}
+
+.ClockSpinner-drum {
+  display: flex;
+  flex-direction: column;
+}
+
+.ClockSpinner-item {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16.8px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: var(--color);
+  opacity: 0.2;
+  flex-shrink: 0;
+}
+
+.ClockSpinner-item.is-adjacent {
+  opacity: 0.5;
+}
+
+.ClockSpinner-item.is-selected {
+  opacity: 1;
+  font-weight: 700;
+}
+
+/* --- Reminder floating picker --- */
+#edit-task-reminder-picker {
+  position: fixed;
+  z-index: 1100;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  padding: 16px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#edit-task-reminder-picker[hidden] {
+  display: none;
+}
+
+#edit-task-reminder-picker .Base-notifCalendar {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+#edit-task-reminder-picker .Base-notifCalGrid {
+  gap: 4px;
+}
+
+#edit-task-reminder-picker .Base-notifCalDay {
+  font-size: 15px;
+  padding: 7px 0;
+  border-radius: 7px;
+}
+
+#edit-task-reminder-picker .Base-notifCalDayName {
+  font-size: 12px;
+  padding-bottom: 6px;
+}
+
+#edit-task-reminder-picker .Base-notifCalMonthYear {
+  font-size: 15px;
+}
+
+#edit-task-reminder-picker .Base-notifCalNav {
+  font-size: 28px;
+}
+
+.ReminderPicker-timeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ReminderPicker-timeLabel {
+  font-size: 13px;
+  color: var(--color);
+  flex-shrink: 0;
+}
+
+.ReminderPicker-timeInput {
+  flex: 1;
+  min-width: 0;
+}
+
+
+.TaskReminders {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.TaskReminder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 6px 8px 16px;
+  gap: 6px;
+  border-radius: 6px;
+}
+
+.TaskReminder:hover {
+  background: rgba(30, 144, 255, 0.1);
+}
+
+.TaskReminder-text {
+  font-size: 13px;
+  color: var(--color);
+  flex: 1;
+  min-width: 0;
+}

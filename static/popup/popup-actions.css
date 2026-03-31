@@ -1,0 +1,348 @@
+/* --- Inline edit-name pattern (readonly input + Edit button + Save button) --- */
+.Popup-nameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  position: relative;
+  padding-right: 72px;
+}
+
+.Popup-nameWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.Popup-input--withEditBtn {
+  padding-right: 56px;
+  width: 100%;
+  max-width: none;
+}
+
+.Popup-input--withEditBtn[readonly] {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.Popup-input--withEditBtn.is-editing {
+  opacity: 1;
+  border-color: rgba(59, 130, 246, 0.7);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.Popup-editNameBtn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  background: rgba(59, 130, 246, 0.18);
+  border: 1px solid rgba(59, 130, 246, 0.7);
+  color: var(--color);
+  cursor: pointer;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+
+.Popup-editNameBtn[hidden] {
+  display: none;
+}
+
+.Popup-editNameBtn:hover {
+  background: rgba(59, 130, 246, 0.28);
+}
+
+.theme-light .Popup-editNameBtn {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+}
+
+.theme-light .Popup-editNameBtn:hover {
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.Popup-saveNameBtn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.Popup-saveNameBtn:hover {
+  transform: translateY(-50%);
+}
+
+.Popup-saveNameBtn[hidden] {
+  display: none;
+}
+
+.Popup-submit {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: dodgerblue;
+  color: #fff;
+}
+
+.Popup-submit:hover {
+  background: #1a7de8;
+}
+
+.Popup-dangerBtn {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: transparent;
+  color: #ef4444;
+}
+
+.Popup-dangerBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* --- "..." options menu (beside close button) --- */
+.Popup-menuWrap {
+  position: absolute;
+  top: 16px;
+  right: 52px;
+}
+
+.Popup-menuBtn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color);
+  cursor: pointer;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-family: inherit;
+  letter-spacing: 2px;
+  box-sizing: border-box;
+}
+
+.Popup-menuBtn:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.Popup-menu {
+  position: fixed;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+  z-index: 10;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.Popup-menu[hidden] {
+  display: none;
+}
+
+.Popup-menuItem {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.Popup-menuItem:hover {
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.Popup-menuItem--danger {
+  color: var(--color);
+}
+
+.Popup-menuItem--danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.Popup-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color);
+  cursor: pointer;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.Popup-closeIcon {
+  display: block;
+}
+
+.Popup-close:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.Popup-close:focus {
+  outline: none;
+}
+
+.Popup-close:focus-visible {
+  box-shadow: 0 0 0 2px var(--secondary-background, #fff), 0 0 0 4px dodgerblue;
+}
+
+.Popup-formWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.Popup-formWrap[hidden] {
+  display: none;
+}
+
+.Popup-mainCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.Popup-success {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.Popup-success[hidden] {
+  display: none;
+}
+
+.Popup-successText {
+  margin: 0;
+  font-size: 16px;
+  color: var(--color);
+  line-height: 1.5;
+}
+
+.Popup-toggleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.Popup-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.Popup-toggleLabel {
+  font-size: 14px;
+  color: var(--color);
+}
+
+.Popup-toggle input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 2px solid rgba(127, 127, 127, 0.45);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.Popup-toggle input[type="checkbox"]:checked {
+  background: dodgerblue;
+  border-color: dodgerblue;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px;
+}
+
+.Popup-labelOptional {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(128, 128, 128, 0.75);
+}
+
+.Popup-deadlineHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.Popup-deadlineHeader label {
+  flex: 1;
+  margin: 0;
+}
+
+.Popup-addDeadlineBtn,
+.Popup-removeDeadlineBtn {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.12s;
+}
+
+.Popup-addDeadlineBtn {
+  color: dodgerblue;
+}
+
+.Popup-addDeadlineBtn:hover {
+  background: rgba(30, 144, 255, 0.1);
+}
+
+.Popup-removeDeadlineBtn {
+  color: rgba(128, 128, 128, 0.75);
+}
+
+.Popup-removeDeadlineBtn:hover {
+  background: rgba(128, 128, 128, 0.12);
+}

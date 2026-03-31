@@ -1,176 +1,160 @@
 /* ==========================================================================
-   Landing page
+   Home / landing (unauthenticated only). Uses base theme variables.
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-html:has(.Landing),
-body:has(.Landing) {
-  overflow-x: hidden;
-}
-
-.Base-content:has(.Landing) {
-  padding: 0;
-  overflow-x: hidden;
-}
-
-.Landing,
-.Landing * {
-  font-family: 'Inter', sans-serif;
-}
-
-.Landing {
+.Home-body .Base-content {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  overflow-x: hidden;
-  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: clamp(24px, 6vw, 48px);
+  padding-bottom: 48px;
 }
 
-/* --- Nav --- */
-.Landing-nav {
+.Home {
+  width: 100%;
+  max-width: 720px;
+}
+
+.Home-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 48px;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  gap: 16px;
+  margin-bottom: clamp(40px, 10vw, 72px);
 }
 
-.Landing-logo {
-  font-size: 20px;
+.Home-brand {
+  font-size: 1.125rem;
   font-weight: 700;
-  color: dodgerblue;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.02em;
+  color: var(--color);
 }
 
-.Landing-navActions {
+.Home-nav {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 12px;
 }
 
-/* --- Buttons --- */
-.Landing-btn {
+.Home-link {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--color);
+  opacity: 0.9;
+  transition: background 0.12s, opacity 0.12s;
+}
+
+.Home-link:hover {
+  opacity: 1;
+  background: rgba(128, 128, 128, 0.12);
+}
+
+.Home-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-size: 14.4px;
-  font-weight: 500;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  padding: 10px 18px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: 10px;
+  border: 1px solid transparent;
   cursor: pointer;
-  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.Landing-btn--primary {
-  background: dodgerblue;
+.Home-btn--primary {
+  background: #16a34a;
   color: #fff;
-  border: 1.5px solid dodgerblue;
-}
-.Landing-btn--primary:hover {
-  background: #1a7fe8;
-  border-color: #1a7fe8;
-  color: #fff;
+  border-color: #15803d;
 }
 
-.Landing-btn--ghost {
+.Home-btn--primary:hover {
+  background: #22c55e;
+  border-color: #16a34a;
+}
+
+.Home-btn--ghost {
   background: transparent;
   color: var(--color);
-  border: 1.5px solid rgba(128, 128, 128, 0.4);
+  border-color: rgba(128, 128, 128, 0.4);
 }
-.Landing-btn--ghost:hover {
+
+.Home-btn--ghost:hover {
   background: rgba(128, 128, 128, 0.1);
+}
+
+.theme-light .Home-btn--primary {
+  color: #fff;
+}
+
+.Home-hero {
+  text-align: center;
+}
+
+.Home-title {
+  font-size: clamp(1.65rem, 4.5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--color);
+  margin-bottom: 16px;
+}
+
+.Home-lead {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--color);
+  opacity: 0.82;
+  max-width: 34em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.Home-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 48px;
+}
+
+@media (min-width: 600px) {
+  .Home-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+.Home-card {
+  padding: 18px 16px;
+  background: var(--secondary-background);
+  border-radius: 12px;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  text-align: left;
+}
+
+.Home-cardTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 8px;
   color: var(--color);
 }
 
-.Landing-btn--lg {
-  padding: 12px 28px;
-  font-size: 16px;
+.Home-cardText {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--color);
+  opacity: 0.78;
 }
 
-/* --- Steps --- */
-.Landing-steps {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 40px;
-  padding: 72px 48px;
-}
-
-.Landing-stepsHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+.Home-footnote {
+  margin-top: 40px;
   text-align: center;
-}
-
-.Landing-stepsTitle {
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.Landing-stepsDesc {
-  font-size: 15.2px;
-  color: #888;
-  max-width: 400px;
-  line-height: 1.6;
-}
-
-.Landing-stepsList {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 8px;
-}
-
-.Landing-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 10px;
-  max-width: 160px;
-}
-
-.Landing-stepNum {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: dodgerblue;
-  color: #fff;
-  font-weight: 700;
-  font-size: 15.2px;
-  flex-shrink: 0;
-}
-
-.Landing-step h3 {
-  font-size: 15.2px;
-  font-weight: 700;
-}
-
-.Landing-step p {
-  font-size: 13.6px;
-  color: #888;
-  line-height: 1.5;
-}
-
-.Landing-stepArrow {
-  font-size: 20px;
-  color: #888;
-  flex-shrink: 0;
-  margin-top: 46px;
-}
-
-
-/* --- Mobile --- */
-@media (max-width: 700px) {
-  .Landing-nav {
-    padding: 16px 20px;
-  }
+  font-size: 0.8125rem;
+  color: var(--color);
+  opacity: 0.55;
 }

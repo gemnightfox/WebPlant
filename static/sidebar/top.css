@@ -58,7 +58,7 @@
   min-width: 0;
 }
 
-/* Collapsed: anchor (icon only, clickable). Expanded desktop: anchor (icon + email). Expanded mobile: div (icon + email, not clickable). */
+/* Collapsed: anchor (icon only). Expanded: anchor to dashboard (icon + email). */
 .Base-account-link--collapsed {
   display: none;
 }
@@ -69,20 +69,13 @@ html.sidebar-collapsed .Base-sidebar .Base-account-link--collapsed {
 .Base-account-link--expanded-link {
   display: none;
 }
-.Base-sidebar.is-collapsed .Base-account-link--expanded,
-html.sidebar-collapsed .Base-sidebar .Base-account-link--expanded,
 .Base-sidebar.is-collapsed .Base-account-link--expanded-link,
 html.sidebar-collapsed .Base-sidebar .Base-account-link--expanded-link {
   display: none;
 }
 
-@media (min-width: 501px) {
-  .Base-sidebar:not(.is-collapsed) .Base-account-link--expanded-link {
-    display: flex;
-  }
-  .Base-sidebar:not(.is-collapsed) .Base-account-link--expanded {
-    display: none;
-  }
+.Base-sidebar:not(.is-collapsed) .Base-account-link--expanded-link {
+  display: flex;
 }
 
 .Base-account-link--collapsed:hover,
@@ -91,7 +84,7 @@ html.sidebar-collapsed .Base-sidebar .Base-account-link--expanded-link {
 }
 
 /* Mobile bottom bar: use ::before for hover so background is not clipped (diagonal cut-off bug) */
-@media (max-width: 500px) {
+@media (max-width: 900px) {
   .Base-sidebar.is-collapsed .Base-account-link--collapsed,
   html.sidebar-collapsed .Base-sidebar .Base-account-link--collapsed {
     position: relative;
@@ -216,7 +209,7 @@ html.sidebar-collapsed .Base-sidebar .Base-account-link { order: 2; }
 html.sidebar-collapsed .Base-sidebar .Base-notification-btn { order: 3; margin-left: 0; }
 
 /* Desktop: keep inner content at full width so sidebar “reveals” it (no g/e/m/… reflow) */
-@media (min-width: 501px) {
+@media (min-width: 901px) {
   .Base-sidebar:not(.is-collapsed) .Base-account {
     min-width: 280px;
     box-sizing: border-box; /* so padding is inside 280px and right edge isn’t clipped */
@@ -231,9 +224,9 @@ html.sidebar-collapsed .Base-sidebar .Base-notification-btn { order: 3; margin-l
   margin-left: -18px;
 }
 
-/* --- Mobile: full-width sidebar when expanded (< 500px) --- */
+/* --- Mobile: full-width sidebar when expanded (< 900px) --- */
 /* --- Mobile collapsed: sidebar at BOTTOM, horizontal icons (Notifications, Expand, Profile) --- */
-@media (max-width: 500px) {
+@media (max-width: 900px) {
   /* Smooth expand/collapse from bottom; animate height so it grows upward */
   .Base-sidebar {
     transition: width 0.2s ease, min-width 0.2s ease,

@@ -198,7 +198,27 @@
   border-radius: 12px;
   padding: 12px;
   cursor: pointer;
-  background: rgba(127, 127, 127, 0.06);
+}
+
+/* Unread: lighter / lifted (grayscale); read: darker / recessed */
+.Base-notificationItem.Base-is-unread {
+  background: rgba(255, 255, 255, 0.065);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.Base-notificationItem:not(.Base-is-unread) {
+  background: rgba(0, 0, 0, 0.52);
+  border-color: rgba(0, 0, 0, 0.38);
+}
+
+.theme-light .Base-notificationItem.Base-is-unread {
+  background: rgba(0, 0, 0, 0.065);
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+.theme-light .Base-notificationItem:not(.Base-is-unread) {
+  background: rgba(0, 0, 0, 0.028);
+  border-color: rgba(0, 0, 0, 0.09);
 }
 
 .Base-notificationItemText {
@@ -222,14 +242,6 @@
 
 .Base-is-unreadText {
   font-weight: 800;
-}
-
-.Base-notificationItem:not(.Base-is-unread) {
-  background: rgba(0, 0, 0, 0.25);
-}
-
-.theme-light .Base-notificationItem:not(.Base-is-unread) {
-  background: rgba(0, 0, 0, 0.05);
 }
 
 .Base-notificationItemMeta {
@@ -344,11 +356,50 @@
   justify-content: center;
 }
 
+.Base-notificationDeleteBtn-trash,
+.Base-notificationDeleteBtn-confirm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.Base-notificationDeleteBtn-confirm {
+  display: none;
+}
+
+.Base-notificationDeleteBtn--confirm .Base-notificationDeleteBtn-trash {
+  display: none;
+}
+
+.Base-notificationDeleteBtn--confirm .Base-notificationDeleteBtn-confirm {
+  display: inline-flex;
+}
+
+.Base-notificationDeleteBtn--confirm {
+  background: rgba(225, 17, 17, 0.22);
+  border-color: rgba(231, 20, 20, 0.75);
+  color: #dc2626;
+}
+
+.Base-notificationDeleteBtn--confirm:hover {
+  background: rgba(229, 23, 23, 0.32);
+}
+
+.theme-light .Base-notificationDeleteBtn--confirm {
+  background: rgba(220, 38, 38, 0.16);
+  color: #b91c1c;
+}
+
+.theme-light .Base-notificationDeleteBtn--confirm:hover {
+  background: rgba(220, 38, 38, 0.24);
+}
+
 .Base-notificationItem.Base-is-unread .Base-notificationDeleteBtn {
   display: none;
 }
 
-.Base-notificationDeleteBtn:hover {
+.Base-notificationDeleteBtn:hover:not(.Base-notificationDeleteBtn--confirm) {
   background: rgba(229, 23, 23, 0.22);
 }
 
@@ -356,7 +407,8 @@
   background: rgba(220, 38, 38, 0.1);
   color: #b91c1c;
 }
-.theme-light .Base-notificationDeleteBtn:hover {
+
+.theme-light .Base-notificationDeleteBtn:hover:not(.Base-notificationDeleteBtn--confirm) {
   background: rgba(220, 38, 38, 0.18);
 }
 
@@ -367,374 +419,6 @@
   flex-shrink: 0;
 }
 
-.Base-notificationDeleteBtn:hover svg {
+.Base-notificationDeleteBtn:hover:not(.Base-notificationDeleteBtn--confirm) svg {
   stroke-width: 1.75;
-}
-
-/* --- Notification filter popup (extends popup.html) --- */
-#notification-filter-popup {
-  z-index: 3000;
-}
-
-.Base-notificationFilterPopover {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.Base-notificationFilterGroup {
-  border: none;
-  margin: 0;
-  padding: 0;
-}
-
-.Base-notificationFilterGroupTitle {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color);
-  opacity: 0.65;
-  margin-bottom: 10px;
-}
-
-.Base-notificationFilterOptions {
-  display: flex;
-  gap: 12px;
-}
-
-.Base-notificationFilterOption {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-size: 14px;
-  color: var(--color);
-  user-select: none;
-  padding: 10px 16px;
-  border: 1px solid rgba(127, 127, 127, 0.25);
-  border-radius: 8px;
-  background: rgba(127, 127, 127, 0.06);
-  transition: background 0.12s, border-color 0.12s;
-}
-
-.Base-notificationFilterOption:hover {
-  background: rgba(127, 127, 127, 0.12);
-}
-
-.Base-notificationFilterOption input[type="checkbox"] {
-  -webkit-appearance: none;
-  appearance: none;
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  border: 2px solid rgba(127, 127, 127, 0.45);
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.Base-notificationFilterOption input[type="checkbox"]:hover {
-  border-color: dodgerblue;
-}
-
-.Base-notificationFilterOption input[type="checkbox"]:checked {
-  background: dodgerblue;
-  border-color: dodgerblue;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 11px;
-}
-
-/* Date filter */
-.Base-notificationFilterDatePicker {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.Base-notifCalendarWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Calendar card */
-.Base-notifCalendar {
-  background: var(--background);
-  border: 1px solid rgba(127, 127, 127, 0.22);
-  border-radius: 10px;
-  padding: 10px;
-  user-select: none;
-}
-
-.Base-notifCalHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.Base-notifCalMonthYear {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color);
-}
-
-.Base-notifCalNav {
-  background: none;
-  border: none;
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-  color: var(--color);
-  opacity: 0.55;
-  padding: 2px 6px;
-  border-radius: 5px;
-  transition: opacity 0.1s, background 0.1s;
-}
-
-.Base-notifCalNav:hover {
-  opacity: 1;
-  background: rgba(127, 127, 127, 0.12);
-}
-
-.Base-notifCalGrid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-}
-
-.Base-notifCalDayName {
-  text-align: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color);
-  opacity: 0.45;
-  padding: 2px 0 5px;
-}
-
-.Base-notifCalDay {
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 12px;
-  color: var(--color);
-  border-radius: 5px;
-  padding: 5px 0;
-  cursor: pointer;
-  text-align: center;
-  transition: background 0.1s;
-}
-
-.Base-notifCalDay:hover {
-  background: rgba(127, 127, 127, 0.14);
-}
-
-.Base-notifCalDay.is-past {
-  color: rgba(127, 127, 127, 0.4);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.Base-notifCalDay.is-today {
-  font-weight: 700;
-  color: dodgerblue;
-}
-
-.Base-notifCalDay.is-selected {
-  background: dodgerblue;
-  color: #fff;
-}
-
-.Base-notifCalDay.is-selected:hover {
-  background: #1a8fff;
-}
-
-.Base-notifCalDay.is-today.is-selected {
-  color: #fff;
-}
-
-.Base-notifCalDay.is-drag-range {
-  background: rgba(30, 144, 255, 0.28);
-}
-
-.Base-notifCalDay.is-drag-range.is-selected {
-  background: rgba(30, 144, 255, 0.5);
-}
-
-.Base-notificationFilterDateTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.Base-notificationFilterDateTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  font-size: 13px;
-  background: rgba(30, 144, 255, 0.12);
-  border: 1px solid rgba(30, 144, 255, 0.35);
-  border-radius: 6px;
-  color: var(--color);
-}
-
-
-.Base-notificationFilterDateHint {
-  margin: 0;
-  font-size: 12px;
-  opacity: 0.55;
-}
-
-.Base-notificationFilterActions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding-top: 4px;
-  border-top: 1px solid rgba(127, 127, 127, 0.15);
-}
-
-.Base-notificationFilterResetBtn {
-  background: rgba(127, 127, 127, 0.10);
-  border: 1px solid #7f7f7f40;
-  color: var(--color);
-  cursor: pointer;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  user-select: none;
-}
-
-.Base-notificationFilterResetBtn:hover {
-  background: rgba(127, 127, 127, 0.14);
-}
-
-.Base-notificationFilterApplyBtn {
-  background: dodgerblue;
-  border: 1px solid dodgerblue;
-  color: #fff;
-  cursor: pointer;
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  user-select: none;
-}
-
-.Base-notificationFilterApplyBtn:hover {
-  background: #1a7de8;
-}
-
-/* --- Mobile layout tweaks (< 500px): smaller fonts + stacked header --- */
-@media (max-width: 500px) {
-  .Base-notificationOverlay {
-    align-items: stretch;
-    padding: 16px 8px;
-    padding-top: 48px;
-  }
-
-  .Base-notificationCard {
-    width: 100%;
-    max-height: calc(100vh - 32px);
-    border-radius: 10px;
-  }
-
-  .Base-notificationHeader {
-    position: relative;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 12px;
-  }
-
-  .Base-notificationTitle {
-    font-size: 18px;
-    padding-left: 0;
-  }
-
-  .Base-notificationHeaderActions {
-    width: 100%;
-    justify-content: flex-start;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .Base-notificationDeleteReadBtn,
-  .Base-notificationActionBtn {
-    flex: 1;
-    min-width: 0;
-    height: 36px;
-    padding: 0 10px;
-    font-size: 13px;
-    border-radius: 10px;
-  }
-
-  .Base-notificationClose {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 32px;
-    height: 32px;
-    font-size: 18px;
-    border-radius: 10px;
-    margin-left: 0;
-  }
-
-  .Base-notificationBody {
-    padding: 12px;
-  }
-
-  .Base-notificationBodyInner {
-    gap: 10px;
-  }
-
-  .Base-notificationItem {
-    padding: 10px;
-  }
-
-  .Base-notificationItemText {
-    font-size: 13px;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-  }
-
-  .Base-notificationItemMeta {
-    font-size: 11px;
-    margin-top: 8px;
-  }
-
-  .Base-notificationItemActions {
-    margin-top: 8px;
-  }
-
-  .Base-notificationToggleReadBtn {
-    height: 32px;
-    font-size: 12px;
-    padding: 0 10px;
-  }
-
-  .Base-notificationDeleteBtn {
-    width: 32px;
-    height: 32px;
-  }
-
-  .Base-notificationPagination {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-
-  .Base-notificationPaginationControls {
-    width: 100%;
-    justify-content: flex-start;
-  }
 }

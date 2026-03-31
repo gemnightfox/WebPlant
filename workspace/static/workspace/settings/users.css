@@ -38,6 +38,13 @@
   color: var(--color);
   font-weight: 500;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.WsSettings-memberEmailValue {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -48,8 +55,9 @@
   opacity: 0.45;
   font-weight: 400;
   font-size: 13px;
-  margin-left: 4px;
+  margin-left: 0;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .WsSettings-memberMeta {
@@ -232,9 +240,9 @@
   background: rgba(225, 17, 17, 0.1);
 }
 
-/* Slightly reduce right padding for the role dropdown to keep it tighter */
+/* Match .WsSettings-select chevron padding (see general_layout_forms.css) */
 .WsSettings-roleSelect {
-  padding-right: 2px;
+  padding-right: 36px;
   max-width: 160px;
   width: 160px;
   overflow: hidden;
@@ -413,7 +421,7 @@
 }
 
 /* Mobile: stack email above role on separate rows */
-@media (max-width: 500px) {
+@media (max-width: 900px) {
   .WsSettings-member:not(.WsSettings-member--invite) .WsSettings-memberEmail {
     flex-basis: 100%;
   }

@@ -413,7 +413,7 @@
 
   /* Mobile only: collapse the sidebar whenever the user navigates via a link inside it */
   function collapseSidebarOnMobile() {
-    if (window.innerWidth > 500) return;
+    if (window.innerWidth > 900) return;
     if (sidebar.classList.contains("is-collapsed")) return;
     sidebar.classList.add("is-collapsed");
     try { localStorage.setItem("base_sidebar_collapsed", "1"); } catch (_) {}

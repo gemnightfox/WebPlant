@@ -6,9 +6,10 @@
 {% block css %}<link rel="stylesheet" href="{% static 'project/dashboard/index.css' %}">{% endblock %}
 
 {% block content %}
-{% include 'project/dashboard/popup/add_group.html' %}
-{% include 'project/dashboard/popup/add_task.html' %}
-{% include 'project/dashboard/popup/edit_task.html' %}
+{% include 'group/popup/add_group.html' %}
+{% include 'group/popup/edit_group.html' %}
+{% include 'task/popup/add_task.html' %}
+{% include 'task/popup/edit_task.html' %}
 
 <div class="Dashboard{% if project.groups.all %} Dashboard--hasGroups{% endif %}" data-dashboard-path="{{ request.resolver_match.kwargs.project_id|default:'' }}" data-current-user="{{ request.user.email }}" data-workspace-owner="{{ project.workspace.owner.user.email }}">
   <header class="Dashboard-header">
@@ -38,7 +39,7 @@
                 <div class="Dashboard-menu">
                   <button type="button" class="Dashboard-btn Dashboard-menuItem Dashboard-editGroupNameBtn" data-group-id="{{ group.id }}">Edit name</button>
                   <button type="button" class="Dashboard-btn Dashboard-menuItem Dashboard-duplicateGroupBtn" data-group-id="{{ group.id }}" data-group-position="{{ group.position }}">Duplicate</button>
-                  <button type="button" class="Dashboard-btn Dashboard-deleteBtn Dashboard-menuItem Dashboard-deleteGroupBtn" data-group-id="{{ group.id }}">Delete group</button>
+                  <button type="button" class="Dashboard-btn Dashboard-deleteBtn Dashboard-menuItem Dashboard-menuItem--danger Dashboard-deleteGroupBtn" data-group-id="{{ group.id }}">Delete group</button>
                 </div>
               </div>
             </div>
@@ -60,7 +61,6 @@
                 data-task-deadline="{{ task.deadline.isoformat|default:'' }}"
                 data-task-group-id="{{ group.id }}"
                 data-task-add-reminder-url="{{ add_reminder_url }}"
-                {% for reminder in task.taskreminder_set.all %}{% if reminder.workspace_user.user == request.user %}data-task-reminder-id="{{ reminder.id }}" data-task-reminder-send-at="{{ reminder.send_at.isoformat }}" data-task-delete-reminder-url="{% url 'task:delete_reminder' reminder.id %}"{% endif %}{% endfor %}
               >
                 <input
                   type="checkbox"
@@ -119,12 +119,15 @@
 {% block js %}
 {% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="comments-{{ task.id }}" type="application/json">[{% for c in task.comments.all %}{"id":"{{ c.id }}","content":"{{ c.content|escapejs }}","added_by":"{{ c.added_by.email|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
 {% endfor %}{% endfor %}
+{% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="reminders-{{ task.id }}" type="application/json">[{% for r in task.taskreminder_set.all %}{% if r.workspace_user.user == request.user %}{"id":"{{ r.id }}","send_at":"{{ r.send_at.isoformat }}","delete_url":"{% url 'task:delete_reminder' r.id %}"},{% endif %}{% endfor %}]</script>
+{% endfor %}{% endfor %}
 <script id="workspace-projects-data" type="application/json">
 [{% for p in project.workspace.projects.all %}{"id":"{{ p.id }}","name":"{{ p.name|escapejs }}","groups":[{% for g in p.groups.all %}{"id":"{{ g.id }}","name":"{{ g.name|escapejs }}","position":{{ g.position }}}{% if not forloop.last %},{% endif %}{% endfor %}]}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>
-<script src="{% static 'project/dashboard/popup/add_group.js' %}"></script>
-<script src="{% static 'project/dashboard/popup/add_task.js' %}"></script>
-<script src="{% static 'project/dashboard/popup/edit_task.js' %}"></script>
+<script src="{% static 'group/popup/add_group.js' %}"></script>
+<script src="{% static 'group/popup/edit_group.js' %}"></script>
+<script src="{% static 'task/popup/add_task.js' %}"></script>
+<script src="{% static 'task/popup/edit_task.js' %}"></script>
 <script src="{% static 'project/dashboard/index.js' %}"></script>
 <script src="{% static 'project/dashboard/drag.js' %}"></script>
 {% endblock %}

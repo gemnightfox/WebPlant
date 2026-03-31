@@ -130,6 +130,14 @@
         .then(function (data) {
           if (data && data.status === "success") {
             card.classList.toggle("Dashboard-task--completed", wasChecked);
+            card.setAttribute("data-task-completed", wasChecked ? "true" : "false");
+            if (typeof data.position === "number") {
+              card.setAttribute("data-task-position", String(data.position));
+            }
+            if (wasChecked) {
+              var taskList = card.closest(".Dashboard-tasks");
+              if (taskList) taskList.appendChild(card);
+            }
           } else {
             checkbox.checked = !wasChecked;
             if (window.showAjaxError) window.showAjaxError(doToggle);

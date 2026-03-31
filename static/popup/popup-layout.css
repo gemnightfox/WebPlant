@@ -1,0 +1,355 @@
+/* --- Popup overlay and box --- */
+.Popup {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.Popup[hidden] {
+  display: none;
+}
+
+.Popup-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.Popup-box {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+}
+
+.Popup[data-size="large"] .Popup-box {
+  max-width: 780px;
+  padding: 32px;
+}
+
+#edit-task-popup .Popup-box {
+  height: 540px;
+  display: flex;
+  flex-direction: column;
+}
+
+#edit-task-popup .Popup-box:focus {
+  outline: none;
+}
+
+#edit-task-popup .Popup-formWrap {
+  flex: 1;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+#edit-task-popup .Popup-form {
+  flex: none;
+}
+
+#edit-task-popup .Popup-form.is-editing-name {
+  flex: 1;
+  min-height: 0;
+}
+
+#edit-task-popup .Popup-form.is-editing-name .Popup-field {
+  flex: 1;
+  min-height: 0;
+}
+
+#edit-task-popup .Popup-form.is-editing-name .TaskNameEditWrap:not([hidden]) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#edit-task-popup .Popup-form.is-editing-name .TaskNameEdit-input {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  padding-top: 14px;
+  padding-bottom: 12px;
+  line-height: 1.4;
+  overflow: auto;
+}
+
+#edit-task-popup .Popup-form.is-editing-name ~ #edit-task-comments-field {
+  display: none;
+}
+
+
+#edit-task-popup .Popup-mainCol {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#edit-task-comments-field {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+#add-task-popup .Popup-box {
+  max-width: 560px;
+}
+
+/* --- Pending invites (check workspace) popup: near top and wider so long names fit --- */
+#pending-invites-popup {
+  align-items: flex-start;
+  padding-top: 64px;
+}
+
+#pending-invites-popup .Popup-box {
+  max-width: 560px;
+}
+
+/* --- Form and actions --- */
+.Popup-title {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color);
+  padding-right: 36px;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .Popup-title {
+    font-size: 16px;
+  }
+}
+
+.Popup-form {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.Popup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.Popup-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color);
+}
+
+.Popup-field input,
+.Popup-field select,
+.Popup-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--color);
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.Popup-field input[type="checkbox"] {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  transition: none;
+}
+
+.Popup-field input:focus,
+.Popup-field select:focus,
+.Popup-field textarea:focus {
+  outline: none;
+  border-color: dodgerblue;
+  box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.5);
+}
+
+.Popup-help {
+  font-size: 12px;
+  color: rgba(128, 128, 128, 0.9);
+}
+
+.Popup-error {
+  font-size: 12px;
+  color: #f97373;
+}
+
+.Popup-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--color);
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.Popup-input::placeholder {
+  color: rgba(128, 128, 128, 0.6);
+}
+
+.Popup-input:focus {
+  outline: none;
+  border-color: dodgerblue;
+}
+
+.Popup-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.Popup-bodyLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.Popup-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(127, 127, 127, 0.07);
+  border-radius: 10px;
+  padding: 14px;
+  flex-shrink: 0;
+  width: 200px;
+}
+
+/* In large popups (padding: 32px), panel bleeds to the right and bottom edges */
+.Popup[data-size="large"] .Popup-formWrap {
+  margin-bottom: -32px;
+}
+
+.Popup[data-size="large"] .Popup-panel {
+  align-self: stretch;
+  margin-right: -32px;
+  padding-right: 14px;
+  padding-bottom: 44px;
+  border-radius: 10px 0 0 10px;
+}
+
+.Popup-panelDivider {
+  border: none;
+  border-top: 1px solid rgba(127, 127, 127, 0.2);
+  margin: 4px 0;
+}
+
+.Popup-panelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.Popup-panelRow:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.Popup-panelLabel {
+  font-size: 13px;
+  color: var(--color);
+}
+
+.Popup-panelAdd {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color);
+  padding: 0;
+}
+
+.Popup-deadlineDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 6px 8px 16px;
+  gap: 6px;
+}
+
+.Popup-deadlineDisplay[hidden] {
+  display: none;
+}
+
+.Popup-deadlineDisplay:hover {
+  background: rgba(30, 144, 255, 0.1);
+  border-radius: 6px;
+}
+
+.Popup-deadlineText {
+  font-size: 13px;
+  color: var(--color);
+  flex: 1;
+  min-width: 0;
+}
+
+.Popup-deadlineRemoveBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color);
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s;
+  flex-shrink: 0;
+}
+
+.Popup-deadlineRemoveBtn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.Popup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.Popup-actions--split {
+  justify-content: space-between;
+}

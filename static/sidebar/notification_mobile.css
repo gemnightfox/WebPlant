@@ -1,0 +1,108 @@
+/* ==========================================================================
+  Notification overlay — mobile layout tweaks (< 900px)
+   Smaller fonts, stacked header, tighter spacing.
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  .Base-notificationOverlay {
+    align-items: stretch;
+    padding: 16px 8px;
+    padding-top: 48px;
+  }
+
+  .Base-notificationCard {
+    width: 100%;
+    max-height: calc(100vh - 32px);
+    border-radius: 10px;
+  }
+
+  .Base-notificationHeader {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .Base-notificationTitle {
+    font-size: 18px;
+    padding-left: 0;
+  }
+
+  .Base-notificationHeaderActions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .Base-notificationDeleteReadBtn,
+  .Base-notificationActionBtn {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 10px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .Base-notificationClose {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    border-radius: 10px;
+    margin-left: 0;
+  }
+
+  .Base-notificationBody {
+    padding: 12px;
+  }
+
+  .Base-notificationBodyInner {
+    gap: 10px;
+  }
+
+  .Base-notificationItem {
+    padding: 10px;
+  }
+
+  .Base-notificationItemText {
+    font-size: 13px;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .Base-notificationItemMeta {
+    font-size: 11px;
+    margin-top: 8px;
+  }
+
+  .Base-notificationItemActions {
+    margin-top: 8px;
+  }
+
+  .Base-notificationToggleReadBtn {
+    height: 32px;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+
+  .Base-notificationDeleteBtn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .Base-notificationPagination {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .Base-notificationPaginationControls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
