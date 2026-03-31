@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{# Shown after signup: verification email sent. Uses account/base.css + verification_sent.css. #}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'account/base.css' %}">
+    <link rel="stylesheet" href="{% static 'account/verification_sent.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="Account-card Account-card--verificationSent">
+    <a href="{% url 'home:home' %}" class="Account-back">← Back to home</a>
+    <h1 class="Account-title">Verify your email</h1>
+
+    <p class="Account-text">
+        We've sent you an email to verify your address. Click the link in the email to complete your registration.
+    </p>
+    <p class="Account-text Account-text--muted">
+        If you don't see the email, check your spam folder.
+    </p>
+
+    <div class="Account-footer">
+        <span class="Account-footer-text">Already verified?</span>
+        <a class="Account-footer-link" href="{% url 'account_login' %}">Log in</a>
+    </div>
+</div>
+{% endblock %}

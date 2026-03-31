@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+{# Landing page. Styles: static/home/home.css. #}
+
+{% block css %}<link rel="stylesheet" href="{% static 'home/home.css' %}">{% endblock %}
+
+{% block content %}
+<div class="Landing">
+
+    <!-- Nav -->
+    <nav class="Landing-nav">
+        <span class="Landing-logo">WebPlant</span>
+        <div class="Landing-navActions">
+            {% if user.is_authenticated %}
+                <a class="Landing-btn Landing-btn--primary" href="{% url 'accounts:dashboard' %}">Go to dashboard</a>
+            {% else %}
+                <a class="Landing-btn Landing-btn--ghost" href="{% url 'account_login' %}">Log in</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Steps -->
+    <section class="Landing-steps">
+        <div class="Landing-stepsHeader">
+<h2 class="Landing-stepsTitle">Simple by design. WebPlant.</h2>
+            <p class="Landing-stepsDesc">Add tasks seamlessly, stay organized, and get things done — without the clutter.</p>
+        </div>
+        <div class="Landing-stepsList">
+            <div class="Landing-step">
+                <span class="Landing-stepNum">1</span>
+                <h3>Create an account</h3>
+                <p>Sign up and you're in. No setup required.</p>
+            </div>
+            <span class="Landing-stepArrow">&#8594;</span>
+            <div class="Landing-step">
+                <span class="Landing-stepNum">2</span>
+                <h3>Set up a workspace &amp; project</h3>
+                <p>Give your team a home and organize work into projects.</p>
+            </div>
+            <span class="Landing-stepArrow">&#8594;</span>
+            <div class="Landing-step Landing-step--optional">
+                <span class="Landing-stepNum">3</span>
+                <h3>Customize features</h3>
+                <p>Enable or disable features to keep things as simple as you need.</p>
+            </div>
+            <span class="Landing-stepArrow">&#8594;</span>
+            <div class="Landing-step">
+                <span class="Landing-stepNum">4</span>
+                <h3>Create your first task</h3>
+                <p>Add a task, assign it, and get going.</p>
+            </div>
+        </div>
+        {% if not user.is_authenticated %}
+            <a class="Landing-btn Landing-btn--primary Landing-btn--lg" href="{% url 'account_signup' %}">Get started free</a>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}

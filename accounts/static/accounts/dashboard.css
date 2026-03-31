@@ -1,0 +1,484 @@
+/* ==========================================================================
+   Account settings (user preferences and account info)
+   Theme toggle, email/password actions. Used by accounts/dashboard.html.
+   Popups (email, reset password) are in accounts app; popup.css loaded from base.
+   ========================================================================== */
+
+body:has(.AccSettings) {
+  overflow-x: hidden;
+}
+
+.AccSettings {
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: 16px;
+  overflow-x: hidden;
+}
+
+.AccSettings-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.AccSettings-email {
+  font-size: 18px;
+  color: var(--color);
+  opacity: 0.9;
+  flex: 1;
+  min-width: 0;
+  margin-right: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.AccSettings-logoutForm {
+  display: inline-block;
+  margin: 0;
+}
+
+.AccSettings-logout {
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.AccSettings-logout:hover {
+  background: #b91c1c;
+}
+
+.AccSettings-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.AccSettings-section {
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.AccSettings-sectionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  padding: 16px 20px;
+  margin: 0;
+  background: rgba(127, 127, 127, 0.06);
+  border-bottom: 1px solid rgba(127, 127, 127, 0.15);
+  color: var(--color);
+}
+
+.AccSettings-sectionContent {
+  padding: 20px;
+}
+
+/* --- Preferences (theme toggle) --- */
+.AccSettings-preferenceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.AccSettings-preferenceLabel {
+  font-weight: 500;
+  color: var(--color);
+  min-width: 100px;
+}
+
+.AccSettings-themeChooser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.AccSettings-preferenceRow--notifications {
+  margin-top: 16px;
+}
+
+.AccSettings-preferenceRow--workspaceInvites {
+  margin-top: 16px;
+}
+
+.AccSettings-tempDisabledRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(127, 127, 127, 0.2);
+}
+
+.AccSettings-tempDisabledText {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color);
+  opacity: 0.9;
+}
+
+.AccSettings-notificationChooser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.AccSettings-tempDisableRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(127, 127, 127, 0.2);
+  justify-content: space-between;
+}
+
+/* Honor the HTML hidden attribute even when components use flex layouts */
+[hidden] {
+  display: none !important;
+}
+
+.AccSettings-tempDisableActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.AccSettings-tempDisableSelect {
+  padding: 6px 10px;
+  font-size: 14px;
+  color: var(--color);
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Blue toggle switch for notifications and workspace invites (Uiverse.io by arghyaBiswasDev).
+   Parent selector ensures we beat theme switch rules that come later. */
+.AccSettings-notificationChooser .switch--notifications,
+.AccSettings-workspaceInvitesChooser .switch--notifications {
+  font-size: 17px;
+  position: relative;
+  display: inline-block;
+  width: 3.5em;
+  height: 2em;
+}
+
+.AccSettings-notificationChooser .switch--notifications input,
+.AccSettings-workspaceInvitesChooser .switch--notifications input {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.AccSettings-notificationChooser .switch--notifications .slider,
+.AccSettings-workspaceInvitesChooser .switch--notifications .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #adb5bd;
+  border: 1px solid #adb5bd;
+  transition: 0.4s;
+  border-radius: 30px;
+}
+
+.AccSettings-notificationChooser .switch--notifications .slider:before,
+.AccSettings-workspaceInvitesChooser .switch--notifications .slider:before {
+  position: absolute;
+  content: "";
+  height: 1.4em;
+  width: 1.4em;
+  border-radius: 20px;
+  left: 0.27em;
+  bottom: 0.25em;
+  background-color: #fff;
+  box-shadow: none;
+  transition: 0.4s;
+}
+
+.AccSettings-notificationChooser .switch--notifications input:checked + .slider,
+.AccSettings-workspaceInvitesChooser .switch--notifications input:checked + .slider {
+  background-color: #007bff;
+  border: 1px solid #007bff;
+}
+
+.AccSettings-notificationChooser .switch--notifications input:focus + .slider,
+.AccSettings-workspaceInvitesChooser .switch--notifications input:focus + .slider {
+  box-shadow: 0 0 1px #007bff;
+}
+
+.AccSettings-notificationChooser .switch--notifications input:checked + .slider:before,
+.AccSettings-workspaceInvitesChooser .switch--notifications input:checked + .slider:before {
+  transform: translateX(1.4em);
+  background-color: #fff;
+  box-shadow: none;
+}
+
+/* Theme switch (Uiverse.io by alexruix) */
+.switch {
+  font-size: 17px;
+  position: relative;
+  display: inline-block;
+  width: 3.5em;
+  height: 2em;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  --background: #28096b;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--background);
+  transition: .5s;
+  border-radius: 30px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 1.4em;
+  width: 1.4em;
+  border-radius: 50%;
+  left: 10%;
+  bottom: 15%;
+  box-shadow: inset 8px -4px 0px 0px #fff000;
+  background: var(--background);
+  transition: .5s;
+}
+
+.switch input:checked + .slider {
+  background-color: #522ba7;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(100%);
+  box-shadow: inset 15px -4px 0px 15px #fff000;
+}
+
+/* --- Account information (email, password actions) --- */
+.AccSettings-accountRow {
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.15);
+}
+
+.AccSettings-accountRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.AccSettings-accountRow:first-child {
+  padding-top: 0;
+}
+
+.AccSettings-accountRowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.AccSettings-accountTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.AccSettings-accountLabel {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color);
+}
+
+.AccSettings-accountValue {
+  font-size: 15px;
+  color: var(--color);
+}
+
+.AccSettings-accountValue--email {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.AccSettings-accountAction {
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  background: var(--secondary-background);
+  color: var(--color);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.AccSettings-accountAction--inline {
+  margin-left: 0;
+}
+
+.AccSettings-accountAction:hover:not(:disabled) {
+  background: rgba(127, 127, 127, 0.1);
+}
+
+.AccSettings-accountAction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.AccSettings-accountAction--danger {
+  border-color: rgba(225, 17, 17, 0.55);
+  background: rgba(225, 17, 17, 0.12);
+  color: #dc2626;
+}
+
+.AccSettings-accountAction--danger:hover:not(:disabled) {
+  background: rgba(229, 23, 23, 0.22);
+}
+
+.theme-light .AccSettings-accountAction--danger {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+.theme-light .AccSettings-accountAction--danger:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.18);
+}
+
+.AccSettings-accountValue--muted {
+  opacity: 0.85;
+}
+
+.AccSettings-accountRow--danger {
+  margin-top: 4px;
+  padding-top: 14px;
+}
+
+/* --- Mobile tweaks: avoid horizontal scroll & tighten UI --- */
+@media (max-width: 640px) {
+  .AccSettings {
+    padding-inline: 12px;
+  }
+
+  .AccSettings-header {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .AccSettings-email {
+    font-size: 15.2px;
+    margin-right: 0;
+  }
+
+  .AccSettings-sectionTitle {
+    font-size: 17px;
+    padding: 12px 14px;
+  }
+
+  .AccSettings-sectionContent {
+    padding: 14px;
+  }
+
+  .AccSettings-preferenceRow,
+  .AccSettings-accountTitleRow {
+    gap: 10px;
+  }
+
+  .AccSettings-preferenceLabel,
+  .AccSettings-accountLabel {
+    font-size: 16px;
+  }
+
+  .AccSettings-accountValue {
+    font-size: 14px;
+  }
+
+  .AccSettings-themeChooser,
+  .AccSettings-notificationChooser,
+  .AccSettings-workspaceInvitesChooser {
+    gap: 8px;
+  }
+
+  .AccSettings-tempDisabledRow {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  /* Slightly smaller switches on mobile */
+  .switch,
+  .AccSettings-notificationChooser .switch--notifications,
+  .AccSettings-workspaceInvitesChooser .switch--notifications {
+    font-size: 15px;
+    width: 3em;
+    height: 1.7em;
+  }
+
+  .slider:before,
+  .AccSettings-notificationChooser .switch--notifications .slider:before,
+  .AccSettings-workspaceInvitesChooser .switch--notifications .slider:before {
+    height: 1.2em;
+    width: 1.2em;
+  }
+
+}
+
+@media (max-width: 500px) {
+  /* Keep label + toggle on one line; shrink label text to fit narrow screens */
+  .AccSettings-preferenceRow {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .AccSettings-preferenceLabel {
+    font-size: 14.4px;
+    min-width: 0;
+  }
+
+  .AccSettings-accountLabel {
+    font-size: 14px;
+  }
+
+  /* Recalculate checked translate so circle doesn't touch the right edge:
+     translateX = switch-width(3em) - circle(1.2em) - left-gap(0.27em) - right-gap(0.27em) = 1.26em */
+  .AccSettings-notificationChooser .switch--notifications input:checked + .slider:before,
+  .AccSettings-workspaceInvitesChooser .switch--notifications input:checked + .slider:before {
+    transform: translateX(1.26em);
+  }
+}

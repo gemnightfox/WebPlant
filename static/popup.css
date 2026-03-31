@@ -1,0 +1,1300 @@
+/* ==========================================================================
+   Popup/Modal (reusable)
+   Use with templates/popup.html (or child templates). Open via data-popup="POPUP_ID"
+   or window.openPopup(id). Close via .Popup-close, Escape. See popup.js.
+   ========================================================================== */
+
+/* --- Popup overlay and box --- */
+.Popup {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.Popup[hidden] {
+  display: none;
+}
+
+.Popup-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.Popup-box {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+}
+
+.Popup[data-size="large"] .Popup-box {
+  max-width: 780px;
+  padding: 32px;
+}
+
+#edit-task-popup .Popup-box {
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+#edit-task-popup .Popup-formWrap {
+  flex: 1;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+#edit-task-comments-field {
+  margin-top: auto;
+}
+
+#add-task-popup .Popup-box {
+  max-width: 560px;
+}
+
+/* --- Pending invites (check workspace) popup: near top and wider so long names fit --- */
+#pending-invites-popup {
+  align-items: flex-start;
+  padding-top: 64px;
+}
+
+#pending-invites-popup .Popup-box {
+  max-width: 560px;
+}
+
+/* --- Form and actions --- */
+.Popup-title {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color);
+  padding-right: 36px;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+@media (max-width: 500px) {
+  .Popup-title {
+    font-size: 16px;
+  }
+}
+
+.Popup-form {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.Popup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.Popup-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color);
+}
+
+.Popup-field input,
+.Popup-field select,
+.Popup-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--color);
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.Popup-field input[type="checkbox"] {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  transition: none;
+}
+
+.Popup-field input:focus,
+.Popup-field select:focus,
+.Popup-field textarea:focus {
+  outline: none;
+  border-color: dodgerblue;
+  box-shadow: 0 0 0 1px rgba(30, 144, 255, 0.5);
+}
+
+.Popup-help {
+  font-size: 12px;
+  color: rgba(128, 128, 128, 0.9);
+}
+
+.Popup-error {
+  font-size: 12px;
+  color: #f97373;
+}
+
+.Popup-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--color);
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.Popup-input::placeholder {
+  color: rgba(128, 128, 128, 0.6);
+}
+
+.Popup-input:focus {
+  outline: none;
+  border-color: dodgerblue;
+}
+
+.Popup-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.Popup-bodyLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.Popup-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(127, 127, 127, 0.07);
+  border-radius: 10px;
+  padding: 14px;
+  flex-shrink: 0;
+  width: 200px;
+}
+
+/* In large popups (padding: 32px), panel bleeds to the right and bottom edges */
+.Popup[data-size="large"] .Popup-formWrap {
+  margin-bottom: -32px;
+}
+
+.Popup[data-size="large"] .Popup-panel {
+  align-self: stretch;
+  margin-right: -32px;
+  padding-right: 14px;
+  padding-bottom: 44px;  /* 12px + 32px box padding */
+  border-radius: 10px 0 0 10px;
+}
+
+.Popup-panelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.Popup-panelRow:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.Popup-panelLabel {
+  font-size: 13px;
+  color: var(--color);
+}
+
+.Popup-panelAdd {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color);
+  padding: 0;
+}
+
+.Popup-deadlineDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px 4px 6px;
+  gap: 6px;
+}
+
+.Popup-deadlineDisplay[hidden] {
+  display: none;
+}
+
+.Popup-deadlineText {
+  font-size: 13px;
+  color: var(--color);
+  flex: 1;
+  min-width: 0;
+}
+
+.Popup-deadlineRemoveBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color);
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s;
+  flex-shrink: 0;
+}
+
+.Popup-deadlineRemoveBtn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.Popup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.Popup-actions--split {
+  justify-content: space-between;
+}
+
+/* --- Inline edit-name pattern (readonly input + Edit button + Save button) --- */
+.Popup-nameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  position: relative;
+  /* Reserve space for the Save button so it never shifts the input when it appears */
+  padding-right: 72px;
+}
+
+.Popup-nameWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.Popup-input--withEditBtn {
+  padding-right: 56px;
+  width: 100%;
+  max-width: none;
+}
+
+.Popup-input--withEditBtn[readonly] {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.Popup-input--withEditBtn.is-editing {
+  opacity: 1;
+  border-color: rgba(59, 130, 246, 0.7);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.Popup-editNameBtn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  background: rgba(59, 130, 246, 0.18);
+  border: 1px solid rgba(59, 130, 246, 0.7);
+  color: var(--color);
+  cursor: pointer;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+
+.Popup-editNameBtn[hidden] {
+  display: none;
+}
+
+.Popup-editNameBtn:hover {
+  background: rgba(59, 130, 246, 0.28);
+}
+
+.theme-light .Popup-editNameBtn {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+}
+.theme-light .Popup-editNameBtn:hover {
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.Popup-saveNameBtn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.Popup-saveNameBtn:hover {
+  transform: translateY(-50%);
+}
+
+.Popup-saveNameBtn[hidden] {
+  display: none;
+}
+
+.Popup-submit {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: dodgerblue;
+  color: #fff;
+}
+
+.Popup-submit:hover {
+  background: #1a7de8;
+}
+
+.Popup-dangerBtn {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: transparent;
+  color: #ef4444;
+}
+
+.Popup-dangerBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* --- "..." options menu (beside close button) --- */
+.Popup-menuWrap {
+  position: absolute;
+  top: 16px;
+  right: 52px; /* 16px right-offset + 32px close btn + 4px gap */
+}
+
+.Popup-menuBtn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color);
+  cursor: pointer;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-family: inherit;
+  letter-spacing: 2px;
+  box-sizing: border-box;
+}
+
+.Popup-menuBtn:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.Popup-menu {
+  position: fixed;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+  z-index: 10;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.Popup-menu[hidden] {
+  display: none;
+}
+
+.Popup-menuItem {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.Popup-menuItem:hover {
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.Popup-menuItem--danger {
+  color: var(--color);
+}
+
+.Popup-menuItem--danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.Popup-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color);
+  cursor: pointer;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.Popup-closeIcon {
+  display: block;
+}
+
+.Popup-close:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.Popup-close:focus {
+  outline: none;
+}
+
+.Popup-close:focus-visible {
+  box-shadow: 0 0 0 2px var(--secondary-background, #fff), 0 0 0 4px dodgerblue;
+}
+
+.Popup-formWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.Popup-formWrap[hidden] {
+  display: none;
+}
+
+.Popup-mainCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.Popup-success {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.Popup-success[hidden] {
+  display: none;
+}
+
+.Popup-successText {
+  margin: 0;
+  font-size: 16px;
+  color: var(--color);
+  line-height: 1.5;
+}
+
+/* --- Permission toggles (e.g. workspace roles) --- */
+.Popup-toggleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.Popup-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.Popup-toggleLabel {
+  font-size: 14px;
+  color: var(--color);
+}
+
+.Popup-toggle input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 2px solid rgba(127, 127, 127, 0.45);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.Popup-toggle input[type="checkbox"]:checked {
+  background: dodgerblue;
+  border-color: dodgerblue;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px;
+}
+
+/* --- Optional label hint --- */
+.Popup-labelOptional {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(128, 128, 128, 0.75);
+}
+
+/* --- Deadline field header --- */
+.Popup-deadlineHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.Popup-deadlineHeader label {
+  flex: 1;
+  margin: 0;
+}
+
+.Popup-addDeadlineBtn,
+.Popup-removeDeadlineBtn {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.12s;
+}
+
+.Popup-addDeadlineBtn {
+  color: dodgerblue;
+}
+
+.Popup-addDeadlineBtn:hover {
+  background: rgba(30, 144, 255, 0.1);
+}
+
+.Popup-removeDeadlineBtn {
+  color: rgba(128, 128, 128, 0.75);
+}
+
+.Popup-removeDeadlineBtn:hover {
+  background: rgba(128, 128, 128, 0.12);
+}
+
+/* --- Deadline floating calendar picker --- */
+#edit-task-deadline-picker {
+  position: fixed;
+  z-index: 1100;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  padding: 16px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#edit-task-deadline-picker[hidden] {
+  display: none;
+}
+
+#edit-task-deadline-picker .Base-notifCalendar {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+#edit-task-deadline-picker .Base-notifCalGrid {
+  gap: 4px;
+}
+
+#edit-task-deadline-picker .Base-notifCalDay {
+  font-size: 15px;
+  padding: 7px 0;
+  border-radius: 7px;
+}
+
+#edit-task-deadline-picker .Base-notifCalDayName {
+  font-size: 12px;
+  padding-bottom: 6px;
+}
+
+#edit-task-deadline-picker .Base-notifCalMonthYear {
+  font-size: 15px;
+}
+
+#edit-task-deadline-picker .Base-notifCalNav {
+  font-size: 28px;
+}
+
+#edit-task-deadline-picker .DeadlinePicker-clearBtn {
+  width: 100%;
+  padding: 6px;
+}
+
+/* --- Deadline picker (legacy layout classes) --- */
+.DeadlinePicker {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.DeadlinePicker-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.DeadlinePicker-dateInput {
+  width: 100%;
+}
+
+/* --- Calendar picker (inline month grid) --- */
+/* --- Date picker (DD / Mon / YYYY spinners) --- */
+.DatePicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.DatePicker-part {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.DatePicker-val {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color);
+  text-align: center;
+  line-height: 1.6;
+  min-width: 2ch;
+}
+
+.DatePicker-sep {
+  font-size: 16px;
+  color: rgba(128, 128, 128, 0.4);
+  align-self: center;
+  margin-bottom: 1px;
+}
+
+.DatePicker-btn {
+  background: rgba(127, 127, 127, 0.07);
+  border: none;
+  color: var(--color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: inherit;
+  opacity: 0.55;
+  transition: opacity 0.1s, background 0.1s;
+}
+.DatePicker-btn:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.16);
+}
+.DatePicker-btn:active {
+  background: rgba(127, 127, 127, 0.26);
+}
+.DatePicker-btn--double {
+  opacity: 0.3;
+}
+
+.DeadlinePicker-timeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.DeadlinePicker-colon {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color);
+  line-height: 1;
+}
+
+.DeadlinePicker-clearBtn {
+  align-self: center;
+  background: transparent;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  color: var(--color);
+  font-size: 13px;
+  padding: 4px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+.DeadlinePicker-clearBtn:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+/* --- Clock spinner (Apple drum style) --- */
+.ClockSpinner {
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.ClockSpinner-track {
+  width: 54px;
+  height: 108px; /* 3 × 36px item rows */
+  overflow: hidden;
+  position: relative;
+  border-radius: 10px;
+  background: var(--background);
+  cursor: ns-resize;
+}
+
+.ClockSpinner-track::before,
+.ClockSpinner-track::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 24px;
+  z-index: 2;
+  pointer-events: none;
+}
+.ClockSpinner-track::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--background) 0%, transparent 100%);
+}
+.ClockSpinner-track::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--background) 0%, transparent 100%);
+}
+
+.ClockSpinner-selector {
+  position: absolute;
+  top: 36px; /* 1 × item height */
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: rgba(127, 127, 127, 0.09);
+  border-top: 1px solid rgba(127, 127, 127, 0.18);
+  border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Drag active on spinner */
+.ClockSpinner-isDragging,
+.ClockSpinner-isDragging * {
+  cursor: ns-resize !important;
+  user-select: none !important;
+}
+
+.ClockSpinner-drum {
+  display: flex;
+  flex-direction: column;
+}
+
+.ClockSpinner-item {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16.8px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: var(--color);
+  opacity: 0.2;
+  flex-shrink: 0;
+}
+.ClockSpinner-item.is-adjacent {
+  opacity: 0.5;
+}
+.ClockSpinner-item.is-selected {
+  opacity: 1;
+  font-weight: 700;
+}
+
+/* --- Task comments --- */
+.TaskComments {
+  list-style: none;
+  margin: 0 0 10px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.TaskComment {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--background);
+  border: 1px solid rgba(127, 127, 127, 0.18);
+}
+
+.TaskComment-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.TaskComment-author {
+  font-size: 11px;
+  color: rgba(128, 128, 128, 0.7);
+  display: block;
+}
+
+.TaskComment-content {
+  font-size: 15px;
+  color: var(--color);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.TaskComment-editInput {
+  resize: none;
+  overflow: hidden;
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+.TaskComment-editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.TaskComment-editActions[hidden] {
+  display: none;
+}
+
+.TaskComment-actions {
+  position: relative;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.TaskComment-menuBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  padding: 6px 8px;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--color);
+  opacity: 0.9;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+.TaskComment-menuBtn:hover,
+.TaskComment-actions--open .TaskComment-menuBtn {
+  background: rgba(127, 127, 127, 0.22);
+  opacity: 1;
+}
+
+.TaskComment-menu {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 4px;
+  min-width: 110px;
+  background: var(--background, #101010);
+  border-radius: 8px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  padding: 4px;
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  z-index: 200;
+}
+.TaskComment-actions--open .TaskComment-menu {
+  display: flex;
+}
+
+.TaskComment-menuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  color: var(--color);
+}
+.TaskComment-menuItem:hover {
+  background: rgba(127, 127, 127, 0.15);
+}
+.TaskComment-menuItem + .TaskComment-menuItem {
+  margin-top: 2px;
+}
+.TaskComment-menuItem--danger {
+  color: #ef4444;
+}
+.TaskComment-menuItem--danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.TaskComment-addRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.TaskComment-input {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  overflow: hidden;
+  min-height: 44px;
+  box-sizing: border-box;
+  line-height: 24px;
+}
+
+.TaskComment-addBtn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: dodgerblue;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.12s, background 0.12s;
+}
+
+.TaskComment-addBtn:hover {
+  opacity: 1;
+  background: rgba(30, 144, 255, 0.1);
+}
+
+/* --- Pending invites list --- */
+.Popup-invitesWrap {
+  min-height: 60px;
+}
+
+.Popup-invitesLoading,
+.Popup-invitesEmpty {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color);
+  opacity: 0.85;
+}
+
+.Popup-invitesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.Popup-invitesItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--background);
+  border: 1px solid rgba(127, 127, 127, 0.2);
+  border-radius: 8px;
+}
+
+.Popup-invitesName {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  word-break: break-word;
+}
+
+.Popup-invitesActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.Popup-invitesBtn {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.Popup-invitesBtn--accept {
+  background: dodgerblue;
+  color: #fff;
+}
+
+.Popup-invitesBtn--accept:hover {
+  background: #1a7de8;
+}
+
+.Popup-invitesBtn--reject {
+  background: rgba(127, 127, 127, 0.2);
+  color: var(--color);
+}
+
+.Popup-invitesBtn--reject:hover {
+  background: rgba(127, 127, 127, 0.35);
+}
+
+.Popup-invitesBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Task name click-to-edit --- */
+.Popup-title:empty {
+  display: none;
+}
+
+.TaskNameDisplay {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: break-word;
+  white-space: pre-wrap;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 6px 8px;
+  transition: background 0.12s;
+  outline: none;
+}
+
+.TaskNameDisplay:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.theme-light .TaskNameDisplay:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.TaskNameDisplay:focus-visible {
+  box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.5);
+}
+
+.TaskNameEditWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.TaskNameEditWrap[hidden] {
+  display: none;
+}
+
+.TaskNameDisplay[hidden] {
+  display: none;
+}
+
+.TaskNameEdit-input {
+  width: 100%;
+  resize: none;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.TaskNameEdit-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.TaskNameEdit-error {
+  flex: 1;
+  text-align: left;
+}
+
+.Popup-cancelBtn {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(127, 127, 127, 0.4);
+  background: transparent;
+  color: var(--color);
+}
+
+.Popup-cancelBtn:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+/* --- Reminder floating picker --- */
+#edit-task-reminder-picker {
+  position: fixed;
+  z-index: 1100;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  padding: 16px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#edit-task-reminder-picker[hidden] {
+  display: none;
+}
+
+#edit-task-reminder-picker .Base-notifCalendar {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+#edit-task-reminder-picker .Base-notifCalGrid {
+  gap: 4px;
+}
+
+#edit-task-reminder-picker .Base-notifCalDay {
+  font-size: 15px;
+  padding: 7px 0;
+  border-radius: 7px;
+}
+
+#edit-task-reminder-picker .Base-notifCalDayName {
+  font-size: 12px;
+  padding-bottom: 6px;
+}
+
+#edit-task-reminder-picker .Base-notifCalMonthYear {
+  font-size: 15px;
+}
+
+#edit-task-reminder-picker .Base-notifCalNav {
+  font-size: 28px;
+}
+
+.ReminderPicker-timeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ReminderPicker-timeLabel {
+  font-size: 13px;
+  color: var(--color);
+  flex-shrink: 0;
+}
+
+.ReminderPicker-timeInput {
+  flex: 1;
+  min-width: 0;
+}

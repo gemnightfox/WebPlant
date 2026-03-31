@@ -1,0 +1,26 @@
+{% extends 'popup.html' %}
+{# Popup: pending workspace invites. Fetches list on open; Accept/Reject POST via popup.js. #}
+
+{% load static %}
+
+{% block popup_id %}pending-invites-popup{% endblock %}
+{% block popup_title_id %}pending-invites-popup-title{% endblock %}
+{% block popup_title_id_h2 %}pending-invites-popup-title{% endblock %}
+{% block popup_title %}Pending invites{% endblock %}
+
+{% block popup_extra_attrs %}
+  data-check-url="{% url 'workspace:check_invites' %}"
+  data-check-count-url="{% url 'workspace:check_invites_count' %}"
+  data-accept-prefix="{% url 'workspace:accept_invite' workspace_id='00000000-0000-0000-0000-000000000000' %}"
+  data-reject-prefix="{% url 'workspace:reject_invite' workspace_id='00000000-0000-0000-0000-000000000000' %}"
+  data-workspace-settings-prefix="{% url 'workspace:settings' workspace_id='00000000-0000-0000-0000-000000000000' %}"
+{% endblock %}
+
+{% block popup_content %}
+  {% csrf_token %}
+  <div class="Popup-invitesWrap">
+    <p class="Popup-invitesLoading" data-role="invites-loading">Loading…</p>
+    <p class="Popup-invitesEmpty" data-role="invites-empty" hidden>You have no pending workspace invites.</p>
+    <ul class="Popup-invitesList" data-role="invites-list" hidden></ul>
+  </div>
+{% endblock %}

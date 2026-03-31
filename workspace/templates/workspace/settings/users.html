@@ -1,0 +1,131 @@
+{# Workspace settings – users: members list and add user. Included from workspace/settings/index.html. Uses add_workspace_users endpoint. #}
+{% load static %}
+<section class="WsSettings-section WsSettings-users">
+  <div class="WsSettings-usersHeader">
+    <h2 class="WsSettings-sectionTitle">Members</h2>
+    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_add_users %}
+      <div class="WsSettings-actions">
+        <button
+          type="button"
+          class="WsSettings-btn WsSettings-btnPrimary"
+          id="ws-show-invite-row"
+        >
+          Invite user
+        </button>
+      </div>
+    {% endif %}
+  </div>
+  <ul
+    class="WsSettings-memberList"
+    aria-label="Current workspace members"
+    data-role-update-url-base="/workspace/assign-role-to-user/{{ workspace.id }}/"
+  >
+    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_add_users %}
+      <li
+        class="WsSettings-member WsSettings-member--pending WsSettings-member--invite"
+        id="ws-invite-row"
+        hidden
+      >
+        <form
+          method="post"
+          class="WsSettings-form WsSettings-form--inline"
+          id="ws-add-user-form"
+          autocomplete="off"
+          data-url-base="/workspace/add-users/{{ workspace.id }}/"
+        >
+          {% csrf_token %}
+          <div class="WsSettings-memberCard">
+            <span class="WsSettings-memberEmail">
+              <input
+                type="email"
+                name="email"
+                id="id_add_user_email"
+                class="WsSettings-input"
+                maxlength="254"
+                required
+                placeholder="user@example.com"
+                aria-label="Invite user email"
+              >
+            </span>
+            <span class="WsSettings-inviteActions">
+              <button type="submit" class="WsSettings-btn WsSettings-btnPrimary">
+                Invite
+              </button>
+            </span>
+            <span class="WsSettings-memberMeta">
+              <select
+                name="role"
+                id="id_add_user_role"
+                class="WsSettings-select WsSettings-roleSelect"
+                aria-label="Invite user role"
+              >
+                {% for role in workspace.roles.all %}
+                  <option value="{{ role.id }}"{% if role.id == workspace.default_role_id %} selected{% endif %}>{{ role.name }}</option>
+                {% endfor %}
+              </select>
+            </span>
+            <small class="WsSettings-error" data-role="add-user-error" hidden></small>
+          </div>
+        </form>
+      </li>
+    {% endif %}
+    {% for wu in all_workspace_users %}
+      <li
+        class="WsSettings-member{% if not wu.is_active %} WsSettings-member--pending{% endif %}"
+        data-user-id="{{ wu.user.id }}"
+        data-workspace-user-id="{{ wu.pk }}"
+      >
+        <span class="WsSettings-memberEmail">
+          {{ wu.user.email|default:wu.user.get_username }}
+          {% if wu == workspace.owner %}<span class="WsSettings-memberOwnerBadge">(owner)</span>{% endif %}
+        </span>
+        <span class="WsSettings-memberMeta">
+          {% if not wu.is_active %}<span class="WsSettings-memberStatus WsSettings-memberStatus--pending">Pending</span>{% endif %}
+          {% if wu != workspace.owner and wu.user.id != user.id %}
+            {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_remove_users %}
+              <div class="WsSettings-moreMenu">
+                <button type="button" class="WsSettings-moreBtn" aria-label="More options">···</button>
+                <div class="WsSettings-moreDropdown" hidden>
+                  <button
+                    type="button"
+                    class="WsSettings-moreDropdown-item WsSettings-removeUserBtn"
+                    data-remove-url="/workspace/remove-user/{{ workspace.id }}/{{ wu.user.id }}/"
+                    data-user-label="{{ wu.user.email|default:wu.user.get_username }}"
+                  >
+                    Remove user
+                  </button>
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
+          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_assign_roles_to_users %}
+            <select
+              class="WsSettings-select WsSettings-roleSelect"
+              name="role"
+              aria-label="Role for {{ wu.user.email|default:wu.user.get_username }}"
+              data-prev-role-id="{{ wu.role.id }}"
+              data-prev-role-name="{{ wu.role.name }}"
+              data-user-label="{{ wu.user.email|default:wu.user.get_username }}"
+            >
+              {% for role in workspace.roles.all %}
+                <option value="{{ role.id }}" {% if wu.role.id == role.id %}selected{% endif %}>{{ role.name }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            <span class="WsSettings-memberRole">{{ wu.role.name }}</span>
+          {% endif %}
+        </span>
+      </li>
+    {% empty %}
+      <li class="WsSettings-member WsSettings-member--empty">No members yet.</li>
+    {% endfor %}
+  </ul>
+  {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_assign_roles_to_users %}
+    <small class="WsSettings-error" data-role="role-error" hidden>
+      Could not update member role. Please try again.
+    </small>
+  {% endif %}
+
+</section>
+
+<script src="{% static 'workspace/settings/users.js' %}"></script>

@@ -1,0 +1,10 @@
+/* ==========================================================================
+   Email confirm page. Load after account/base.css.
+   ========================================================================== */
+
+.Base-content:has(.Account-card--emailConfirm) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}

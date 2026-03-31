@@ -1,0 +1,28 @@
+{% comment %}
+  Reusable popup/modal base. Extend and override blocks:
+  - popup_id: unique id for the popup (used for aria-labelledby and openPopup(id))
+  - popup_title_id / popup_title_id_h2: id for the title (use same value for both)
+  - popup_title: heading text
+  - popup_extra_attrs: optional attributes (e.g. data-account-email-url="...")
+  - popup_content: main body (form, success message, etc.)
+  Trigger: <button type="button" data-popup="POPUP_ID">Open</button>
+  Pages that include popups must load: {% static 'popup.css' %} and {% static 'popup.js' %}
+{% endcomment %}
+<div
+    id="{% block popup_id %}{% endblock %}"
+    class="Popup"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="{% block popup_title_id %}{% endblock %}"
+    aria-hidden="true"
+    hidden
+    {% block popup_extra_attrs %}{% endblock %}
+>
+    <div class="Popup-backdrop" aria-hidden="true"></div>
+    <div class="Popup-box">
+        <h2 id="{% block popup_title_id_h2 %}{% endblock %}" class="Popup-title">
+            {% block popup_title %}{% endblock %}
+        </h2>
+        {% block popup_content %}{% endblock %}
+    </div>
+</div>

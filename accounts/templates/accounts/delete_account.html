@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{# Delete account confirmation page. Reached via link from notification. POST to same URL deletes the account. #}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'account/login.css' %}">
+<link rel="stylesheet" href="{% static 'accounts/delete_account.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="Account-card">
+  <a href="{% url 'home:home' %}" class="Account-back">← Back to home</a>
+  <h1 class="Account-title">Delete account</h1>
+  <p class="Account-label" style="margin-bottom: 16px;">
+    Permanently delete your account. This cannot be undone. If you own any workspaces,
+    ownership of those workspaces will be transferred to the next-in-line/successor user
+    in each workspace.
+  </p>
+
+  <form method="post" action="{{ request.path }}" class="Account-deleteForm" onsubmit="return confirm('Permanently delete your account? This cannot be undone. If you own any workspaces, ownership will be transferred to the next-in-line/successor user in each workspace.');">
+    {% csrf_token %}
+    <button type="submit" class="Account-submit Account-deleteConfirm Account-deleteConfirm--danger">Delete account</button>
+  </form>
+</div>
+{% endblock %}

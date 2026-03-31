@@ -1,0 +1,47 @@
+{% extends 'popup.html' %}
+{# Popup: new task. data-url set by popup.js from trigger data-group-id. #}
+
+{% block popup_id %}add-task-popup{% endblock %}
+{% block popup_title_id %}add-task-popup-title{% endblock %}
+{% block popup_title_id_h2 %}add-task-popup-title{% endblock %}
+{% block popup_title %}New task{% endblock %}
+
+{% block popup_content %}
+  <form
+    method="post"
+    class="Popup-form"
+    id="add-task-form"
+    autocomplete="off"
+    data-url=""
+  >
+    {% csrf_token %}
+    <input type="hidden" name="addTaskSubmit" value="1">
+    <input type="hidden" name="position" id="add-task-position-input" value="0">
+
+    <div class="Popup-field">
+      <textarea
+        name="name"
+        id="id_task_name"
+        class="Popup-input TaskNameEdit-input"
+        placeholder="Task name"
+        maxlength="3000"
+        rows="1"
+        required
+      ></textarea>
+    </div>
+
+    <small class="Popup-error" data-role="task-error" hidden>
+      Something went wrong. Please try again.
+    </small>
+
+    <div class="Popup-actions">
+      <button type="submit" name="addTaskSubmit" class="Popup-submit">
+        Create task
+      </button>
+    </div>
+  </form>
+
+  <div class="Popup-success" aria-live="polite" hidden>
+    <p class="Popup-successText">Task created successfully.</p>
+  </div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{# Notification panel overlay (opened from sidebar bell). Content loaded by JS from /notification/get-notifications/. #}
+<div id="Base-notificationOverlay" class="Base-notificationOverlay">
+    <div class="Base-notificationCard">
+        <div class="Base-notificationHeader">
+            <div class="Base-notificationHeaderTop">
+                <div class="Base-notificationTitle">Notifications</div>
+                <div class="Base-notificationFilterWrap">
+                    <button
+                        type="button"
+                        id="Base-notificationFilterBtn"
+                        class="Base-notificationFilterBtn"
+                        data-popup="notification-filter-popup"
+                    >
+                        Filter
+                    </button>
+                    <span id="Base-notificationFilterCount" class="Base-notificationFilterCount" aria-hidden="true" hidden></span>
+                </div>
+            </div>
+            <div class="Base-notificationHeaderActions">
+                <button
+                    id="Base-notificationDeleteRead"
+                    type="button"
+                    class="Base-notificationDeleteReadBtn"
+                    disabled
+                >
+                    Delete read
+                </button>
+                <button
+                    id="Base-notificationReadAll"
+                    type="button"
+                    class="Base-notificationActionBtn"
+                    disabled
+                >
+                    Read all
+                </button>
+                <button id="Base-notificationClose" type="button" class="Base-notificationClose">✕</button>
+            </div>
+        </div>
+
+        <div class="Base-notificationBody">
+            <div class="Base-notificationEmpty">Loading…</div>
+        </div>
+    </div>
+</div>

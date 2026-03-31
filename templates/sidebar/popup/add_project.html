@@ -1,0 +1,50 @@
+{% extends 'popup.html' %}
+{# Popup: new project. data-url and hidden workspace set by popup.js from trigger data-workspace-id. #}
+
+{% block popup_id %}add-project-popup{% endblock %}
+{% block popup_title_id %}add-project-popup-title{% endblock %}
+{% block popup_title_id_h2 %}add-project-popup-title{% endblock %}
+{% block popup_title %}New project{% endblock %}
+
+{% block popup_content %}
+  <div class="Popup-formWrap">
+    <form
+      method="post"
+      class="Popup-form"
+      id="add-project-form"
+      autocomplete="off"
+      data-url=""
+    >
+      {% csrf_token %}
+      <input type="hidden" name="addProjectSubmit" value="1">
+
+      <div class="Popup-field">
+        <label for="id_project_name">Name</label>
+        <input
+          type="text"
+          name="name"
+          id="id_project_name"
+          class="Popup-input"
+          maxlength="300"
+          required
+        >
+      </div>
+
+      <input type="hidden" name="workspace" id="id_project_workspace">
+
+      <small class="Popup-error" data-role="project-error" hidden>
+        Something went wrong. Please try again.
+      </small>
+
+      <div class="Popup-actions">
+        <button type="submit" name="addProjectSubmit" class="Popup-submit">
+          Create project
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="Popup-success" aria-live="polite" hidden>
+    <p class="Popup-successText">Project created successfully.</p>
+  </div>
+{% endblock %}

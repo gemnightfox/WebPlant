@@ -1,0 +1,579 @@
+/* ==========================================================================
+   Sidebar bottom (workspace options, workspaces/projects tree)
+   Used with sidebar/bottom.html + sidebar/bottom.js.
+   ========================================================================== */
+
+/* --- Workspace options button --- */
+.Base-newWorkspace {
+  padding: 10px 4px 4px 6px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.Base-sidebar.is-collapsed .Base-newWorkspace,
+html.sidebar-collapsed .Base-sidebar .Base-newWorkspace {
+  display: none;
+}
+
+.Base-workspaceOptions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 6px;
+  right: 6px;
+  margin-top: 4px;
+  min-width: 0;
+  padding: 6px 0;
+  background: var(--secondary-background);
+  border: 1px solid #7f7f7f40;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.Base-workspaceOptions-dropdown[hidden] {
+  display: none;
+}
+
+.Base-workspaceOptions-dropdown--above {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.Base-newWorkspace-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(59, 130, 246, 0.8);
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.12s ease-out, border-color 0.12s ease-out, box-shadow 0.12s ease-out, transform 0.05s ease-out;
+  position: relative;
+}
+
+.Base-newWorkspace-btn:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 1);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4);
+  transform: translateY(-0.5px);
+}
+
+.theme-light .Base-newWorkspace-btn {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+}
+.theme-light .Base-newWorkspace-btn:hover {
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.Base-newWorkspace-btn:active {
+  transform: translateY(0.5px);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+.Base-newWorkspace-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Base-newWorkspace-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.Base-newWorkspace-label {
+  white-space: nowrap;
+}
+
+/* Pending invites indicator beside "Workspace options" (exclamation mark, flush right) */
+.Base-newWorkspace-alert {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Base-newWorkspace-alert[hidden] {
+  display: none;
+}
+
+.Base-newWorkspace-alertBadge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  background: #e11d48; /* match unread sidebar notification red */
+  color: #ffffff;
+  pointer-events: none;
+  font-weight: 600;
+}
+
+/* Desktop: keep workspace section at full width so sidebar “reveals” it (no reflow) */
+/* Removed desktop min-width on .Base-newWorkspace/.Base-workspaces so they fit in .Base-account content area */
+@media (min-width: 501px) {
+  .Base-sidebar:not(.is-collapsed) .Base-newWorkspace-removed {
+    min-width: 280px;
+    box-sizing: border-box; /* so padding is inside 280px and right edge isn’t clipped */
+  }
+  .Base-sidebar:not(.is-collapsed) .Base-workspaces-removed {
+    min-width: 0;
+    box-sizing: border-box; /* so padding is inside 280px and right edge isn’t clipped */
+  }
+}
+
+/* --- Workspaces list and expand/collapse --- */
+.Base-workspaces {
+  padding: 8px 4px 12px 6px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(127, 127, 127, 0.5) transparent;
+}
+
+.Base-sidebar.is-collapsed .Base-workspaces,
+html.sidebar-collapsed .Base-sidebar .Base-workspaces { display: none; }
+
+.Base-workspaces::-webkit-scrollbar {
+  width: 6px;
+}
+
+.Base-workspaces::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.Base-workspaces::-webkit-scrollbar-thumb {
+  background: rgba(127, 127, 127, 0.4);
+  border-radius: 3px;
+}
+
+.Base-workspaces::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 127, 127, 0.55);
+}
+
+.Base-workspaces-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--color);
+  cursor: pointer;
+  font-size: 15px;
+  text-align: left;
+}
+
+.Base-workspaces-toggle:hover {
+  background-color: rgba(127, 127, 127, 0.12);
+}
+
+/* Workspace row collapsed: workspace name max 1 line */
+.Base-workspaces-label {
+  font-weight: 500;
+  color: dodgerblue;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  user-select: none;
+}
+
+/* Workspace row expanded: allow workspace name to wrap to max 3 lines with ellipsis */
+.Base-workspaces-toggle.is-open .Base-workspaces-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  white-space: unset;
+  word-break: break-word;
+}
+
+/* Keep label single-line when expanded so the text does not move up/down */
+.Base-workspaces-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.Base-workspaces-chevronIcon {
+  width: 18px;
+  height: 18px;
+  transform-origin: center;
+  transition: transform 0.15s ease-out;
+}
+
+.Base-workspaces-toggle.is-open .Base-workspaces-chevronIcon {
+  transform: rotate(180deg);
+}
+
+.Base-workspaces-panel {
+  margin-top: 6px;
+  padding-right: 2px;
+}
+
+/*
+ * Empty workspace panel: MUST have zero vertical space (margin/padding/max-height)
+ * when expanded so items below don't shift. Only the chevron should move.
+ * Do not add margin, padding, or min-height to --empty.
+ */
+.Base-workspaces-panel--empty {
+  margin-top: 0;
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.Base-workspaces-panel:empty {
+  margin-top: 0;
+  max-height: 0;
+  padding-right: 0;
+}
+
+.Base-workspaces-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.Base-workspace-item {
+  padding: 4px 2px;
+}
+
+.Base-workspace-header {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+  width: 100%;
+}
+
+.Base-workspace-header .Base-workspaces-toggle {
+  flex: 1;
+  min-width: 0;
+}
+
+.Base-workspace-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.Base-workspace-menu-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.Base-workspace-menu-btn:hover {
+  background-color: rgba(127, 127, 127, 0.12);
+  opacity: 1;
+}
+
+.Base-workspace-menuIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.Base-workspace-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 160px;
+  padding: 6px 0;
+  background: var(--secondary-background);
+  border: 1px solid #7f7f7f40;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.Base-workspace-dropdown[hidden] {
+  display: none;
+}
+
+.Base-workspace-dropdown--above {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.Base-workspace-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.Base-workspace-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.Base-workspace-dropdown-item--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.Base-workspace-dropdown-item:hover {
+  background-color: rgba(127, 127, 127, 0.12);
+}
+
+a.Base-workspace-dropdown-item {
+  text-decoration: none;
+  color: var(--color);
+}
+
+/* Pending invites badge beside "Check pending invites" */
+.Base-newWorkspace-invitesMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+}
+
+.Base-invitesBadge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  background: #e11d48; /* same red as notification bell badge */
+  color: #ffffff;
+  pointer-events: none;
+  font-weight: 600;
+}
+
+/* Small lock icon beside restricted actions (settings / new project) */
+.Base-lockIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  opacity: 0.85;
+  color: var(--color);
+}
+
+.Base-lockIcon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* --- Projects under each workspace --- */
+.Base-projects-list {
+  list-style: none;
+  margin: 0;
+  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.Base-project-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+}
+
+.Base-project-link {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--color);
+  text-decoration: none;
+  padding: 7px 8px;
+  border-radius: 6px;
+}
+
+.Base-project-link:hover {
+  background-color: rgba(127, 127, 127, 0.16);
+}
+
+.Base-project-link-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.Base-project-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.Base-project-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.Base-project-menu-btn:hover {
+  background-color: rgba(127, 127, 127, 0.12);
+  opacity: 1;
+}
+
+.Base-project-menuIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.Base-project-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 160px;
+  padding: 6px 0;
+  background: var(--secondary-background);
+  border: 1px solid #7f7f7f40;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.Base-project-dropdown[hidden] {
+  display: none;
+}
+
+.Base-project-dropdown--above {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.Base-project-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.Base-project-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.Base-project-dropdown-item:hover {
+  background-color: rgba(127, 127, 127, 0.12);
+}
+
+.Base-project-dropdown-item:disabled {
+  cursor: default;
+}
+
+.Base-project-dropdown-item--danger {
+  color: #ef4444;
+}
+
+.Base-project-dropdown-item--danger:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* --- Groups (unused in current sidebar; kept for consistency) --- */
+.Base-groups-list {
+  list-style: none;
+  margin: 4px 0 0 0;
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 1px solid rgba(127, 127, 127, 0.25);
+  margin-left: 8px;
+}
+
+.Base-group-item {
+  margin: 0;
+}
+
+.Base-group-link {
+  display: block;
+  width: 100%;
+  font-size: 13px;
+  color: var(--color);
+  text-decoration: none;
+  padding: 5px 8px;
+  border-radius: 6px;
+  opacity: 0.9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.Base-group-link:hover {
+  background-color: rgba(127, 127, 127, 0.12);
+  opacity: 1;
+}

@@ -1,0 +1,174 @@
+/* ==========================================================================
+   Base layout and theme (global)
+   Used by base.html. Theme variables (--color, --background) are used by
+   sidebar, notification, popup, and account/task pages.
+   ========================================================================== */
+
+/* --- Theme variables (light/dark) --- */
+.theme-light {
+  --color: #000000;
+  --background: #FAFAFA;
+  --secondary-background: #FFFFFF;
+}
+
+.theme-dark {
+  --color: #F1F5F9;
+  --background: #222222;
+  --secondary-background: #181818;
+}
+
+/* --- Reset and typography --- */
+* {
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  scrollbar-color: grey transparent;
+}
+
+a {
+  color: dodgerblue;
+  text-decoration: none;
+  user-select: none;
+}
+
+button {
+  user-select: none;
+}
+
+/* --- Page layout --- */
+body {
+  color: var(--color);
+  background: var(--background);
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.Base-content {
+  flex: 1;
+  min-width: 0; /* allow shrinking when scrollbar appears so sidebar keeps 280px */
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* --- Task dashboard: lock main to viewport so only board scrolls --- */
+.Base-body--dashboard .Base-content:has(.Dashboard) {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.Base-body--dashboard .Base-content:has(.Dashboard) > * {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.Base-body--dashboard {
+  overflow-x: hidden;
+}
+
+/* --- AJAX error toast (bottom-right) --- */
+.AjaxToast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: #dc2626;
+  color: #fff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  min-width: 220px;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: ajaxToastIn 0.2s ease;
+}
+.AjaxToast[hidden] { display: none; }
+.AjaxToast-msg {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.AjaxToast-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.AjaxToast-retryBtn {
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.AjaxToast-retryBtn:hover { background: rgba(255, 255, 255, 0.35); }
+.AjaxToast-closeBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  line-height: 1;
+  transition: color 0.1s, background 0.1s;
+}
+.AjaxToast-closeBtn:hover { color: #fff; background: rgba(255, 255, 255, 0.15); }
+@keyframes ajaxToastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* --- Mobile: fixed safe-area cover so content never scrolls behind the status bar ---
+   On authenticated pages the sidebar is at the bottom, leaving the top uncovered.
+   This pseudo-element fills the safe-area-inset-top region with the page background,
+   sitting above scrollable content (z-index 9) but below the expanded sidebar (z-index 10). */
+body:has(.Base-sidebar)::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0);
+  background: var(--background);
+  z-index: 9;
+  pointer-events: none;
+}
+
+/* --- Mobile: lock page scroll when sidebar is expanded --- */
+@media (max-width: 500px) {
+  body:has(.Base-sidebar:not(.is-collapsed)):not(:has(html.sidebar-collapsed)) {
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: hidden;
+  }
+  body:has(html.sidebar-collapsed) {
+    overflow: auto;
+    height: auto;
+  }
+
+  .Base-content {
+    padding: 16px;
+  }
+
+  /* Move toast above the mobile bottom navigation bar */
+  .AjaxToast {
+    bottom: calc(56px + env(safe-area-inset-bottom, 0) + 12px);
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
+}
+

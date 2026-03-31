@@ -1,0 +1,63 @@
+{% load static %}
+{# Base layout for all pages. Loads global CSS; for authenticated users also loads sidebar, notifications, and popup assets. Child templates use block css, body_extra_class, content. #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>WebPlant</title>
+
+    <link rel="stylesheet" href="{% static 'base.css' %}">
+    {% if user.is_authenticated %}
+        <link rel="stylesheet" href="{% static 'sidebar/top.css' %}">
+        <link rel="stylesheet" href="{% static 'sidebar/bottom.css' %}">
+        <link rel="stylesheet" href="{% static 'sidebar/notification.css' %}">
+        <link rel="stylesheet" href="{% static 'popup.css' %}">
+        <script>(function(){ try { if (localStorage.getItem("base_sidebar_collapsed") === "1") document.documentElement.classList.add("sidebar-collapsed"); } catch (_) {} })();</script>
+    {% endif %}
+    {% block css %}{% endblock %}
+</head>
+
+<body class="theme-{{ user_preferences.color_theme | default:'dark' }} {% block body_extra_class %}{% endblock %}">
+    {% if user.is_authenticated %}
+        {% include 'sidebar/index.html' %}
+        {% include 'sidebar/notification.html' %}
+        {% include 'sidebar/popup/add_workspace.html' %}
+        {% include 'sidebar/popup/join_workspace.html' %}
+        {% include 'sidebar/popup/add_project.html' %}
+        {% include 'sidebar/popup/pending_invites.html' %}
+        {% include 'sidebar/popup/notification_filter.html' %}
+        {% include 'sidebar/popup/edit_project_name.html' %}
+        {% include 'sidebar/popup/delete_project.html' %}
+    {% endif %}
+
+    <main
+        class="Base-content"
+        {% if not user.is_authenticated %}style="min-width: 100vw;"{% endif %}
+    >
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if user.is_authenticated %}
+        <div id="AjaxToast" class="AjaxToast" hidden role="alert" aria-live="assertive">
+            <span class="AjaxToast-msg">Something went wrong. Please try again.</span>
+            <div class="AjaxToast-actions">
+                <button type="button" class="AjaxToast-retryBtn">Retry</button>
+                <button type="button" class="AjaxToast-closeBtn" aria-label="Dismiss">&#x2715;</button>
+            </div>
+        </div>
+        <script src="{% static 'sidebar/top.js' %}"></script>
+        <script src="{% static 'sidebar/bottom.js' %}"></script>
+        <script src="{% static 'sidebar/notification.js' %}"></script>
+        <script src="{% static 'popup.js' %}"></script>
+        <script src="{% static 'sidebar/popup/add_workspace.js' %}"></script>
+        <script src="{% static 'sidebar/popup/join_workspace.js' %}"></script>
+        <script src="{% static 'sidebar/popup/add_project.js' %}"></script>
+        <script src="{% static 'sidebar/popup/pending_invites.js' %}"></script>
+        <script src="{% static 'sidebar/popup/edit_project_name.js' %}"></script>
+        <script src="{% static 'sidebar/popup/delete_project.js' %}"></script>
+    {% endif %}
+    {% block js %}{% endblock %}
+</body>
+</html>
+

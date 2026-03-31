@@ -1,0 +1,56 @@
+{% extends 'popup.html' %}
+{# Popup: edit group name, or delete group. data-url and fields set by edit_group.js. #}
+
+{% block popup_id %}edit-group-popup{% endblock %}
+{% block popup_title_id %}edit-group-popup-title{% endblock %}
+{% block popup_title_id_h2 %}edit-group-popup-title{% endblock %}
+{% block popup_title %}{% endblock %}
+{% block popup_extra_attrs %}data-size="large"{% endblock %}
+
+{% block popup_content %}
+  <div class="Popup-formWrap">
+    <form
+      method="post"
+      class="Popup-form"
+      id="edit-group-form"
+      autocomplete="off"
+      data-url=""
+    >
+      {% csrf_token %}
+      <input type="hidden" name="position" id="edit-group-position-input" value="0">
+      <input type="hidden" name="project" id="edit-group-project-input" value="">
+
+      <div class="Popup-field">
+        <label for="id_edit_group_name">Rename group</label>
+        <div class="Popup-nameRow">
+          <div class="Popup-nameWrap">
+            <input
+              type="text"
+              name="name"
+              id="id_edit_group_name"
+              class="Popup-input Popup-input--withEditBtn"
+              maxlength="300"
+              required
+              readonly
+            >
+            <button type="button" class="Popup-editNameBtn" id="edit-group-edit-btn">Edit</button>
+          </div>
+          <button type="submit" class="Popup-submit Popup-saveNameBtn" id="edit-group-save-btn" hidden>Save</button>
+        </div>
+        <small class="Popup-error" data-role="edit-group-error" hidden>
+          Something went wrong. Please try again.
+        </small>
+      </div>
+
+      <div class="Popup-actions">
+        <button type="button" class="Popup-dangerBtn" id="edit-group-delete-btn">
+          Delete group
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="Popup-success" aria-live="polite" hidden>
+    <p class="Popup-successText">Group updated.</p>
+  </div>
+{% endblock %}

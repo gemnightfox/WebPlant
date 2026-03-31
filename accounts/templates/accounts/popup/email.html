@@ -1,0 +1,31 @@
+{% extends 'popup.html' %}
+{# Popup: change email. Submit handled by accounts/dashboard.js (AJAX to account_email). #}
+
+{% block popup_id %}email-popup{% endblock %}
+{% block popup_title_id %}email-popup-title{% endblock %}
+{% block popup_title_id_h2 %}email-popup-title{% endblock %}
+{% block popup_title %}Change email{% endblock %}
+{% block popup_extra_attrs %}data-account-email-url="{% url 'account_email' %}"{% endblock %}
+
+{% block popup_content %}
+    <div class="Popup-formWrap">
+      <form class="Popup-form" autocomplete="off">
+        <div class="Popup-field">
+          <label for="email-popup-new-email">New email</label>
+          <input type="email"
+                 name="email"
+                 id="email-popup-new-email"
+                 class="Popup-input"
+                 maxlength="254"
+                 autocomplete="off"
+                 required />
+        </div>
+        <div class="Popup-actions">
+          <button type="submit" class="Popup-submit">Submit</button>
+        </div>
+      </form>
+    </div>
+    <div class="Popup-success" hidden aria-live="polite">
+      <p class="Popup-successText">An email verification has been sent. Please check your inbox and confirm the new address.</p>
+    </div>
+{% endblock %}

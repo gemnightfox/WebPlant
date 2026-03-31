@@ -1,0 +1,8 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% block content %}
+    <form method="post" id="google-auto-login">
+        {% csrf_token %}
+        <button type="submit">Continue</button>
+    </form>
+    <script>document.getElementById("google-auto-login").submit();</script>
+{% endblock content %}

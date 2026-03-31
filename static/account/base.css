@@ -1,0 +1,221 @@
+/* ==========================================================================
+   Shared account styles (login, signup, email confirm, password reset,
+   verification sent, delete account). Load first; page CSS loads after.
+   Uses base theme variables from static/base.css.
+   ========================================================================== */
+
+/* --- Card and layout --- */
+.Account-card {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 32px;
+  background: var(--secondary-background);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.Account-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--color);
+}
+
+.Account-errors {
+  list-style: none;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(220, 53, 69, 0.12);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 8px;
+  color: #dc3545;
+  font-size: 14.4px;
+}
+
+.Account-errors li + li {
+  margin-top: 4px;
+}
+
+.Account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.Account-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5.6px;
+}
+
+.Account-field--row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.Account-field--rowRight {
+  justify-content: flex-end;
+}
+
+.Account-label {
+  font-size: 14.4px;
+  font-weight: 500;
+  color: var(--color);
+}
+
+.Account-input {
+  width: 100%;
+  padding: 9.6px 13.6px;
+  font-size: 16px;
+  color: var(--color);
+  background: var(--background);
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.Account-input::placeholder {
+  color: rgba(128, 128, 128, 0.7);
+}
+
+.Account-input:hover {
+  border-color: rgba(128, 128, 128, 0.5);
+}
+
+.Account-input:focus {
+  border-color: dodgerblue;
+  box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.2);
+}
+
+.Account-input--error {
+  border-color: #dc3545;
+}
+
+.Account-input--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2);
+}
+
+.Account-field-error {
+  font-size: 12.8px;
+  color: #dc3545;
+}
+
+.Account-submit {
+  margin-top: 4px;
+  padding: 11.2px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: dodgerblue;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+}
+
+.Account-submit:hover {
+  background: #1a7de8;
+}
+
+.Account-submit:active {
+  transform: scale(0.99);
+}
+
+.Account-back {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  font-size: 14.4px;
+  font-weight: 500;
+  color: var(--color);
+  text-decoration: none;
+  background: var(--background);
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  border-radius: 8px;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.Account-back:hover {
+  background: rgba(128, 128, 128, 0.12);
+  border-color: rgba(128, 128, 128, 0.4);
+  transform: translateY(-1px);
+}
+
+.Account-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 5.6px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+  text-align: center;
+}
+
+.Account-footer-text {
+  font-size: 15.2px;
+  color: var(--color);
+}
+
+.Account-footer-link {
+  font-size: 15.2px;
+  font-weight: 500;
+  color: dodgerblue;
+  text-decoration: none;
+}
+
+.Account-footer-link:hover {
+  color: #1a7de8;
+}
+
+/* --- Centering for login/signup cards --- */
+.Base-content:has(.Account-card--login),
+.Base-content:has(.Account-card--signup) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* --- Shared for email confirm, password reset, verification sent --- */
+.Account-text {
+  font-size: 15.2px;
+  line-height: 1.5;
+  color: var(--color);
+  margin-bottom: 16px;
+}
+
+.Account-text:last-of-type {
+  margin-bottom: 20px;
+}
+
+.Account-text--muted {
+  color: rgba(128, 128, 128, 0.9);
+  font-size: 14.4px;
+}
+
+.Account-text--error {
+  color: #dc3545;
+}
+
+/* --- Icon badge --- */
+.Account-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  background: rgba(30, 144, 255, 0.12);
+  color: dodgerblue;
+}
+
+.Account-icon svg {
+  width: 22px;
+  height: 22px;
+}

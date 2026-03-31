@@ -1,0 +1,41 @@
+{% extends 'popup.html' %}
+{# Notification filter popup: filter by read/unread and dates. Uses localStorage; at least one status filter must be selected. #}
+
+{% block popup_id %}notification-filter-popup{% endblock %}
+{% block popup_title_id %}notification-filter-popup-title{% endblock %}
+{% block popup_title_id_h2 %}notification-filter-popup-title{% endblock %}
+{% block popup_title %}Filter notifications{% endblock %}
+
+{% block popup_content %}
+  <div class="Base-notificationFilterPopover">
+    <fieldset class="Base-notificationFilterGroup">
+      <legend class="Base-notificationFilterGroupTitle">Status</legend>
+      <div class="Base-notificationFilterOptions">
+        <label class="Base-notificationFilterOption">
+          <input type="checkbox" name="unread" id="Base-notificationFilterUnread" checked>
+          <span>Unread</span>
+        </label>
+        <label class="Base-notificationFilterOption">
+          <input type="checkbox" name="read" id="Base-notificationFilterRead" checked>
+          <span>Read</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="Base-notificationFilterGroup">
+      <legend class="Base-notificationFilterGroupTitle">Dates</legend>
+      <div class="Base-notificationFilterDatePicker">
+        <div class="Base-notifCalendarWrap">
+          <div class="Base-notifCalendar" id="Base-notifCalendar"></div>
+        </div>
+        <div id="Base-notificationFilterDateTags" class="Base-notificationFilterDateTags"></div>
+        <p class="Base-notificationFilterDateHint">Select individual dates to filter by. Leave empty to show all.</p>
+      </div>
+    </fieldset>
+
+    <div class="Base-notificationFilterActions">
+      <button type="button" class="Base-notificationFilterResetBtn">Reset filters</button>
+      <button type="button" class="Base-notificationFilterApplyBtn">Apply</button>
+    </div>
+  </div>
+{% endblock %}

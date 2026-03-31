@@ -1,0 +1,10 @@
+/* ==========================================================================
+   Verification sent page (after signup). Load after account/base.css.
+   ========================================================================== */
+
+.Base-content:has(.Account-card--verificationSent) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}

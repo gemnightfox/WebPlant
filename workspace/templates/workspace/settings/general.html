@@ -1,0 +1,673 @@
+{# Workspace settings – general: rename workspace + transfer ownership. Included from workspace/settings/index.html. #}
+<section class="WsSettings-section WsSettings-rename">
+  <form
+    method="post"
+    class="WsSettings-form"
+    id="ws-rename-form"
+    autocomplete="off"
+    data-url="{% url 'workspace:edit_name' workspace.id %}"
+  >
+    {% csrf_token %}
+    <div class="WsSettings-field">
+      <label for="id_ws_rename">Rename workspace</label>
+      <div class="WsSettings-inputRow">
+        <div class="WsSettings-inputWrap">
+          <input
+            type="text"
+            name="name"
+            id="id_ws_rename"
+            class="WsSettings-input WsSettings-input--withBtn"
+            value="{{ workspace.name }}"
+            maxlength="300"
+            required
+            readonly
+          >
+          <button type="button" class="WsSettings-editBtn" id="ws-rename-edit-btn">Edit</button>
+        </div>
+        <button type="submit" class="WsSettings-btn WsSettings-btnPrimary WsSettings-saveNameBtn" id="ws-rename-save-btn" hidden>Save</button>
+      </div>
+      <small class="WsSettings-error" data-role="rename-error" hidden>
+        Could not rename. Please try again.
+      </small>
+    </div>
+  </form>
+</section>
+
+{% if my_workspace_user == workspace.owner %}
+<section class="WsSettings-section WsSettings-transfer">
+  <h2 class="WsSettings-sectionTitle">Transfer ownership</h2>
+  <p class="WsSettings-helpText">Transfer this workspace to another active member. This cannot be undone.</p>
+  <form
+    method="post"
+    class="WsSettings-form"
+    id="ws-transfer-form"
+    autocomplete="off"
+    data-url-base="/workspace/transfer-ownership/{{ workspace.id }}/"
+  >
+    {% csrf_token %}
+    <div class="WsSettings-field">
+      <label for="id_transfer_user">New owner</label>
+      <select name="owner" id="id_transfer_user" class="WsSettings-select" required>
+        <option value="">— Select a user —</option>
+        {% for wu in all_workspace_users %}
+          {% if wu.user != user and wu.is_active %}
+            <option value="{{ wu.id }}">{{ wu.user.email }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <small class="WsSettings-error" data-role="transfer-error" hidden>
+        Could not transfer ownership. Please try again.
+      </small>
+    </div>
+    <div class="WsSettings-actions">
+      <button type="submit" class="WsSettings-btn WsSettings-btnDanger">Transfer ownership</button>
+    </div>
+  </form>
+</section>
+{% endif %}
+
+{% if my_workspace_user == workspace.owner %}
+  {% if all_workspace_users|length == 1 %}
+  {# Leave workspace button for sole owner is now shown in the header row above. Keep error message here for responses. #}
+  <section class="WsSettings-section WsSettings-leave" hidden>
+    <small class="WsSettings-error" data-role="leave-error" hidden>
+      Could not delete workspace. Please try again.
+    </small>
+  </section>
+  {% endif %}
+{% else %}
+<small class="WsSettings-error" data-role="leave-error" hidden>
+  Could not leave workspace. Please try again.
+</small>
+{% endif %}
+
+<section class="WsSettings-section WsSettings-inviteCodes">
+  <div class="WsSettings-rolesHeader">
+    <h2 class="WsSettings-sectionTitle">Invite codes</h2>
+    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_invite_codes %}
+      <button type="button" class="WsSettings-btn WsSettings-btnPrimary" id="ws-add-invite-code-btn">Add code</button>
+    {% endif %}
+  </div>
+
+  {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_invite_codes %}
+  <div id="ws-add-invite-modal" class="Popup" role="dialog" aria-modal="true" aria-labelledby="ws-add-invite-title" aria-hidden="true" hidden>
+    <div class="Popup-backdrop"></div>
+    <div class="Popup-box">
+      <button type="button" class="Popup-close" aria-label="Close">
+        <svg class="Popup-closeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+
+      <!-- Step 1: choose -->
+      <div id="ws-modal-step1">
+        <h2 id="ws-add-invite-title" class="Popup-title">New invite code</h2>
+        <div class="WsSettings-modalChoices">
+          <button type="button" class="WsSettings-modalChoiceBtn" id="ws-choice-no-password">
+            <span class="WsSettings-modalChoiceName">Without password</span>
+            <span class="WsSettings-modalChoiceDesc">Anyone with the code can join</span>
+          </button>
+          <button type="button" class="WsSettings-modalChoiceBtn" id="ws-choice-with-password">
+            <span class="WsSettings-modalChoiceName">With password</span>
+            <span class="WsSettings-modalChoiceDesc">Requires a password to join</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: enter password -->
+      <form id="ws-add-invite-code-form" class="Popup-form" autocomplete="off" data-url="{% url 'workspace:add_invite_code' workspace.id %}" hidden>
+        {% csrf_token %}
+        <h2 class="Popup-title">Set a password</h2>
+        <div class="Popup-field">
+          <label for="id_new_invite_password">Password</label>
+          <input type="text" name="password" id="id_new_invite_password" maxlength="128" placeholder="Enter password" autocomplete="new-password">
+        </div>
+        <small class="Popup-error" data-role="add-invite-error" hidden>Could not create. Please try again.</small>
+        <div class="Popup-actions">
+          <button type="button" class="WsSettings-btn WsSettings-btnSecondary" id="ws-modal-back">Back</button>
+          <button type="submit" class="Popup-submit">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
+
+  <ul class="WsSettings-rolesList" id="ws-invite-codes-list">
+    {% for code in workspace.workspaceinvitecode_set.all %}
+    <li class="WsSettings-roleCard WsSettings-inviteCodeCard" data-code-id="{{ code.id }}">
+      <div class="WsSettings-inviteCodeCardRow">
+        <div class="WsSettings-roleCardInfo">
+          <span class="WsSettings-inviteCode">{{ code.invite_code }}</span>
+        </div>
+        <div class="WsSettings-roleCardActions">
+          {% if code.password %}
+            <button type="button" class="WsSettings-showPwBtn" data-password="{{ code.password }}">
+              <span class="WsSettings-showPwText">Show password</span>
+              <svg class="WsSettings-showPwIcon WsSettings-showPwIcon--open" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="WsSettings-showPwIcon WsSettings-showPwIcon--closed" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          {% endif %}
+          <button
+            type="button"
+            class="WsSettings-roleCardBtn ws-copy-invite-code"
+            data-code="{{ code.invite_code }}"
+            title="Copy"
+            aria-label="Copy invite code"
+          >
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_invite_codes %}
+          <button
+            type="button"
+            class="WsSettings-roleCardBtn WsSettings-roleCardBtn--delete ws-delete-invite-code-btn"
+            title="Delete"
+            aria-label="Delete invite code"
+            data-delete-url="{% url 'workspace:delete_invite_code' workspace.id code.id %}"
+          >
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      {% if code.password %}
+        <div class="WsSettings-pwRevealInline" hidden aria-hidden="true">
+          <p class="WsSettings-pwRevealValue ws-pwRevealInlineValue"></p>
+        </div>
+      {% endif %}
+    </li>
+    {% empty %}
+    <li class="WsSettings-roleCard WsSettings-roleCard--empty">No invite codes yet.</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="WsSettings-section WsSettings-features">
+  <div class="WsSettings-sliderRow">
+    <span class="WsSettings-sliderLabel">Custom roles</span>
+    <div
+      class="WsSettings-slider"
+      id="ws-slider-custom-roles"
+      data-url="{% url 'workspace:set_preference' workspace.id %}"
+      data-value="{{ workspace_preference.custom_roles|yesno:'true,false' }}"
+    >
+      <button type="button" class="WsSettings-sliderOption" data-value="false">Disabled</button>
+      <button type="button" class="WsSettings-sliderOption" data-value="true">Enabled</button>
+      <div class="WsSettings-sliderThumb"></div>
+    </div>
+    <label class="WsSettings-mobileRoleSwitch" aria-label="Custom roles">
+      <input type="checkbox" id="ws-custom-roles-mobile-toggle" {% if workspace_preference.custom_roles %}checked{% endif %}>
+      <span class="WsSettings-mobileRoleSlider"></span>
+    </label>
+  </div>
+</section>
+
+<script>
+(function() {
+  function getCookie(name) {
+    var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : null;
+  }
+  var csrfToken = getCookie('csrftoken');
+
+  // ── Rename: edit-button toggle ──
+  var renameInput = document.getElementById('id_ws_rename');
+  var renameEditBtn = document.getElementById('ws-rename-edit-btn');
+  var renameSaveBtn = document.getElementById('ws-rename-save-btn');
+
+  if (renameEditBtn && renameInput && renameSaveBtn) {
+    renameEditBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      renameInput.readOnly = false;
+      renameInput.removeAttribute('readonly');
+      renameInput.classList.add('is-editing');
+      renameInput.focus();
+      renameSaveBtn.removeAttribute('hidden');
+      renameEditBtn.setAttribute('hidden', '');
+    });
+  }
+
+  var renameForm = document.getElementById('ws-rename-form');
+  if (renameForm) {
+    renameForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var url = renameForm.getAttribute('data-url');
+      var errorEl = renameForm.querySelector('[data-role="rename-error"]');
+      if (errorEl) errorEl.setAttribute('hidden', '');
+      fetch(url, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken },
+        body: new FormData(renameForm)
+      }).then(function(r) {
+        if (!r.ok) {
+          if (errorEl) errorEl.removeAttribute('hidden');
+          return;
+        }
+        return r.json().then(function(data) {
+          if (data && data.status === 'success') {
+            window.location.reload();
+          } else if (errorEl) {
+            errorEl.removeAttribute('hidden');
+          }
+        }).catch(function() {
+          window.location.reload();
+        });
+      }).catch(function() {
+        if (errorEl) errorEl.removeAttribute('hidden');
+      });
+    });
+  }
+
+  // ── Feature sliders ──
+  document.querySelectorAll('.WsSettings-slider').forEach(function(slider) {
+    var options = slider.querySelectorAll('.WsSettings-sliderOption');
+    var thumb = slider.querySelector('.WsSettings-sliderThumb');
+    var url = slider.getAttribute('data-url');
+
+    function positionThumb(activeBtn) {
+      thumb.style.left = activeBtn.offsetLeft + 'px';
+      thumb.style.width = activeBtn.offsetWidth + 'px';
+    }
+
+    function normalizeValue(raw) {
+      if (raw === true || raw === 'true' || raw === 'True' || raw === '1') return 'true';
+      return 'false';
+    }
+
+    function setSliderValue(rawValue, save) {
+      var prevValue = slider.getAttribute('data-value') || 'false';
+      var value = normalizeValue(rawValue);
+      slider.setAttribute('data-value', value);
+      options.forEach(function(opt) {
+        var isActive = opt.getAttribute('data-value') === value;
+        opt.classList.toggle('is-active', isActive);
+        if (isActive) positionThumb(opt);
+      });
+
+      // Dispatch a custom event so index.js can react
+      slider.dispatchEvent(new CustomEvent('slider-change', { detail: { value: value } }));
+
+      if (save && url) {
+        // Prefer the CSRF token from a rendered {% csrf_token %} input over the cookie,
+        // so it is present in the POST body (not just the header).
+        var csrfInput = document.querySelector('[name="csrfmiddlewaretoken"]');
+        var csrf = csrfInput ? csrfInput.value : csrfToken;
+        var fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('custom_roles', value);
+        fetch(url, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrf },
+          body: fd
+        }).then(function(r) {
+          return r.json().then(function(data) {
+            if (!data || data.status !== 'success') {
+              setSliderValue(prevValue, false);
+            }
+          });
+        }).catch(function() {
+          setSliderValue(prevValue, false);
+        });
+      }
+    }
+
+    // Init
+    setSliderValue(slider.getAttribute('data-value'), false);
+
+    // Reposition thumb on window resize
+    window.addEventListener('resize', function() {
+      var active = slider.querySelector('.WsSettings-sliderOption.is-active');
+      if (active) positionThumb(active);
+    });
+
+    options.forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        setSliderValue(opt.getAttribute('data-value'), true);
+      });
+    });
+  });
+
+  // ── Mobile custom roles toggle sync ──
+  var mobileRoleToggle = document.getElementById('ws-custom-roles-mobile-toggle');
+  var customRolesSlider = document.getElementById('ws-slider-custom-roles');
+  if (mobileRoleToggle && customRolesSlider) {
+    mobileRoleToggle.addEventListener('change', function() {
+      var targetValue = mobileRoleToggle.checked ? 'true' : 'false';
+      var targetOption = customRolesSlider.querySelector('.WsSettings-sliderOption[data-value="' + targetValue + '"]');
+      if (targetOption) targetOption.click();
+    });
+    customRolesSlider.addEventListener('slider-change', function(e) {
+      mobileRoleToggle.checked = e.detail.value === 'true';
+    });
+  }
+
+  // ── Leave / Delete workspace ──
+  function postAndRedirect(url, errorEl) {
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken }
+    }).then(function(r) {
+      return r.json().then(function(data) {
+        if (data && data.status === 'success') {
+          window.location.href = '/';
+        } else {
+          if (errorEl) errorEl.removeAttribute('hidden');
+        }
+      });
+    }).catch(function() {
+      if (errorEl) errorEl.removeAttribute('hidden');
+    });
+  }
+
+  // Non-owner: simple leave
+  var leaveBtn = document.getElementById('ws-leave-btn');
+  if (leaveBtn) {
+    leaveBtn.addEventListener('click', function() {
+      if (!window.confirm('Are you sure you want to leave this workspace? You will lose access immediately.')) return;
+      var url = leaveBtn.getAttribute('data-leave-url');
+      var errorEl = document.querySelector('[data-role="leave-error"]');
+      if (errorEl) errorEl.setAttribute('hidden', '');
+      postAndRedirect(url, errorEl);
+    });
+  }
+
+  // Owner + sole member: delete workspace
+  var deleteWorkspaceBtn = document.getElementById('ws-delete-workspace-btn');
+  if (deleteWorkspaceBtn) {
+    deleteWorkspaceBtn.addEventListener('click', function() {
+      if (!window.confirm('Are you sure you want to leave this workspace? This cannot be undone.')) return;
+      var url = deleteWorkspaceBtn.getAttribute('data-delete-url');
+      var errorEl = document.querySelector('[data-role="leave-error"]');
+      if (errorEl) errorEl.setAttribute('hidden', '');
+      postAndRedirect(url, errorEl);
+    });
+  }
+
+  // ── Header "Transfer ownership" dropdown ──
+  var transferHeaderBtn = document.getElementById('ws-transfer-header-btn');
+  var transferDropdown = document.getElementById('ws-transfer-dropdown');
+
+  if (transferHeaderBtn && transferDropdown) {
+    transferHeaderBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var isHidden = transferDropdown.hasAttribute('hidden');
+      if (isHidden) {
+        transferDropdown.removeAttribute('hidden');
+      } else {
+        transferDropdown.setAttribute('hidden', '');
+      }
+    });
+
+    document.addEventListener('click', function() {
+      transferDropdown.setAttribute('hidden', '');
+    });
+
+    transferDropdown.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+
+    transferDropdown.querySelectorAll('.WsSettings-transferDropdownItem').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var wuId = item.getAttribute('data-wu-id');
+        var email = item.getAttribute('data-email');
+        if (!window.confirm('Transfer ownership to ' + email + '? This cannot be undone.')) return;
+        transferDropdown.setAttribute('hidden', '');
+        var transferForm = document.getElementById('ws-transfer-form');
+        var select = transferForm && transferForm.querySelector('select[name="owner"]');
+        var errorEl = transferForm && transferForm.querySelector('[data-role="transfer-error"]');
+        if (!transferForm || !select) return;
+        if (errorEl) errorEl.setAttribute('hidden', '');
+        select.value = wuId;
+        var url = transferForm.getAttribute('data-url-base');
+        var formData = new FormData();
+        formData.append('owner', wuId);
+        fetch(url, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken },
+          body: formData
+        }).then(function(r) {
+          if (!r.ok) { if (errorEl) errorEl.removeAttribute('hidden'); return; }
+          return r.json().then(function(data) {
+            if (data && data.status === 'success') {
+              window.location.reload();
+            } else if (errorEl) {
+              errorEl.removeAttribute('hidden');
+            }
+          }).catch(function() { window.location.reload(); });
+        }).catch(function() {
+          if (errorEl) errorEl.removeAttribute('hidden');
+        });
+      });
+    });
+  }
+
+  var transferForm = document.getElementById('ws-transfer-form');
+  if (transferForm) {
+    transferForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var select = transferForm.querySelector('select[name="owner"]');
+      if (!select || !select.value) return;
+      var userName = select.options[select.selectedIndex].text;
+      if (!window.confirm('Transfer ownership of this workspace to ' + userName + '? This action cannot be undone.')) return;
+      var url = transferForm.getAttribute('data-url-base');
+      var errorEl = transferForm.querySelector('[data-role="transfer-error"]');
+      if (errorEl) errorEl.setAttribute('hidden', '');
+      fetch(url, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken },
+        body: new FormData(transferForm)
+      }).then(function(r) {
+        if (!r.ok) {
+          if (errorEl) errorEl.removeAttribute('hidden');
+          return;
+        }
+        return r.json().then(function(data) {
+          if (data && data.status === 'success') {
+            window.location.reload();
+          } else if (errorEl) {
+            errorEl.removeAttribute('hidden');
+          }
+        }).catch(function() {
+          window.location.reload();
+        });
+      }).catch(function() {
+        if (errorEl) errorEl.removeAttribute('hidden');
+      });
+    });
+  }
+
+  // ── Invite codes ──
+  (function() {
+    // ── Copy ──
+    document.querySelectorAll('.ws-copy-invite-code').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var code = btn.getAttribute('data-code');
+        var checkSvg = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+        var origHtml = btn.innerHTML;
+        navigator.clipboard.writeText(code).then(function() {
+          btn.innerHTML = checkSvg;
+          setTimeout(function() { btn.innerHTML = origHtml; }, 1500);
+        });
+      });
+    });
+
+    // ── Show password (Inline) ──
+    document.querySelectorAll('.WsSettings-showPwBtn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var card = btn.closest('.WsSettings-inviteCodeCard');
+        if (!card) return;
+
+        var inlineWrap = card.querySelector('.WsSettings-pwRevealInline');
+        if (!inlineWrap) return;
+
+        // Hide any other open reveal boxes first.
+        document.querySelectorAll('.WsSettings-pwRevealInline').forEach(function(wrap) {
+          if (wrap !== inlineWrap) {
+            wrap.setAttribute('hidden', '');
+            wrap.setAttribute('aria-hidden', 'true');
+          }
+        });
+
+        var valueEl = inlineWrap.querySelector('.WsSettings-pwRevealValue');
+        if (valueEl) valueEl.textContent = btn.getAttribute('data-password') || '';
+
+        var isHidden = inlineWrap.hasAttribute('hidden');
+        var textEl = btn.querySelector('.WsSettings-showPwText');
+        if (isHidden) {
+          inlineWrap.removeAttribute('hidden');
+          inlineWrap.setAttribute('aria-hidden', 'false');
+          if (textEl) textEl.textContent = 'Hide password';
+          btn.classList.add('is-showing');
+        } else {
+          inlineWrap.setAttribute('hidden', '');
+          inlineWrap.setAttribute('aria-hidden', 'true');
+          if (textEl) textEl.textContent = 'Show password';
+          btn.classList.remove('is-showing');
+        }
+      });
+    });
+
+    // ── Add invite code (Popup) ──
+    var addBtn  = document.getElementById('ws-add-invite-code-btn');
+    var modal   = document.getElementById('ws-add-invite-modal');
+    var step1   = document.getElementById('ws-modal-step1');
+    var addForm = document.getElementById('ws-add-invite-code-form');
+
+    function openAddModal() {
+      if (!modal) return;
+      step1.removeAttribute('hidden');
+      addForm.setAttribute('hidden', '');
+      addForm.reset();
+      var errEl = addForm.querySelector('[data-role="add-invite-error"]');
+      if (errEl) errEl.setAttribute('hidden', '');
+      modal.removeAttribute('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddModal() {
+      if (!modal) return;
+      modal.setAttribute('hidden', '');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    function submitCode(password) {
+      var url = addForm.getAttribute('data-url');
+      var errEl = addForm.querySelector('[data-role="add-invite-error"]');
+      if (errEl) errEl.setAttribute('hidden', '');
+      var fd = new FormData(addForm);
+      if (password !== undefined) fd.set('password', password);
+      fetch(url, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken },
+        body: fd
+      }).then(function(r) {
+        return r.json().then(function(data) {
+          if (data && data.status === 'success') {
+            window.location.reload();
+          } else {
+            if (errEl) errEl.removeAttribute('hidden');
+          }
+        });
+      }).catch(function() {
+        if (errEl) errEl.removeAttribute('hidden');
+      });
+    }
+
+    if (addBtn && modal) {
+      addBtn.addEventListener('click', openAddModal);
+
+      var modalClose = modal.querySelector('.Popup-close');
+      var modalBackdrop = modal.querySelector('.Popup-backdrop');
+      if (modalClose) modalClose.addEventListener('click', closeAddModal);
+      if (modalBackdrop) modalBackdrop.addEventListener('click', closeAddModal);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modal.hasAttribute('hidden')) closeAddModal();
+      });
+
+      var choiceNo = document.getElementById('ws-choice-no-password');
+      if (choiceNo) choiceNo.addEventListener('click', function() { submitCode(''); });
+
+      var choiceYes = document.getElementById('ws-choice-with-password');
+      if (choiceYes) {
+        choiceYes.addEventListener('click', function() {
+          step1.setAttribute('hidden', '');
+          addForm.removeAttribute('hidden');
+          var pwInput = addForm.querySelector('input[name="password"]');
+          if (pwInput) pwInput.focus();
+        });
+      }
+
+      var backBtn = document.getElementById('ws-modal-back');
+      if (backBtn) {
+        backBtn.addEventListener('click', function() {
+          addForm.setAttribute('hidden', '');
+          addForm.reset();
+          var errEl = addForm.querySelector('[data-role="add-invite-error"]');
+          if (errEl) errEl.setAttribute('hidden', '');
+          step1.removeAttribute('hidden');
+        });
+      }
+
+      addForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitCode();
+      });
+    }
+
+    // ── Delete ──
+    document.querySelectorAll('.ws-delete-invite-code-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (!window.confirm('Delete this invite code? People using it will no longer be able to join.')) return;
+        var url = btn.getAttribute('data-delete-url');
+        var card = btn.closest('.WsSettings-inviteCodeCard');
+        fetch(url, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken }
+        }).then(function(r) {
+          return r.json().then(function(data) {
+            if (data && data.status === 'success') {
+              if (card) card.remove();
+              var list = document.getElementById('ws-invite-codes-list');
+              if (list && !list.querySelector('.WsSettings-inviteCodeCard')) {
+                var empty = document.createElement('li');
+                empty.className = 'WsSettings-roleCard WsSettings-roleCard--empty';
+                empty.textContent = 'No invite codes yet.';
+                list.appendChild(empty);
+              }
+            } else {
+              window.alert('Could not delete invite code. Please try again.');
+            }
+          });
+        }).catch(function() {
+          window.alert('Could not delete invite code. Please try again.');
+        });
+      });
+    });
+  })();
+
+  // ── Active-user gate: exclude is_active=False users from transfer/leave decisions ──
+  function selectHasActiveOptions(select) {
+    if (!select) return false;
+    for (var i = 0; i < select.options.length; i++) {
+      if (select.options[i].value !== '') return true;
+    }
+    return false;
+  }
+
+  // Hide "Transfer ownership" section if no active non-owner users to transfer to
+  var transferSection = document.querySelector('.WsSettings-transfer');
+  var transferSelect = document.getElementById('id_transfer_user');
+  if (transferSection && transferSelect && !selectHasActiveOptions(transferSelect)) {
+    transferSection.hidden = true;
+  }
+
+  // If no active non-owner users exist, hide the transfer dropdown button and show the leave button instead
+  var transferWrapper = transferHeaderBtn && transferHeaderBtn.closest('.WsSettings-transferWrapper');
+  var dropdownItems = transferDropdown && transferDropdown.querySelectorAll('.WsSettings-transferDropdownItem');
+  if (transferWrapper && (!dropdownItems || dropdownItems.length === 0)) {
+    transferWrapper.setAttribute('hidden', '');
+    var headerDeleteBtn = document.getElementById('ws-delete-workspace-btn');
+    if (headerDeleteBtn) headerDeleteBtn.removeAttribute('hidden');
+  }
+})();
+</script>

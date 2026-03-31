@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+{# Kanban board for a project: groups as columns, tasks as cards. Add group/task via popups (handled by popup.js). #}
+
+{% block body_extra_class %}Base-body--dashboard{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'project/dashboard/index.css' %}">{% endblock %}
+
+{% block content %}
+{% include 'project/dashboard/popup/add_group.html' %}
+{% include 'project/dashboard/popup/add_task.html' %}
+{% include 'project/dashboard/popup/edit_task.html' %}
+
+<div class="Dashboard{% if project.groups.all %} Dashboard--hasGroups{% endif %}" data-dashboard-path="{{ request.resolver_match.kwargs.project_id|default:'' }}" data-current-user="{{ request.user.email }}" data-workspace-owner="{{ project.workspace.owner.user.email }}">
+  <header class="Dashboard-header">
+  </header>
+
+  <div class="Dashboard-board">
+    <ul class="Dashboard-groups{% if not project.groups.all %} Dashboard-groups--empty{% endif %}">
+      {% for group in project.groups.all %}
+        <li class="Dashboard-group Kanban-column" id="group-{{ group.id }}" data-group-position="{{ group.position }}">
+          <div
+            class="Dashboard-groupHeader Kanban-columnHeader"
+            data-group-id="{{ group.id }}"
+            data-group-name="{{ group.name }}"
+            data-group-position="{{ group.position }}"
+          >
+            <div class="Dashboard-groupHeaderRow">
+              <h3 class="Dashboard-groupName" title="{{ group.name }}">{{ group.name }}</h3>
+              <input type="text" class="Dashboard-groupNameInput" value="{{ group.name }}" maxlength="300" aria-label="Group name">
+              <div class="Dashboard-menuWrapper">
+                <button type="button" class="Dashboard-menuToggle" aria-label="Group options">
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+                    <circle cx="7.5" cy="2.5" r="1.5"/>
+                    <circle cx="7.5" cy="7.5" r="1.5"/>
+                    <circle cx="7.5" cy="12.5" r="1.5"/>
+                  </svg>
+                </button>
+                <div class="Dashboard-menu">
+                  <button type="button" class="Dashboard-btn Dashboard-menuItem Dashboard-editGroupNameBtn" data-group-id="{{ group.id }}">Edit name</button>
+                  <button type="button" class="Dashboard-btn Dashboard-menuItem Dashboard-duplicateGroupBtn" data-group-id="{{ group.id }}" data-group-position="{{ group.position }}">Duplicate</button>
+                  <button type="button" class="Dashboard-btn Dashboard-deleteBtn Dashboard-menuItem Dashboard-deleteGroupBtn" data-group-id="{{ group.id }}">Delete group</button>
+                </div>
+              </div>
+            </div>
+            <div class="Dashboard-groupHeaderActions">
+              <button type="button" class="Dashboard-groupSaveBtn">Save</button>
+              <button type="button" class="Dashboard-groupCancelBtn">Cancel</button>
+            </div>
+          </div>
+          <ul class="Dashboard-tasks Kanban-cards">
+            {% for task in group.tasks.all %}
+              {% url 'task:add_reminder' task.id as add_reminder_url %}
+              <li
+                class="Dashboard-task Kanban-card{% if task.is_completed %} Dashboard-task--completed{% endif %}"
+                title="{{ task.name }}"
+                data-task-position="{{ task.position }}"
+                data-task-id="{{ task.id }}"
+                data-task-name="{{ task.name }}"
+                data-task-completed="{% if task.is_completed %}true{% else %}false{% endif %}"
+                data-task-deadline="{{ task.deadline.isoformat|default:'' }}"
+                data-task-group-id="{{ group.id }}"
+                data-task-add-reminder-url="{{ add_reminder_url }}"
+                {% for reminder in task.taskreminder_set.all %}{% if reminder.workspace_user.user == request.user %}data-task-reminder-id="{{ reminder.id }}" data-task-reminder-send-at="{{ reminder.send_at.isoformat }}" data-task-delete-reminder-url="{% url 'task:delete_reminder' reminder.id %}"{% endif %}{% endfor %}
+              >
+                <input
+                  type="checkbox"
+                  class="Dashboard-taskCheckbox"
+                  data-task-id="{{ task.id }}"
+                  {% if task.is_completed %}checked{% endif %}
+                  aria-label="Mark task as complete"
+                >
+                <div class="Dashboard-taskBody">
+                  <span class="Dashboard-taskName">{{ task.name }}</span>
+                  <span class="Dashboard-taskDeadlineBadge" hidden></span>
+                  {% if task.comments.exists %}<span class="Dashboard-commentCount">{% comment %}speech bubble icon{% endcomment %}<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> {{ task.comments.count }}</span>{% endif %}
+                </div>
+                <div class="Dashboard-menuWrapper Dashboard-menuWrapper--task">
+                  <button type="button" class="Dashboard-menuToggle" aria-label="Task options">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+                      <circle cx="7.5" cy="2.5" r="1.5"/>
+                      <circle cx="7.5" cy="7.5" r="1.5"/>
+                      <circle cx="7.5" cy="12.5" r="1.5"/>
+                    </svg>
+                  </button>
+                  <div class="Dashboard-menu">
+                    <button type="button" class="Dashboard-btn Dashboard-menuItem Dashboard-duplicateTaskBtn" data-task-id="{{ task.id }}" data-task-position="{{ task.position }}">Duplicate</button>
+                    <button type="button" class="Dashboard-btn Dashboard-menuItem Dashboard-menuItem--danger Dashboard-deleteTaskMenuBtn" data-task-id="{{ task.id }}">Delete task</button>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+          <div class="Dashboard-groupFooter">
+            <button
+              type="button"
+              class="Dashboard-btn Dashboard-btnSecondary Dashboard-addTaskBtn"
+              data-popup="add-task-popup"
+              data-group-id="{{ group.id }}"
+            >
+              New task
+            </button>
+          </div>
+        </li>
+      {% empty %}
+        <li class="Dashboard-newGroupPlaceholder">
+          <button type="button" class="Dashboard-btn Dashboard-btnPrimary Dashboard-newGroupPlaceholder-btn" data-popup="add-group-popup">New group</button>
+        </li>
+      {% endfor %}
+      {% if project.groups.all %}
+        <li class="Dashboard-newGroupPlaceholder">
+          <button type="button" class="Dashboard-btn Dashboard-btnPrimary Dashboard-newGroupPlaceholder-btn" data-popup="add-group-popup">New group</button>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="comments-{{ task.id }}" type="application/json">[{% for c in task.comments.all %}{"id":"{{ c.id }}","content":"{{ c.content|escapejs }}","added_by":"{{ c.added_by.email|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+{% endfor %}{% endfor %}
+<script id="workspace-projects-data" type="application/json">
+[{% for p in project.workspace.projects.all %}{"id":"{{ p.id }}","name":"{{ p.name|escapejs }}","groups":[{% for g in p.groups.all %}{"id":"{{ g.id }}","name":"{{ g.name|escapejs }}","position":{{ g.position }}}{% if not forloop.last %},{% endif %}{% endfor %}]}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
+<script src="{% static 'project/dashboard/popup/add_group.js' %}"></script>
+<script src="{% static 'project/dashboard/popup/add_task.js' %}"></script>
+<script src="{% static 'project/dashboard/popup/edit_task.js' %}"></script>
+<script src="{% static 'project/dashboard/index.js' %}"></script>
+<script src="{% static 'project/dashboard/drag.js' %}"></script>
+{% endblock %}

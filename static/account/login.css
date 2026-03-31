@@ -1,0 +1,79 @@
+/* ==========================================================================
+   Login page only: remember-me checkbox and Google OAuth.
+   Load after account/base.css.
+   ========================================================================== */
+
+.Account-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.4px;
+  color: var(--color);
+  cursor: pointer;
+}
+
+.Account-checkbox {
+  width: 17.6px;
+  height: 17.6px;
+  accent-color: dodgerblue;
+  cursor: pointer;
+}
+
+.Account-google-btn {
+  appearance: none;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 10.4px 16px;
+  font-size: 15.2px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.Account-google-btnLabel {
+  line-height: 1;
+}
+
+.theme-dark .Account-google-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.Account-google-btn:hover {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.theme-dark .Account-google-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.Account-google-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.Account-google-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  shape-rendering: geometricPrecision;
+  transform: translateZ(0);
+}

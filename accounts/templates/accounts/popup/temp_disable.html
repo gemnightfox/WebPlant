@@ -1,0 +1,37 @@
+{% extends 'popup.html' %}
+{# Popup: temporarily disable email notifications for a chosen duration. Reuses IDs expected by accounts/dashboard.js. #}
+
+{% block popup_id %}temp-disable-popup{% endblock %}
+{% block popup_title_id %}temp-disable-popup-title{% endblock %}
+{% block popup_title_id_h2 %}temp-disable-popup-title{% endblock %}
+{% block popup_title %}Temporarily disable notifications{% endblock %}
+
+{% block popup_content %}
+    <div class="Popup-formWrap">
+      <form class="Popup-form" autocomplete="off">
+        <div class="Popup-field">
+          <label for="AccSettings-tempDisableDuration">Disable for</label>
+          <select id="AccSettings-tempDisableDuration" class="Popup-input AccSettings-tempDisableSelect" name="disable_notifications_duration">
+            <option value="1">1 hour</option>
+            <option value="2">2 hours</option>
+            <option value="4">4 hours</option>
+            <option value="8">8 hours</option>
+            <option value="24">24 hours</option>
+            <option value="48">48 hours</option>
+            <option value="72">72 hours</option>
+          </select>
+        </div>
+        <div class="Popup-actions">
+          <button
+            type="button"
+            class="Popup-submit"
+            id="AccSettings-tempDisableBtn"
+            data-temp-disable-url="{% url 'notification:login_temp_disable' %}"
+          >
+            Disable
+          </button>
+        </div>
+      </form>
+    </div>
+{% endblock %}
+

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{# Email confirmation (allauth). Confirm, expired, or already-confirmed states. Uses account/base.css + email_confirm.css. #}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'account/base.css' %}">
+    <link rel="stylesheet" href="{% static 'account/email_confirm.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="Account-card Account-card--emailConfirm">
+    <a href="{% url 'home:home' %}" class="Account-back">← Back to home</a>
+    <h1 class="Account-title">Confirm email address</h1>
+
+    {% if confirmation %}
+        {% if can_confirm %}
+            <p class="Account-text">
+                Please confirm that <strong>{{ confirmation.email_address.email }}</strong> is the email address for your account.
+            </p>
+            <form class="Account-form" method="post" action="{% url 'account_confirm_email' confirmation.key %}" autocomplete="off">
+                {% csrf_token %}
+                {{ redirect_field }}
+                <button type="submit" class="Account-submit">Confirm</button>
+            </form>
+        {% else %}
+            <p class="Account-text Account-text--error">
+                This email is already confirmed by a different account.
+            </p>
+            <div class="Account-footer">
+                <a class="Account-footer-link" href="{% url 'account_login' %}">Log in</a>
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="Account-text">
+            This email confirmation link expired or is invalid. Please request a new confirmation from your account settings or sign up again.
+        </p>
+        <div class="Account-footer">
+            <a class="Account-footer-link" href="{% url 'account_login' %}">Log in</a>
+            <a class="Account-footer-link" href="{% url 'home:home' %}">Home</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

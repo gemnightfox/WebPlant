@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+{# User preferences (theme) and account info (email/password). Includes email and reset-password popups; script: accounts/dashboard.js. #}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'accounts/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="AccSettings" data-notification-alert-allowed="{{ user_preferences.send_notifications|yesno:'true,false' }}" data-set-preferences-url="{% url 'accounts:set_preferences' %}">
+  <header class="AccSettings-header">
+    <span class="AccSettings-email" title="{{ user.email }}">{{ user.email }}</span>
+    <form method="post" action="{% url 'account_logout' %}" class="AccSettings-logoutForm" autocomplete="off" onsubmit="return confirm('Are you sure you want to log out?');">
+      {% csrf_token %}
+      <button type="submit" class="AccSettings-logout">Log out</button>
+    </form>
+  </header>
+
+  <div class="AccSettings-sections">
+    <section class="AccSettings-section" aria-labelledby="preferences-heading">
+      <h2 id="preferences-heading" class="AccSettings-sectionTitle">Preferences</h2>
+      <div class="AccSettings-sectionContent">
+        <div class="AccSettings-preferenceRow">
+          <span class="AccSettings-preferenceLabel">Color theme</span>
+          <div class="AccSettings-themeChooser" aria-label="Color theme">
+            <!-- From Uiverse.io by alexruix -->
+            <label class="switch" aria-label="Toggle dark mode">
+              <input
+                type="checkbox"
+                class="AccSettings-themeToggle"
+                {% if user_preferences.color_theme == 'dark' %}checked{% endif %}
+              >
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="AccSettings-preferenceRow AccSettings-preferenceRow--notifications">
+          <span class="AccSettings-preferenceLabel">Allow email notifications</span>
+          <div class="AccSettings-notificationChooser" aria-label="Allow email notifications">
+            <!-- From Uiverse.io by arghyaBiswasDev -->
+            <label class="switch switch--notifications" aria-label="Toggle email notifications">
+              <input
+                type="checkbox"
+                class="AccSettings-notificationsToggle"
+                data-initial-allowed="{{ user_preferences.send_notifications|yesno:'true,false' }}"
+                {% if user_preferences.send_notifications %}checked{% endif %}
+              >
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="AccSettings-preferenceRow AccSettings-preferenceRow--workspaceInvites">
+          <span class="AccSettings-preferenceLabel">Allow workspace invites</span>
+          <div class="AccSettings-workspaceInvitesChooser" aria-label="Allow workspace invites">
+            <label class="switch switch--notifications" aria-label="Toggle workspace invites">
+              <input
+                type="checkbox"
+                class="AccSettings-workspaceInvitesToggle"
+                data-initial-allowed="{{ user_preferences.workspace_invites|yesno:'true,false' }}"
+                {% if user_preferences.workspace_invites %}checked{% endif %}
+              >
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        {% if notification_disabled_duration %}
+        <div class="AccSettings-tempDisabledRow" id="AccSettings-tempDisabledRow">
+          <p
+            class="AccSettings-tempDisabledText"
+            id="AccSettings-tempDisabledText"
+            data-ends-at="{{ notification_disabled_duration.ends_at|date:'c' }}"
+          >
+            Notifications are temporarily disabled.
+          </p>
+          <button type="button" class="AccSettings-accountAction" id="AccSettings-removeTempDisabledBtn" data-remove-url="{% url 'notification:remove_temp_disabled' %}">Remove</button>
+        </div>
+        {% endif %}
+        <div
+          class="AccSettings-tempDisableRow"
+          id="AccSettings-tempDisableRow"
+          {% if notification_disabled_duration %}hidden{% endif %}
+        >
+          <span class="AccSettings-preferenceLabel">Temporarily disable notifications</span>
+          <div class="AccSettings-tempDisableActions">
+            <button
+              type="button"
+              class="AccSettings-accountAction"
+              data-popup="temp-disable-popup"
+            >
+              Disable
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="AccSettings-section" aria-labelledby="account-info-heading">
+      <h2 id="account-info-heading" class="AccSettings-sectionTitle">Account information</h2>
+      <div class="AccSettings-sectionContent">
+        <div class="AccSettings-accountRow">
+          <div class="AccSettings-accountRowMain">
+            <div class="AccSettings-accountTitleRow">
+              <span class="AccSettings-accountLabel">Email</span>
+              <button type="button" class="AccSettings-accountAction AccSettings-accountAction--inline" data-popup="email-popup">Change email</button>
+            </div>
+            <span class="AccSettings-accountValue AccSettings-accountValue--email">{{ user.email }}</span>
+          </div>
+        </div>
+        <div class="AccSettings-accountRow">
+          <div class="AccSettings-accountRowMain">
+            <div class="AccSettings-accountTitleRow">
+              <span class="AccSettings-accountLabel">Password</span>
+              <button type="button"
+                class="AccSettings-accountAction AccSettings-accountAction--inline"
+                data-reset-password
+                data-email="{{ user.email }}"
+                data-reset-password-url="{% url 'account_reset_password' %}"
+                data-check-password-url="{% url 'accounts:check_password_present' %}">Change password</button>
+            </div>
+          </div>
+        </div>
+        <div class="AccSettings-accountRow AccSettings-accountRow--danger">
+          <div class="AccSettings-accountRowMain">
+            <div class="AccSettings-accountTitleRow">
+              <span class="AccSettings-accountLabel">Account deletion</span>
+              <button type="button"
+                class="AccSettings-accountAction AccSettings-accountAction--danger"
+                id="AccSettings-deleteAccountBtn"
+                data-send-deletion-url="{% url 'accounts:send_account_deletion_email' %}">Delete account</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+{% include 'accounts/popup/email.html' %}
+{% include 'accounts/popup/reset_password.html' %}
+{% include 'accounts/popup/temp_disable.html' %}
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'accounts/dashboard.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+{# Workspace settings base: header, tab nav (General / Users), includes general.html and users.html. #}
+
+{% block body_extra_class %}Base-body--workspaceSettings{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'workspace/settings/general.css' %}">
+<link rel="stylesheet" href="{% static 'workspace/settings/users.css' %}">
+{% endblock %}
+
+{% block content %}
+<div
+  class="WsSettings"
+  data-workspace-id="{{ workspace.id }}"
+  data-current-user-id="{{ user.id }}"
+  data-custom-roles="{{ workspace_preference.custom_roles|yesno:'true,false' }}"
+>
+  <header class="WsSettings-header">
+    <div class="WsSettings-headerTop">
+      <h1 class="WsSettings-title">Workspace settings</h1>
+      {% if my_workspace_user == workspace.owner %}
+        {# hidden when other workspace users exist; JS will unhide if none are active #}
+        <button
+          type="button"
+          class="WsSettings-btn WsSettings-btnDanger"
+          id="ws-delete-workspace-btn"
+          data-delete-url="/workspace/remove-user/{{ workspace.id }}/{{ user.id }}/"
+          {% if all_workspace_users|length > 1 %}hidden{% endif %}
+        >
+          Leave workspace
+        </button>
+        {% if all_workspace_users|length > 1 %}
+          <div class="WsSettings-transferWrapper">
+            <button
+              type="button"
+              class="WsSettings-btn WsSettings-btnWarning"
+              id="ws-transfer-header-btn"
+            >
+              Transfer ownership
+            </button>
+            <div class="WsSettings-transferDropdown" id="ws-transfer-dropdown" hidden>
+              {% for wu in all_workspace_users %}
+                {% if wu.user != user and wu.is_active %}
+                  <div
+                    class="WsSettings-transferDropdownItem"
+                    data-wu-id="{{ wu.id }}"
+                    data-email="{{ wu.user.email }}"
+                  >{{ wu.user.email }}</div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      {% else %}
+        <button
+          type="button"
+          class="WsSettings-btn WsSettings-btnDanger"
+          id="ws-leave-btn"
+          data-leave-url="/workspace/remove-user/{{ workspace.id }}/{{ user.id }}/"
+        >
+          Leave workspace
+        </button>
+      {% endif %}
+    </div>
+    <p class="WsSettings-subtitle">{{ workspace.name }}</p>
+  </header>
+
+  <nav class="WsSettings-tabs" role="tablist" aria-label="Workspace settings sections">
+    <button type="button" class="WsSettings-tab is-active" role="tab" aria-selected="true" aria-controls="ws-tab-general" id="ws-tab-btn-general">General</button>
+    <button type="button" class="WsSettings-tab" role="tab" aria-selected="false" aria-controls="ws-tab-users" id="ws-tab-btn-users">Users</button>
+    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_roles %}
+      <button type="button" class="WsSettings-tab" role="tab" aria-selected="false" aria-controls="ws-tab-roles" id="ws-tab-btn-roles">Roles</button>
+    {% endif %}
+  </nav>
+
+  <div class="WsSettings-tabPanel is-active" id="ws-tab-general" role="tabpanel" aria-labelledby="ws-tab-btn-general">
+    {% include 'workspace/settings/general.html' %}
+  </div>
+  <div class="WsSettings-tabPanel" id="ws-tab-users" role="tabpanel" aria-labelledby="ws-tab-btn-users">
+    {% include 'workspace/settings/users.html' %}
+  </div>
+  {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_roles %}
+    <div class="WsSettings-tabPanel" id="ws-tab-roles" role="tabpanel" aria-labelledby="ws-tab-btn-roles">
+      {% include 'workspace/settings/roles.html' %}
+    </div>
+  {% endif %}
+</div>
+
+{% include 'workspace/settings/popup/add_role.html' %}
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'workspace/settings/popup/add_role.js' %}"></script>
+<script src="{% static 'workspace/settings/index.js' %}"></script>
+{% endblock %}

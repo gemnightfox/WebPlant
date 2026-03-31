@@ -1,0 +1,47 @@
+{% extends 'popup.html' %}
+{# Popup: new workspace. Form posts to workspace:create_new; popup.js handles AJAX and reload. #}
+
+{% block popup_id %}add-workspace-popup{% endblock %}
+{% block popup_title_id %}add-workspace-popup-title{% endblock %}
+{% block popup_title_id_h2 %}add-workspace-popup-title{% endblock %}
+{% block popup_title %}New workspace{% endblock %}
+
+{% block popup_content %}
+  <div class="Popup-formWrap">
+    <form
+      method="post"
+      class="Popup-form"
+      id="add-workspace-form"
+      autocomplete="off"
+      data-url="{% url 'workspace:create_new' %}"
+    >
+      {% csrf_token %}
+      <input type="hidden" name="addWorkspaceSubmit" value="1">
+
+      <div class="Popup-field">
+        <label for="id_workspace_name">Name</label>
+        <input
+          type="text"
+          name="name"
+          id="id_workspace_name"
+          class="Popup-input"
+          maxlength="300"
+          required
+        >
+        <small class="Popup-error" data-role="workspace-error" hidden>
+          Something went wrong. Please try again.
+        </small>
+      </div>
+
+      <div class="Popup-actions">
+        <button type="submit" name="addWorkspaceSubmit" class="Popup-submit">
+          Create workspace
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="Popup-success" aria-live="polite" hidden>
+    <p class="Popup-successText">Workspace created successfully.</p>
+  </div>
+{% endblock %}

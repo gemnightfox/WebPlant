@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+{# Shown after user confirms temporary disable; displays duration (hours → days+hours) from sessionStorage. #}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'notification/disable_notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="DisableNotifications DisableNotifications--success">
+    <h1 class="DisableNotifications-title">Notifications temporarily disabled</h1>
+    <p id="success-duration" class="DisableNotifications-success-message">You have disabled notifications for the selected duration.</p>
+    <a href="{% url 'home:home' %}" class="DisableNotifications-btn DisableNotifications-btn--primary DisableNotifications-home-btn">Go to Home</a>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'notification/disable_notifications_success.js' %}"></script>
+{% endblock %}

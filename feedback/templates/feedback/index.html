@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_extra_class %}Base-body--feedback{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'feedback/index.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="Feedback">
+  <header class="Feedback-header">
+    <h1 class="Feedback-title">Feedback</h1>
+    <p class="Feedback-subtitle">Share your thoughts to help us improve WebPlant.</p>
+  </header>
+
+  <section class="Feedback-card" aria-labelledby="feedback-form-heading">
+    <h2 id="feedback-form-heading" class="Feedback-cardTitle">Send us your feedback</h2>
+    <p class="Feedback-cardSubtitle">
+      Tell us what’s working well and what could be better.
+    </p>
+
+    {% if form.errors %}
+      <div class="Feedback-alert Feedback-alert--error" role="alert">
+        <p class="Feedback-alertMessage">
+          There were some problems with your submission. Please review the form below.
+        </p>
+      </div>
+    {% endif %}
+
+    <form method="post" class="Feedback-form" novalidate>
+      {% csrf_token %}
+
+      <div class="Feedback-field">
+        <label for="id_content" class="Feedback-label">
+          Your feedback
+        </label>
+        <textarea
+          name="content"
+          id="id_content"
+          maxlength="9000"
+          required
+          placeholder="Tell us what you think..."
+        >{{ form.content.value|default:'' }}</textarea>
+
+        {% if form.content.errors %}
+          <div class="Feedback-fieldErrors">
+            {% for error in form.content.errors %}
+              <span class="Feedback-fieldError">{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="Feedback-actions">
+        <button type="submit" class="Feedback-submit">
+          Submit feedback
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+

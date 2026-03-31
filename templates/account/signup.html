@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+{# Signup: email + password. Uses account/signup.css. #}
+{# DONT move to accounts app #}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'account/base.css' %}">
+    <link rel="stylesheet" href="{% static 'account/signup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="Account-card Account-card--signup">
+    <a href="{% url 'home:home' %}" class="Account-back">← Back to home</a>
+    <h1 class="Account-title">Sign up</h1>
+
+    {% if form.non_field_errors %}
+        <ul class="Account-errors" role="alert">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form class="Account-form" method="post" action="{% url 'account_signup' %}" autocomplete="off"
+          data-verification-sent-url="{% url 'account_email_verification_sent' %}">
+        {% csrf_token %}
+        {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+        {% endif %}
+
+        <div class="Account-field">
+            <label class="Account-label" for="id_email">Email</label>
+            <input
+                type="email"
+                name="email"
+                id="id_email"
+                class="Account-input{% if form.email.errors %} Account-input--error{% endif %}"
+                value="{{ form.email.value|default:'' }}"
+                required
+                autocomplete="off"
+                autofocus
+            >
+            {% if form.email.errors %}
+                <span class="Account-field-error">{{ form.email.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="Account-field">
+            <label class="Account-label" for="id_password1">Password</label>
+            <input
+                type="password"
+                name="password1"
+                id="id_password1"
+                class="Account-input{% if form.password1.errors %} Account-input--error{% endif %}"
+                required
+                autocomplete="off"
+            >
+            {% if form.password1.errors %}
+                <span class="Account-field-error">{{ form.password1.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="Account-field">
+            <label class="Account-label" for="id_password2">Confirm Password</label>
+            <input
+                type="password"
+                name="password2"
+                id="id_password2"
+                class="Account-input{% if form.password2.errors %} Account-input--error{% endif %}"
+                required
+                autocomplete="off"
+            >
+            {% if form.password2.errors %}
+                <span class="Account-field-error">{{ form.password2.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="Account-submit" id="signup-submit">Sign up</button>
+    </form>
+
+    <div class="Account-footer">
+        <span class="Account-footer-text">Have an account?</span>
+        <a class="Account-footer-link" href="{% url 'account_login' %}">Log in</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'account/signup.js' %}"></script>
+{% endblock %}

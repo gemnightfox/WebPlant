@@ -1,0 +1,37 @@
+{% extends 'popup.html' %}
+{# Popup: confirm project deletion. data-url and project name filled by delete_project.js from trigger data-project-id/data-project-name. #}
+
+{% block popup_id %}delete-project-popup{% endblock %}
+{% block popup_title_id %}delete-project-popup-title{% endblock %}
+{% block popup_title_id_h2 %}delete-project-popup-title{% endblock %}
+{% block popup_title %}Delete project{% endblock %}
+
+{% block popup_content %}
+  <div class="Popup-formWrap">
+    <form
+      method="post"
+      class="Popup-form"
+      id="delete-project-form"
+      autocomplete="off"
+      data-url=""
+    >
+      {% csrf_token %}
+
+      <p style="margin: 0; font-size: 15px; color: var(--color); line-height: 1.5;">
+        Are you sure you want to delete <strong id="delete-project-name"></strong>? This action cannot be undone.
+      </p>
+
+      <small class="Popup-error" data-role="delete-project-error" hidden>
+        Something went wrong. Please try again.
+      </small>
+
+      <div class="Popup-actions">
+        <button type="submit" class="Popup-dangerBtn">Delete project</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="Popup-success" aria-live="polite" hidden>
+    <p class="Popup-successText">Project deleted.</p>
+  </div>
+{% endblock %}

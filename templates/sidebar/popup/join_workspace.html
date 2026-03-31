@@ -1,0 +1,97 @@
+{% extends 'popup.html' %}
+{# Popup: join workspace via invite code. Two-step: first invite code, then password if required. #}
+
+{% block popup_id %}join-workspace-popup{% endblock %}
+{% block popup_title_id %}join-workspace-popup-title{% endblock %}
+{% block popup_title_id_h2 %}join-workspace-popup-title{% endblock %}
+{% block popup_title %}Join workspace using invite code{% endblock %}
+
+{% block popup_content %}
+  <div class="Popup-formWrap">
+
+    {# Step 1: invite code #}
+    <div id="join-step1">
+      <form
+        method="post"
+        class="Popup-form"
+        id="join-workspace-form"
+        autocomplete="off"
+        data-url="{% url 'workspace:join_using_invite_code' %}"
+      >
+        {% csrf_token %}
+
+        <div class="Popup-field">
+          <label for="id_invite_code">Invite code</label>
+          <input
+            type="text"
+            name="invite_code"
+            id="id_invite_code"
+            class="Popup-input"
+            maxlength="16"
+            minlength="16"
+            required
+            style="text-transform: uppercase;"
+          >
+          <small id="invite-code-hint" style="opacity:.6;" hidden></small>
+        </div>
+
+        <small class="Popup-error" data-role="join-invalid-code" hidden>
+          Invalid invite code. Please check and try again.
+        </small>
+        <small class="Popup-error" data-role="join-already-member" hidden>
+          You are already a member of this workspace.
+        </small>
+
+        <div class="Popup-actions">
+          <button type="submit" class="Popup-submit">Continue</button>
+        </div>
+      </form>
+    </div>
+
+    {# Step 2: password #}
+    <div id="join-step2" hidden>
+      <form
+        method="post"
+        class="Popup-form"
+        id="join-workspace-password-form"
+        autocomplete="off"
+        data-url="{% url 'workspace:join_using_invite_code' %}"
+      >
+        {% csrf_token %}
+        <input type="hidden" name="invite_code" id="id_invite_code_step2">
+
+        <div class="Popup-field">
+          <label for="id_join_password">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="id_join_password"
+            class="Popup-input"
+            maxlength="128"
+            required
+          >
+        </div>
+
+        <small class="Popup-error" data-role="join-wrong-password" hidden>
+          Incorrect password. Please try again.
+        </small>
+        <small class="Popup-error" data-role="join-already-member-step2" hidden>
+          You are already a member of this workspace.
+        </small>
+
+        <div class="Popup-actions Popup-actions--split">
+          <button type="button" class="Popup-dangerBtn" id="join-step2-back">Back</button>
+          <button type="submit" class="Popup-submit">Join workspace</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <div class="Popup-success" aria-live="polite" hidden>
+    <p class="Popup-successText">You have successfully joined the workspace.</p>
+    <div class="Popup-actions">
+      <button type="button" class="Popup-submit" id="join-another-btn">Join another workspace</button>
+    </div>
+  </div>
+{% endblock %}

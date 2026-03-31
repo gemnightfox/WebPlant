@@ -1,0 +1,361 @@
+/* ==========================================================================
+   Sidebar top (account row: email, notifications, collapse)
+   Used with sidebar/top.html + sidebar/top.js.
+   ========================================================================== */
+
+/* --- Sidebar container (fixed so main content does not shift when items expand) --- */
+.Base-sidebar {
+  width: 280px;
+  min-width: 280px;
+  height: 100vh;
+  max-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--secondary-background);
+  border-right: 1px solid #7f7f7f40;
+  transition: width 0.2s ease, min-width 0.2s ease;
+  z-index: 10;
+}
+
+/* --- Account row (email, notifications, collapse) --- */
+.Base-account {
+  padding: calc(16px + env(safe-area-inset-top, 0)) 4px 16px 6px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.Base-account-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-bottom: 1px solid #7f7f7f40;
+  padding-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.Base-account-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* --- Account link and icon buttons --- */
+.Base-account-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 15px;
+  padding: 8px 5px;
+  border-radius: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Collapsed: anchor (icon only, clickable). Expanded desktop: anchor (icon + email). Expanded mobile: div (icon + email, not clickable). */
+.Base-account-link--collapsed {
+  display: none;
+}
+.Base-sidebar.is-collapsed .Base-account-link--collapsed,
+html.sidebar-collapsed .Base-sidebar .Base-account-link--collapsed {
+  display: flex;
+}
+.Base-account-link--expanded-link {
+  display: none;
+}
+.Base-sidebar.is-collapsed .Base-account-link--expanded,
+html.sidebar-collapsed .Base-sidebar .Base-account-link--expanded,
+.Base-sidebar.is-collapsed .Base-account-link--expanded-link,
+html.sidebar-collapsed .Base-sidebar .Base-account-link--expanded-link {
+  display: none;
+}
+
+@media (min-width: 501px) {
+  .Base-sidebar:not(.is-collapsed) .Base-account-link--expanded-link {
+    display: flex;
+  }
+  .Base-sidebar:not(.is-collapsed) .Base-account-link--expanded {
+    display: none;
+  }
+}
+
+.Base-account-link--collapsed:hover,
+.Base-account-link--expanded-link:hover {
+  background-color: rgba(127, 127, 127, 0.12);
+}
+
+/* Mobile bottom bar: use ::before for hover so background is not clipped (diagonal cut-off bug) */
+@media (max-width: 500px) {
+  .Base-sidebar.is-collapsed .Base-account-link--collapsed,
+  html.sidebar-collapsed .Base-sidebar .Base-account-link--collapsed {
+    position: relative;
+    overflow: visible;
+    background-color: transparent;
+    min-width: 44px;
+    min-height: 44px;
+    flex-shrink: 0;
+    justify-content: center;
+  }
+  .Base-sidebar.is-collapsed .Base-account-link--collapsed::before,
+  html.sidebar-collapsed .Base-sidebar .Base-account-link--collapsed::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    background-color: transparent;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .Base-sidebar.is-collapsed .Base-account-link--collapsed .Base-account-icon,
+  html.sidebar-collapsed .Base-sidebar .Base-account-link--collapsed .Base-account-icon {
+    position: relative;
+    z-index: 1;
+  }
+  .Base-sidebar.is-collapsed .Base-account-link--collapsed:hover,
+  html.sidebar-collapsed .Base-sidebar .Base-account-link--collapsed:hover {
+    background-color: transparent;
+  }
+  .Base-sidebar.is-collapsed .Base-account-link--collapsed:hover::before,
+  html.sidebar-collapsed .Base-sidebar .Base-account-link--collapsed:hover::before {
+    background-color: rgba(127, 127, 127, 0.12);
+  }
+}
+
+.Base-account-email {
+  color: var(--color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.Base-notification-btn,
+.Base-collapse-btn {
+  background: transparent;
+  border: none;
+  color: var(--color);
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.Base-notification-btn:hover,
+.Base-collapse-btn:hover {
+  background-color: rgba(127, 127, 127, 0.12);
+}
+
+.Base-account-icon svg,
+.Base-notificationIcon,
+.Base-collapseIconExpanded,
+.Base-collapseIconCollapsed {
+  color: var(--color);
+  width: 25px;
+  height: 25px;
+  display: block;
+}
+
+/* Mobile bottom bar only: hidden by default, shown on mobile collapsed */
+.Base-collapseIconMobile {
+  display: none;
+  width: 25px;
+  height: 25px;
+}
+
+.Base-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -18px;
+}
+
+/* --- Collapsed state: narrow sidebar, icon swap --- */
+.Base-collapse-btn .Base-collapseIconCollapsed { display: none; }
+.Base-sidebar.is-collapsed .Base-collapseIconExpanded,
+html.sidebar-collapsed .Base-sidebar .Base-collapseIconExpanded { display: none; }
+.Base-sidebar.is-collapsed .Base-collapseIconCollapsed,
+html.sidebar-collapsed .Base-sidebar .Base-collapseIconCollapsed { display: block; }
+
+.Base-sidebar.is-collapsed,
+html.sidebar-collapsed .Base-sidebar { width: 72px; min-width: 72px; }
+
+/* Main content offset so it is never covered by fixed sidebar; prevents shift when sidebar items expand */
+.Base-sidebar ~ .Base-content {
+  margin-left: 280px;
+  transition: margin-left 0.2s ease, min-width 0.2s ease;
+}
+.Base-sidebar.is-collapsed ~ .Base-content,
+html.sidebar-collapsed .Base-sidebar ~ .Base-content {
+  margin-left: 72px;
+  min-width: calc(100vw - 72px);
+}
+.Base-sidebar.is-collapsed .Base-account-email,
+html.sidebar-collapsed .Base-sidebar .Base-account-email { display: none; }
+.Base-sidebar.is-collapsed .Base-account-link,
+html.sidebar-collapsed .Base-sidebar .Base-account-link { flex: 0; padding: 8px; }
+
+.Base-sidebar.is-collapsed .Base-account-row,
+.Base-sidebar.is-collapsed .Base-account-top,
+html.sidebar-collapsed .Base-sidebar .Base-account-row,
+html.sidebar-collapsed .Base-sidebar .Base-account-top {
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.Base-sidebar.is-collapsed .Base-collapse-btn,
+html.sidebar-collapsed .Base-sidebar .Base-collapse-btn { order: 1; margin-left: 0; }
+.Base-sidebar.is-collapsed .Base-account-link,
+html.sidebar-collapsed .Base-sidebar .Base-account-link { order: 2; }
+.Base-sidebar.is-collapsed .Base-notification-btn,
+html.sidebar-collapsed .Base-sidebar .Base-notification-btn { order: 3; margin-left: 0; }
+
+/* Desktop: keep inner content at full width so sidebar “reveals” it (no g/e/m/… reflow) */
+@media (min-width: 501px) {
+  .Base-sidebar:not(.is-collapsed) .Base-account {
+    min-width: 280px;
+    box-sizing: border-box; /* so padding is inside 280px and right edge isn’t clipped */
+  }
+  .Base-sidebar:not(.is-collapsed) .Base-collapse-btn {
+    margin-right: 8px;
+  }
+}
+
+.Base-notification-btn {
+  position: relative;
+  margin-left: -18px;
+}
+
+/* --- Mobile: full-width sidebar when expanded (< 500px) --- */
+/* --- Mobile collapsed: sidebar at BOTTOM, horizontal icons (Notifications, Expand, Profile) --- */
+@media (max-width: 500px) {
+  /* Smooth expand/collapse from bottom; animate height so it grows upward */
+  .Base-sidebar {
+    transition: width 0.2s ease, min-width 0.2s ease,
+      height 0.175s cubic-bezier(0.4, 0, 0.2, 1),
+      min-height 0.175s cubic-bezier(0.4, 0, 0.2, 1),
+      max-height 0.175s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .Base-sidebar ~ .Base-content {
+    transition: margin-left 0.175s cubic-bezier(0.4, 0, 0.2, 1),
+      padding-bottom 0.175s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Expanded: full viewport, anchored at bottom so height animates upward.
+     Use 100dvh (dynamic viewport height) so the sidebar top always lands at exactly
+     the screen top even when the iOS URL bar is visible — fixing the status-bar email coverage. */
+  .Base-sidebar:not(.is-collapsed) {
+    width: 100vw;
+    min-width: 100vw;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+  .Base-sidebar:not(.is-collapsed) ~ .Base-content {
+    margin-left: 0;
+    padding-bottom: 0;
+  }
+
+  /* Collapsed on mobile: move sidebar to bottom, full width, icon bar only */
+  .Base-sidebar.is-collapsed,
+  html.sidebar-collapsed .Base-sidebar {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    min-width: 0;
+    height: 56px;
+    min-height: 56px;
+    max-height: 56px;
+    flex-direction: row;
+    align-items: center;
+    border-right: none;
+    border-top: 1px solid #7f7f7f40;
+    overflow: visible; /* so account-link hover background is not diagonally clipped */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    box-sizing: content-box; /* keep 56px content height; padding adds below for safe area */
+  }
+  .Base-sidebar.is-collapsed ~ .Base-content,
+  html.sidebar-collapsed .Base-sidebar ~ .Base-content {
+    margin-left: 0;
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0));
+  }
+  .Base-sidebar.is-collapsed .Base-account,
+  html.sidebar-collapsed .Base-sidebar .Base-account {
+    flex-direction: row;
+    flex: 1;
+    padding: 0 8px;
+    min-height: 0;
+    overflow: visible; /* avoid clipping account-link hover background (bottom-right) */
+  }
+  .Base-sidebar.is-collapsed .Base-account-row,
+  html.sidebar-collapsed .Base-sidebar .Base-account-row {
+    flex-direction: row;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    border-bottom: none;
+    padding-bottom: 0;
+    overflow: visible;
+  }
+  .Base-sidebar.is-collapsed .Base-account-top,
+  html.sidebar-collapsed .Base-sidebar .Base-account-top {
+    flex-direction: row;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    overflow: visible;
+  }
+  /* Order: Notifications (1), Expand (2), Profile (3) */
+  .Base-sidebar.is-collapsed .Base-notification-btn,
+  html.sidebar-collapsed .Base-sidebar .Base-notification-btn { order: 1; }
+  .Base-sidebar.is-collapsed .Base-collapse-btn,
+  html.sidebar-collapsed .Base-sidebar .Base-collapse-btn { order: 2; }
+  .Base-sidebar.is-collapsed .Base-account-link,
+  html.sidebar-collapsed .Base-sidebar .Base-account-link { order: 3; }
+
+  /* Mobile collapsed: use circle-arrow expand icon in dodgerblue; hide desktop chevrons */
+  .Base-sidebar.is-collapsed .Base-collapseIconExpanded,
+  .Base-sidebar.is-collapsed .Base-collapseIconCollapsed,
+  html.sidebar-collapsed .Base-sidebar .Base-collapseIconExpanded,
+  html.sidebar-collapsed .Base-sidebar .Base-collapseIconCollapsed {
+    display: none;
+  }
+  .Base-sidebar.is-collapsed .Base-collapseIconMobile,
+  html.sidebar-collapsed .Base-sidebar .Base-collapseIconMobile {
+    display: block;
+    color: dodgerblue;
+  }
+}
+
+/* --- Unread notification badge on sidebar bell --- */
+.Base-badge {
+  position: absolute;
+  top: 1px;
+  transform: translateX(10%);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  background: #e11d48;
+  color: #ffffff;
+  pointer-events: none;
+}

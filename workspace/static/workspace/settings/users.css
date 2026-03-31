@@ -1,0 +1,453 @@
+/* ==========================================================================
+   Workspace settings – members list and add user
+   Used by workspace/settings/users.html.
+   ========================================================================== */
+
+.WsSettings-memberList {
+  list-style: none;
+  margin: 0 0 8px 0;
+  padding: 0;
+}
+
+.WsSettings-member {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.2);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.WsSettings-member--invite {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.WsSettings-member:last-child {
+  margin-bottom: 0;
+}
+
+.WsSettings-memberEmail {
+  color: var(--color);
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.WsSettings-memberOwnerBadge {
+  color: var(--color);
+  opacity: 0.45;
+  font-weight: 400;
+  font-size: 13px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.WsSettings-memberMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.WsSettings-memberRole {
+  color: var(--color);
+  opacity: 0.85;
+  font-size: 14px;
+}
+
+.WsSettings-memberStatus {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.WsSettings-memberStatus--pending {
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid rgba(234, 179, 8, 0.5);
+  color: #ca8a04;
+}
+
+.WsSettings-member--pending .WsSettings-memberEmail {
+  opacity: 0.85;
+}
+
+.WsSettings-member--empty {
+  justify-content: center;
+  opacity: 0.7;
+}
+
+/* Ensure invite row is fully hidden until explicitly shown */
+.WsSettings-member--invite[hidden] {
+  display: none !important;
+}
+
+/* Header for members section: title + "Invite user" button */
+.WsSettings-usersHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.WsSettings-usersHeader .WsSettings-actions {
+  margin-top: 0;
+}
+
+/* Inline invite row inside members list */
+.WsSettings-member--invite .WsSettings-form--inline {
+  width: 100%;
+}
+
+.WsSettings-memberCard {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.2);
+  border-radius: 8px;
+}
+
+.WsSettings-member--invite .WsSettings-memberEmail,
+.WsSettings-member--invite .WsSettings-memberMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.WsSettings-member--invite .WsSettings-memberEmail input {
+  min-width: 0;
+}
+
+.WsSettings-member--invite .WsSettings-memberEmail {
+  flex: 1 1 auto;
+}
+
+.WsSettings-member--invite .WsSettings-memberMeta {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.WsSettings-member--invite .WsSettings-inviteActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: 10px;
+  flex: 0 0 auto;
+}
+
+.WsSettings-member--invite .WsSettings-inviteActions .WsSettings-btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  height: 32px;
+  padding-inline: 12px;
+  padding-block: 0;
+  font-size: 13px;
+}
+
+.WsSettings-memberCard .WsSettings-error[data-role="add-user-error"] {
+  flex-basis: 100%;
+  margin-top: 4px;
+}
+
+/* ... more menu */
+.WsSettings-moreMenu {
+  position: relative;
+}
+
+.WsSettings-moreBtn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 6px;
+  color: var(--color);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.6;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.WsSettings-moreBtn:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.1);
+}
+
+.WsSettings-moreDropdown {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 140px;
+  padding: 4px;
+}
+
+.WsSettings-moreDropdown[hidden] {
+  display: none !important;
+}
+
+.WsSettings-moreDropdown-item {
+  display: block;
+  width: 100%;
+  padding: 7px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  color: #dc2626;
+}
+
+.WsSettings-moreDropdown-item:hover {
+  background: rgba(225, 17, 17, 0.1);
+}
+
+/* Slightly reduce right padding for the role dropdown to keep it tighter */
+.WsSettings-roleSelect {
+  padding-right: 2px;
+  max-width: 160px;
+  width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Roles tab header: title + action buttons */
+.WsSettings-rolesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.WsSettings-rolesTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.WsSettings-defaultRoleInline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.WsSettings-rolesTitleGroup .WsSettings-sectionTitle {
+  color: var(--color);
+}
+
+.WsSettings-defaultRoleLabel {
+  font-size: 14px;
+  color: var(--secondary-text, #6b7280);
+  white-space: nowrap;
+  margin: 0;
+}
+
+.WsSettings-rolesHeader .WsSettings-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 0;
+}
+
+/* Edit role panel: choose role dropdown + form per role */
+.WsSettings-editRolePanel {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.2);
+  border-radius: 8px;
+}
+
+/* Edit role inside popup: no extra margin, no border (popup box provides container) */
+.WsSettings-editRolePanel--inPopup {
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+#edit-role-popup .Popup-box {
+  max-width: 440px;
+}
+
+.WsSettings-editingRoleLabel {
+  margin: 0 0 16px;
+  font-size: 14.4px;
+  color: var(--color-muted, rgba(127, 127, 127, 0.8));
+}
+
+.WsSettings-editRolePanel .WsSettings-field {
+  margin-bottom: 12px;
+}
+
+.WsSettings-editRolePanel .WsSettings-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.WsSettings-transferRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.WsSettings-transferRow .WsSettings-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.WsSettings-transferRoleInfo {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--color);
+  background: rgba(127, 127, 127, 0.08);
+  border-radius: 6px;
+  line-height: 1.5;
+}
+
+.WsSettings-transferRoleInfo strong {
+  color: dodgerblue;
+  font-weight: 600;
+}
+
+.WsSettings-editRolePermLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--color);
+}
+
+.WsSettings-toggleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.WsSettings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.WsSettings-toggleLabel {
+  color: var(--color);
+  font-size: 14px;
+}
+
+.WsSettings-toggle input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 2px solid rgba(127, 127, 127, 0.45);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.WsSettings-toggle input[type="checkbox"]:checked {
+  background: dodgerblue;
+  border-color: dodgerblue;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px;
+}
+
+.WsSettings-editRoleForm {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(127, 127, 127, 0.2);
+}
+
+.WsSettings-editRoleForm .WsSettings-actions {
+  margin-top: 12px;
+}
+
+.WsSettings-editRoleError {
+  display: block;
+  margin-top: 8px;
+}
+
+/* Mobile add-role button: hidden on desktop */
+.WsSettings-addRoleMobile {
+  display: none;
+}
+
+/* Mobile: stack email above role on separate rows */
+@media (max-width: 500px) {
+  .WsSettings-member:not(.WsSettings-member--invite) .WsSettings-memberEmail {
+    flex-basis: 100%;
+  }
+
+  .WsSettings-member:not(.WsSettings-member--invite) .WsSettings-memberMeta {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .WsSettings-member:not(.WsSettings-member--invite) .WsSettings-roleSelect {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Swap Invite button and role select in invite row */
+  .WsSettings-member--invite .WsSettings-memberMeta {
+    order: 2;
+    margin-left: 0;
+  }
+
+  .WsSettings-member--invite .WsSettings-inviteActions {
+    order: 3;
+    margin-left: auto;
+  }
+
+  /* Roles: hide desktop Add role btn, show mobile one below header */
+  .WsSettings-rolesHeader .WsSettings-addRoleDesktop {
+    display: none;
+  }
+
+  .WsSettings-addRoleMobile {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+}
