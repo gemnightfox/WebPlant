@@ -108,27 +108,17 @@
           </div>
         </div>
         <div class="AccSettings-accountRow">
-          <div class="AccSettings-accountRowMain">
-            <div class="AccSettings-accountTitleRow">
-              <span class="AccSettings-accountLabel">Password</span>
-              <button type="button"
-                class="AccSettings-accountAction AccSettings-accountAction--inline"
-                data-reset-password
-                data-email="{{ user.email }}"
-                data-reset-password-url="{% url 'account_reset_password' %}"
-                data-check-password-url="{% url 'accounts:check_password_present' %}">Change password</button>
-            </div>
-          </div>
-        </div>
-        <div class="AccSettings-accountRow AccSettings-accountRow--danger">
-          <div class="AccSettings-accountRowMain">
-            <div class="AccSettings-accountTitleRow">
-              <span class="AccSettings-accountLabel">Account deletion</span>
-              <button type="button"
-                class="AccSettings-accountAction AccSettings-accountAction--danger"
-                id="AccSettings-deleteAccountBtn"
-                data-send-deletion-url="{% url 'accounts:send_account_deletion_email' %}">Delete account</button>
-            </div>
+          <div class="AccSettings-accountActions">
+            <button type="button"
+              class="AccSettings-accountAction"
+              data-reset-password
+              data-email="{{ user.email }}"
+              data-reset-password-url="{% url 'account_reset_password' %}"
+              data-check-password-url="{% url 'accounts:check_password_present' %}">Change password</button>
+            <button type="button"
+              class="AccSettings-accountAction AccSettings-accountAction--danger"
+              id="AccSettings-deleteAccountBtn"
+              data-send-deletion-url="{% url 'accounts:send_account_deletion_email' %}">Delete account</button>
           </div>
         </div>
       </div>

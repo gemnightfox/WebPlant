@@ -1,0 +1,410 @@
+/* --- Task comments --- */
+.TaskComments-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 6px;
+  color: var(--color);
+  width: 100%;
+  transition: background 0.15s;
+}
+
+.TaskComments-toggle:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.TaskComments-toggleLabel {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.TaskComments-toggleChevron {
+  transition: transform 0.2s ease;
+}
+
+.TaskComments-toggle.is-open .TaskComments-toggleChevron {
+  transform: rotate(180deg);
+}
+
+.TaskComments-body[hidden] {
+  display: none;
+}
+
+.TaskComments-body {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.TaskComments {
+  list-style: none;
+  margin: 0 0 10px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.TaskComment {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--background);
+  border: 1px solid rgba(127, 127, 127, 0.18);
+}
+
+.TaskComment-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.TaskComment-author {
+  font-size: 11px;
+  color: rgba(128, 128, 128, 0.7);
+  display: block;
+}
+
+.TaskComment-content {
+  font-size: 15px;
+  color: var(--color);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.TaskComment-editInput {
+  resize: none;
+  overflow: hidden;
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+.TaskComment-editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.TaskComment-editActions[hidden] {
+  display: none;
+}
+
+.TaskComment-actions {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.TaskComment-menuBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  padding: 6px 8px;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--color);
+  opacity: 0.9;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.TaskComment-menuBtn:hover,
+.TaskComment-actions--open .TaskComment-menuBtn {
+  background: rgba(127, 127, 127, 0.22);
+  opacity: 1;
+}
+
+.TaskComment-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  min-width: 110px;
+  background: var(--background, #101010);
+  border-radius: 8px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  padding: 4px;
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  z-index: 200;
+}
+
+.TaskComment-actions--open .TaskComment-menu {
+  display: flex;
+}
+
+.TaskComment-menuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  color: var(--color);
+}
+
+.TaskComment-menuItem:hover {
+  background: rgba(127, 127, 127, 0.15);
+}
+
+.TaskComment-menuItem + .TaskComment-menuItem {
+  margin-top: 2px;
+}
+
+.TaskComment-menuItem--danger {
+  color: #ef4444;
+}
+
+.TaskComment-menuItem--danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.TaskComment-addRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.TaskComment-input {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  overflow: hidden;
+  min-height: 44px;
+  box-sizing: border-box;
+  line-height: 24px;
+}
+
+.TaskComment-addBtn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: dodgerblue;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.12s, background 0.12s;
+}
+
+.TaskComment-addBtn:hover {
+  opacity: 1;
+  background: rgba(30, 144, 255, 0.1);
+}
+
+/* --- Pending invites list --- */
+.Popup-invitesWrap {
+  min-height: 60px;
+}
+
+.Popup-invitesLoading,
+.Popup-invitesEmpty {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color);
+  opacity: 0.85;
+}
+
+.Popup-invitesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.Popup-invitesItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--background);
+  border: 1px solid rgba(127, 127, 127, 0.2);
+  border-radius: 8px;
+}
+
+.Popup-invitesName {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  word-break: break-word;
+}
+
+.Popup-invitesActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.Popup-invitesBtn {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.Popup-invitesBtn--accept {
+  background: dodgerblue;
+  color: #fff;
+}
+
+.Popup-invitesBtn--accept:hover {
+  background: #1a7de8;
+}
+
+.Popup-invitesBtn--reject {
+  background: rgba(127, 127, 127, 0.2);
+  color: var(--color);
+}
+
+.Popup-invitesBtn--reject:hover {
+  background: rgba(127, 127, 127, 0.35);
+}
+
+.Popup-invitesBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Task name click-to-edit --- */
+.Popup-title:empty {
+  display: none;
+}
+
+.TaskNameDisplay {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: break-word;
+  white-space: pre-wrap;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 6px 8px;
+  transition: background 0.12s;
+  outline: none;
+}
+
+.TaskNameDisplay:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.theme-light .TaskNameDisplay:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.TaskNameDisplay:focus-visible {
+  box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.5);
+}
+
+.TaskNameEditWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.TaskNameEditWrap[hidden] {
+  display: none;
+}
+
+.TaskNameDisplay[hidden] {
+  display: none;
+}
+
+.TaskNameEdit-input {
+  width: 100%;
+  resize: none;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.5;
+  border: none;
+  border-bottom: 2px solid rgba(127, 127, 127, 0.25);
+  border-radius: 0;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+  margin-bottom: 3px;
+  transition: border-color 0.15s;
+}
+
+.TaskNameEdit-input:focus {
+  outline: none;
+  border-bottom-color: dodgerblue;
+  box-shadow: none;
+}
+
+.TaskNameEdit-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.TaskNameEdit-error {
+  flex: 1;
+  text-align: left;
+}
+
+.Popup-cancelBtn {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(127, 127, 127, 0.4);
+  background: transparent;
+  color: var(--color);
+}
+
+.Popup-cancelBtn:hover {
+  background: rgba(127, 127, 127, 0.12);
+}

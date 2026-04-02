@@ -8,17 +8,31 @@
 
   // ── Add user form + invite row ──
   function isEmailInMemberList(email) {
+    var normalized = email.trim().toLowerCase();
+
+    // Preferred markup: dedicated element for email text (owner badge is separate).
     var members = document.querySelectorAll(
+      '.WsSettings-memberList .WsSettings-member:not(.WsSettings-member--invite) .WsSettings-memberEmailValue'
+    );
+    if (members && members.length) {
+      for (var i = 0; i < members.length; i++) {
+        var text = (members[i].textContent || '').trim();
+        if (text && text.toLowerCase() === normalized) return true;
+      }
+      return false;
+    }
+
+    // Fallback for older markup without the email-value span.
+    members = document.querySelectorAll(
       '.WsSettings-memberList .WsSettings-member:not(.WsSettings-member--invite) .WsSettings-memberEmail'
     );
-    var normalized = email.trim().toLowerCase();
-    for (var i = 0; i < members.length; i++) {
+    for (var j = 0; j < members.length; j++) {
       // Read only direct text nodes to exclude child elements like the owner badge
-      var text = '';
-      members[i].childNodes.forEach(function(node) {
-        if (node.nodeType === Node.TEXT_NODE) text += node.textContent;
+      var directText = '';
+      members[j].childNodes.forEach(function(node) {
+        if (node.nodeType === Node.TEXT_NODE) directText += node.textContent;
       });
-      if (text.trim().toLowerCase() === normalized) return true;
+      if (directText.trim().toLowerCase() === normalized) return true;
     }
     return false;
   }

@@ -144,7 +144,7 @@
     if (!displayRow || !displayText) return;
     if (dateInput && dateInput.value) {
       var p = dateInput.value.split("-");
-      var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
       displayText.textContent = parseInt(p[2], 10) + " " + months[parseInt(p[1], 10) - 1] + " " + p[0];
       displayRow.removeAttribute("hidden");
     } else {
@@ -219,44 +219,94 @@
     if (!isoStr) return "";
     var d = new Date(isoStr);
     if (isNaN(d.getTime())) return isoStr;
-    var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    return d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear() + " at " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+    var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return d.getDate() + " " + months[d.getMonth()] + " " + String(d.getFullYear()).slice(-2) + " (" + pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ")";
   }
 
-  function updateReminderDisplay() {
-    var displayRow  = document.getElementById("edit-task-reminder-display");
-    var displayText = document.getElementById("edit-task-reminder-display-text");
-    if (!displayRow || !displayText) return;
-    var card = getCurrentCard();
-    var sendAt = card ? card.getAttribute("data-task-reminder-send-at") : "";
-    if (sendAt) {
-      displayText.textContent = formatReminderDisplay(sendAt);
-      displayRow.removeAttribute("hidden");
-    } else {
-      displayRow.setAttribute("hidden", "");
-    }
+  function setReminderTimeValue(timeStr) {
+    var input = document.getElementById("edit-task-reminder-time");
+    if (!input) return;
+    var match = /^(\d{2}):(\d{2})$/.exec(timeStr || "");
+    var h = match ? match[1] : "09";
+    var m = match ? match[2] : "00";
+    input.value = h + ":" + m;
+  }
+
+  function getReminderTimeValue() {
+    var input = document.getElementById("edit-task-reminder-time");
+    var raw = (input && input.value) ? input.value.trim() : "09:00";
+    var match = /^(\d{1,2}):(\d{1,2})$/.exec(raw);
+    if (!match) return "";
+    var h = parseInt(match[1], 10);
+    var m = parseInt(match[2], 10);
+    if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return "";
+    return pad2(h) + ":" + pad2(m);
+  }
+
+  function getTaskReminders(taskId) {
+    var el = document.getElementById('reminders-' + taskId);
+    if (!el) return [];
+    try { return JSON.parse(el.textContent.replace(/,\s*\]/g, ']')) || []; } catch(e) { return []; }
+  }
+
+  function updateTaskReminders(taskId, reminders) {
+    var el = document.getElementById('reminders-' + taskId);
+    if (el) el.textContent = JSON.stringify(reminders);
+  }
+
+  function renderReminders(taskId) {
+    var list = document.getElementById('edit-task-reminders-list');
+    if (!list) return;
+    var reminders = getTaskReminders(taskId);
+    list.innerHTML = '';
+    reminders.forEach(function(r) {
+      var li = document.createElement('li');
+      li.className = 'TaskReminder';
+      var textEl = document.createElement('span');
+      textEl.className = 'TaskReminder-text';
+      textEl.textContent = formatReminderDisplay(r.send_at);
+      var removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'Popup-deadlineRemoveBtn';
+      removeBtn.setAttribute('aria-label', 'Remove reminder');
+      removeBtn.innerHTML = '&times;';
+      removeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (!confirm('Remove this reminder?')) return;
+        var formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
+        fetch(r.delete_url, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: formData,
+        })
+          .then(function(resp) { return resp.json(); })
+          .then(function(data) {
+            if (data && data.status === 'success') {
+              li.remove();
+              var all = getTaskReminders(taskId);
+              var idx = all.findIndex(function(x) { return x.id === r.id; });
+              if (idx !== -1) all.splice(idx, 1);
+              updateTaskReminders(taskId, all);
+            }
+          });
+      });
+      li.appendChild(textEl);
+      li.appendChild(removeBtn);
+      list.appendChild(li);
+    });
   }
 
   function populateReminderFromCard(card) {
     var picker = document.getElementById("edit-task-reminder-picker");
     if (picker) picker.setAttribute("hidden", "");
-    var sendAt = card ? card.getAttribute("data-task-reminder-send-at") : "";
-    if (sendAt) {
-      var d = new Date(sendAt);
-      if (!isNaN(d.getTime())) {
-        reminderYear  = d.getFullYear();
-        reminderMonth = d.getMonth();
-        reminderDay   = d.getDate();
-        var timeInput = document.getElementById("edit-task-reminder-time");
-        if (timeInput) timeInput.value = pad2(d.getHours()) + ":" + pad2(d.getMinutes());
-      }
-    } else {
-      var t = new Date();
-      reminderYear  = t.getFullYear();
-      reminderMonth = t.getMonth();
-      reminderDay   = 0;
-    }
-    updateReminderDisplay();
+    var t = new Date();
+    reminderYear  = t.getFullYear();
+    reminderMonth = t.getMonth();
+    reminderDay   = 0;
+    setReminderTimeValue("09:00");
+    var taskId = card ? card.getAttribute("data-task-id") : currentTaskId;
+    renderReminders(taskId);
   }
 
   function showReminderPicker(anchorEl) {
@@ -510,12 +560,20 @@
     var displayEl = document.getElementById("edit-task-name-display");
     var editWrap = document.getElementById("edit-task-name-edit-wrap");
     var nameInput = document.getElementById("id_edit_task_name");
+    var form = document.getElementById("edit-task-form");
     if (displayEl) displayEl.removeAttribute("hidden");
     if (editWrap) editWrap.setAttribute("hidden", "");
-    if (nameInput) nameInput.value = nameInput.defaultValue;
+    if (nameInput) {
+      nameInput.value = nameInput.defaultValue;
+      nameInput.style.height = "";
+      nameInput.style.overflowY = "";
+    }
+    if (form) form.classList.remove("is-editing-name");
   }
 
   function prepare(card) {
+    resetEditState();
+
     currentTaskId  = card.getAttribute("data-task-id");
     currentGroupId = card.getAttribute("data-task-group-id") || "";
 
@@ -544,16 +602,29 @@
     // Deadline
     populateDeadline(card.getAttribute("data-task-deadline") || "");
 
-    // Comments
+    // Comments (collapsed by default)
     var commentInput = document.getElementById("edit-task-comment-input");
     if (commentInput) commentInput.value = "";
     hideCommentError();
     renderComments(currentTaskId);
+    var commentsBody = document.getElementById("edit-task-comments-body");
+    var commentsToggle = document.getElementById("edit-task-comments-toggle");
+    if (commentsBody) commentsBody.setAttribute("hidden", "");
+    if (commentsToggle) { commentsToggle.setAttribute("aria-expanded", "false"); commentsToggle.classList.remove("is-open"); }
 
     // Reminder
     populateReminderFromCard(card);
+  }
 
-    resetEditState();
+  function focusEditTaskPopupContainer() {
+    var popup = document.getElementById("edit-task-popup");
+    if (!popup) return;
+    var box = popup.querySelector(".Popup-box");
+    if (!box || typeof box.focus !== "function") return;
+    if (!box.hasAttribute("tabindex")) box.setAttribute("tabindex", "-1");
+    setTimeout(function () {
+      try { box.focus(); } catch (_) {}
+    }, 0);
   }
 
   // ── Init ─────────────────────────────────────────────────────────────────────
@@ -565,7 +636,11 @@
       if (reopenTaskId) {
         sessionStorage.removeItem("reopen_task_popup");
         var card = document.querySelector('.Dashboard-task[data-task-id="' + reopenTaskId + '"]');
-        if (card) { window.openPopup("edit-task-popup"); prepare(card); }
+        if (card) {
+          window.openPopup("edit-task-popup");
+          prepare(card);
+          focusEditTaskPopupContainer();
+        }
       }
     } catch (_) {}
 
@@ -579,6 +654,7 @@
       if (!card) return;
       window.openPopup("edit-task-popup");
       prepare(card);
+      focusEditTaskPopupContainer();
     });
 
     // Deadline row button: toggle calendar open / closed
@@ -632,40 +708,12 @@
       });
     }
 
-    var removeReminderBtn = document.getElementById("edit-task-remove-reminder-btn");
-    if (removeReminderBtn) {
-      removeReminderBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        if (!confirm("Remove the reminder?")) return;
-        var card = getCurrentCard();
-        var deleteUrl = card ? card.getAttribute("data-task-delete-reminder-url") : "";
-        if (!deleteUrl) return;
-        var formData = new FormData();
-        formData.append("csrfmiddlewaretoken", getCsrfToken());
-        fetch(deleteUrl, {
-          method: "POST",
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-          body: formData,
-        })
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (data && data.status === "success") {
-              card.removeAttribute("data-task-reminder-id");
-              card.removeAttribute("data-task-reminder-send-at");
-              card.removeAttribute("data-task-delete-reminder-url");
-              reminderDay = 0;
-              updateReminderDisplay();
-            }
-          });
-      });
-    }
-
     var setReminderBtn = document.getElementById("edit-task-set-reminder-btn");
     if (setReminderBtn) {
       setReminderBtn.addEventListener("click", function () {
         if (reminderDay === 0) { alert("Please select a date for the reminder."); return; }
-        var timeInput = document.getElementById("edit-task-reminder-time");
-        var timeVal = (timeInput && timeInput.value) ? timeInput.value : "09:00";
+        var timeVal = getReminderTimeValue();
+        if (!timeVal) { alert("Please enter time in 24-hour format (HH:mm)."); return; }
         var datetimeStr = reminderYear + "-" + pad2(reminderMonth + 1) + "-" + pad2(reminderDay) + " " + timeVal;
         var dt = new Date(reminderYear, reminderMonth, reminderDay,
           parseInt(timeVal.split(":")[0], 10), parseInt(timeVal.split(":")[1], 10));
@@ -717,16 +765,19 @@
       }
     });
 
+    setReminderTimeValue("09:00");
+
     // Click on task name display → enter edit mode
     function enterNameEditMode() {
       var displayEl = document.getElementById("edit-task-name-display");
       var editWrap = document.getElementById("edit-task-name-edit-wrap");
       var nameInput = document.getElementById("id_edit_task_name");
+      var form = document.getElementById("edit-task-form");
       if (displayEl) displayEl.setAttribute("hidden", "");
       if (editWrap) editWrap.removeAttribute("hidden");
+      if (form) form.classList.add("is-editing-name");
       if (nameInput) {
-        nameInput.style.height = "auto";
-        nameInput.style.height = nameInput.scrollHeight + "px";
+        autoResize(nameInput);
         nameInput.focus();
         nameInput.selectionStart = nameInput.selectionEnd = nameInput.value.length;
       }
@@ -820,7 +871,18 @@
 
     // Auto-resize textarea helper
     function autoResize(el) {
+      if (!el) return;
       el.style.height = "auto";
+      if (el.id === "id_edit_task_name") {
+        var editWrap = document.getElementById("edit-task-name-edit-wrap");
+        var maxHeight = editWrap ? editWrap.clientHeight : 0;
+        if (maxHeight > 0) {
+          var nextHeight = Math.min(el.scrollHeight, maxHeight);
+          el.style.height = nextHeight + "px";
+          el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
+          return;
+        }
+      }
       el.style.height = el.scrollHeight + "px";
     }
     function bindAutoResize(el) {
@@ -869,11 +931,41 @@
       });
     }
 
-    // Backdrop close
+    // Toggle comments
+    var commentsToggle = document.getElementById("edit-task-comments-toggle");
+    var commentsBody   = document.getElementById("edit-task-comments-body");
+    if (commentsToggle && commentsBody) {
+      commentsToggle.addEventListener("click", function () {
+        var hidden = commentsBody.hasAttribute("hidden");
+        if (hidden) {
+          commentsBody.removeAttribute("hidden");
+          commentsToggle.setAttribute("aria-expanded", "true");
+          commentsToggle.classList.add("is-open");
+        } else {
+          commentsBody.setAttribute("hidden", "");
+          commentsToggle.setAttribute("aria-expanded", "false");
+          commentsToggle.classList.remove("is-open");
+        }
+      });
+    }
+
+    // Backdrop close — clone to remove popup.js listener, then add calendar-aware one
     var popup = document.getElementById("edit-task-popup");
     if (popup) {
       var backdrop = popup.querySelector(".Popup-backdrop");
-      if (backdrop) backdrop.addEventListener("click", function () { window.closePopup(popup); });
+      if (backdrop) {
+        var newBackdrop = backdrop.cloneNode(true);
+        backdrop.parentNode.replaceChild(newBackdrop, backdrop);
+        newBackdrop.addEventListener("click", function () {
+          var deadlinePicker = document.getElementById("edit-task-deadline-picker");
+          var reminderPicker = document.getElementById("edit-task-reminder-picker");
+          var deadlineOpen = deadlinePicker && !deadlinePicker.hasAttribute("hidden");
+          var reminderOpen = reminderPicker && !reminderPicker.hasAttribute("hidden");
+          if (deadlineOpen) { deadlinePicker.setAttribute("hidden", ""); return; }
+          if (reminderOpen) { reminderPicker.setAttribute("hidden", ""); return; }
+          window.closePopup(popup);
+        });
+      }
     }
 
     // Edit-task form: submit without closing the popup
@@ -898,6 +990,17 @@
 
         var saveBtn = document.getElementById("edit-task-save-btn");
         var formData = new FormData(editTaskForm);
+        var submittedName = (formData.get("name") || "").toString();
+        var wasEditingName = editTaskForm.classList.contains("is-editing-name");
+        if (wasEditingName) {
+          var displayElNow = document.getElementById("edit-task-name-display");
+          if (displayElNow) displayElNow.textContent = submittedName;
+          // `resetEditState()` restores the textarea value from `defaultValue`.
+          // Update `defaultValue` now so we don't lose the user's new name
+          // before the fetch response handler runs.
+          if (nameInput) nameInput.defaultValue = submittedName;
+          resetEditState();
+        }
 
         var doSubmit = function () {
           fetch(url, {
@@ -908,10 +1011,25 @@
             .then(function (r) { return r.json(); })
             .then(function (data) {
               if (data && data.status === "success") {
-                var newName = (editTaskForm.querySelector('[name="name"]') || {}).value || "";
+                // Use the name we submitted (not the potentially-reset textarea value).
+                var newName = submittedName;
                 // Update card in dashboard
                 var card = document.querySelector(".Dashboard-task[data-task-id='" + currentTaskId + "']");
                 if (card) {
+                  var wasCompletedBefore = card.getAttribute("data-task-completed") === "true";
+                  if (typeof data.position === "number") {
+                    card.setAttribute("data-task-position", String(data.position));
+                  }
+                  if (typeof data.is_completed === "boolean") {
+                    card.setAttribute("data-task-completed", data.is_completed ? "true" : "false");
+                    card.classList.toggle("Dashboard-task--completed", data.is_completed);
+                    var taskCb = card.querySelector(".Dashboard-taskCheckbox");
+                    if (taskCb) taskCb.checked = data.is_completed;
+                    if (data.is_completed && !wasCompletedBefore) {
+                      var taskList = card.closest(".Dashboard-tasks");
+                      if (taskList) taskList.appendChild(card);
+                    }
+                  }
                   var nameSpan = card.querySelector(".Dashboard-taskName");
                   if (nameSpan) nameSpan.textContent = newName;
                   card.setAttribute("data-task-name", newName);
@@ -942,22 +1060,25 @@
                 if (displayEl) displayEl.textContent = newName;
                 var ni = document.getElementById("id_edit_task_name");
                 if (ni) ni.defaultValue = newName;
-                // Flash the save button
-                if (saveBtn) {
-                  saveBtn.textContent = "Saved!";
-                  setTimeout(function () {
-                    saveBtn.textContent = "Save";
-                    resetEditState();
-                  }, 800);
-                } else {
-                  resetEditState();
-                }
+                // Close rename mode immediately after a successful save.
+                if (saveBtn) saveBtn.textContent = "Save";
+                resetEditState();
               } else {
+                if (wasEditingName) {
+                  enterNameEditMode();
+                  var reopenNameInput = document.getElementById("id_edit_task_name");
+                  if (reopenNameInput) reopenNameInput.value = submittedName;
+                }
                 if (errorEl) errorEl.removeAttribute("hidden");
                 if (window.showAjaxError) window.showAjaxError(doSubmit);
               }
             })
             .catch(function () {
+              if (wasEditingName) {
+                enterNameEditMode();
+                var reopenNameInput = document.getElementById("id_edit_task_name");
+                if (reopenNameInput) reopenNameInput.value = submittedName;
+              }
               if (errorEl) errorEl.removeAttribute("hidden");
               if (window.showAjaxError) window.showAjaxError(doSubmit);
             });

@@ -148,7 +148,7 @@ body:has(.Base-sidebar)::before {
 }
 
 /* --- Mobile: lock page scroll when sidebar is expanded --- */
-@media (max-width: 500px) {
+@media (max-width: 900px) {
   body:has(.Base-sidebar:not(.is-collapsed)):not(:has(html.sidebar-collapsed)) {
     height: 100vh;
     overflow-x: hidden;

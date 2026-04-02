@@ -1,0 +1,112 @@
+/* Dashboard layout/columns/cards */
+.Dashboard { padding: 24px; width: 100%; min-height: 100%; height: 100%; display: flex; flex-direction: column; }
+.Dashboard-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; flex-shrink: 0; }
+.Dashboard--hasGroups .Dashboard-header { display: none; }
+.Dashboard-btn { padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: background-color 0.12s ease-out, transform 0.05s ease-out; }
+.Dashboard-btnPrimary { background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.7); color: var(--color); }
+.Dashboard-btnPrimary:hover { background: rgba(59, 130, 246, 0.28); transform: translateY(-0.5px); }
+.theme-light .Dashboard-btnPrimary { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; }
+.theme-light .Dashboard-btnPrimary:hover { background: rgba(59, 130, 246, 0.18); }
+.Dashboard-btnSecondary { background: rgba(127, 127, 127, 0.15); color: var(--color); }
+.Dashboard-btnSecondary:hover { background: rgba(127, 127, 127, 0.25); }
+.theme-light .Dashboard-addTaskBtn { background: rgba(127, 127, 127, 0.07); }
+.theme-light .Dashboard-addTaskBtn:hover { background: rgba(127, 127, 127, 0.14); }
+
+.Dashboard-board { flex: 1; min-height: 0; overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; margin: 0 -4px; scrollbar-width: none; -ms-overflow-style: none; }
+.Dashboard-board::-webkit-scrollbar { display: none; }
+.Dashboard-groups { list-style: none; margin: 0; padding: 4px; display: inline-flex; flex-direction: row; align-items: flex-start; gap: 16px; }
+
+.Dashboard-group.Kanban-column {
+  width: 280px; min-width: 280px; max-width: 280px; flex-shrink: 0; display: flex; flex-direction: column;
+  min-height: 160px; max-height: calc(100vh - 100px); height: auto; background: var(--background);
+  border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  border-radius: 12px; padding: 0; overflow: visible;
+}
+.Dashboard-groupHeader.Kanban-columnHeader {
+  display: flex; flex-direction: column; gap: 0; padding: 10px 12px 10px 16px; margin-bottom: 0; flex-shrink: 0;
+  min-height: 52px; background: transparent; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.theme-light .Dashboard-group.Kanban-column { background: var(--background); border: 1px solid rgba(0, 0, 0, 0.12); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+.theme-light .Dashboard-groupHeader.Kanban-columnHeader { background: transparent; border-bottom: 1px solid rgba(0, 0, 0, 0.08); }
+.Dashboard-groupHeaderRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
+.Dashboard-groupHeaderActions { display: none; align-items: center; gap: 6px; margin-top: 8px; }
+.Dashboard-groupHeader--editing .Dashboard-groupHeaderActions { display: flex; }
+.Dashboard-groupNameInput {
+  display: none; flex: 1; min-width: 0; font-size: 15.2px; font-weight: 600; color: var(--color);
+  background: transparent; border: 1.5px solid rgba(59, 130, 246, 0.7); border-radius: 6px;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15); outline: none; padding: 2px 8px;
+}
+.Dashboard-groupHeader--editing .Dashboard-groupName { display: none; }
+.Dashboard-groupHeader--editing .Dashboard-groupNameInput { display: block; flex: 1; }
+.Dashboard-groupHeader--editing .Dashboard-menuWrapper { display: none; }
+.Dashboard-groupSaveBtn, .Dashboard-groupCancelBtn {
+  font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 7px; border: none; cursor: pointer; white-space: nowrap;
+}
+.Dashboard-groupSaveBtn { background: rgba(59, 130, 246, 0.5); border: 1px solid rgba(59, 130, 246, 0.75); color: var(--color); }
+.Dashboard-groupSaveBtn:hover { background: rgba(59, 130, 246, 0.65); }
+.Dashboard-groupCancelBtn { background: rgba(127, 127, 127, 0.15); color: var(--color); }
+.Dashboard-groupCancelBtn:hover { background: rgba(127, 127, 127, 0.25); }
+.Dashboard-groupFooter { padding: 10px 12px 12px; flex-shrink: 0; }
+.Dashboard-groupFooter .Dashboard-addTaskBtn { width: 100%; justify-content: center; }
+.Dashboard-groupName {
+  font-size: 15.2px; font-weight: 600; line-height: 1.35; min-height: 0; color: var(--color); margin: 0; flex: 1; min-width: 0;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; word-break: break-word;
+}
+.Dashboard-addTaskBtn { flex-shrink: 0; }
+.Dashboard-tasks.Kanban-cards {
+  list-style: none; margin: 0; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: visible;
+  scrollbar-width: thin; scrollbar-color: rgba(127, 127, 127, 0.5) transparent;
+}
+.Dashboard-tasks.Kanban-cards::-webkit-scrollbar { width: 8px; }
+.Dashboard-tasks.Kanban-cards::-webkit-scrollbar-track { background: transparent; }
+.Dashboard-tasks.Kanban-cards::-webkit-scrollbar-thumb { background: rgba(127, 127, 127, 0.5); border-radius: 4px; }
+.Dashboard-tasks.Kanban-cards::-webkit-scrollbar-thumb:hover { background: rgba(127, 127, 127, 0.65); }
+.Dashboard-task.Kanban-card {
+  font-size: 14px; color: var(--color); padding: 12px 14px; border-radius: 8px;
+  background: var(--secondary-background, rgba(255, 255, 255, 0.03)); border: 1px solid rgba(127, 127, 127, 0.15);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  word-break: break-word; display: flex; align-items: flex-start; gap: 8px; flex-shrink: 0; position: relative; overflow: visible;
+}
+.Dashboard-task.Kanban-card:hover { border-color: rgba(127, 127, 127, 0.28); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); }
+.Dashboard-newGroupPlaceholder {
+  width: 280px; min-width: 280px; max-width: 280px; flex-shrink: 0; min-height: 160px; max-height: calc(100vh - 100px);
+  border: 2px dashed rgba(127, 127, 127, 0.4); border-radius: 12px; background: rgba(127, 127, 127, 0.03);
+  display: flex; align-items: center; justify-content: center; padding: 12px;
+}
+.Dashboard-newGroupPlaceholder-btn { pointer-events: auto; }
+.Dashboard-groups--empty { width: 100%; justify-content: flex-start; align-items: flex-start; }
+
+.Dashboard-deleteBtn {
+  display: inline-flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer;
+  padding: 4px; border-radius: 6px; color: var(--color); opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease; flex-shrink: 0;
+}
+.Dashboard-deleteBtn:hover { background: rgba(239, 68, 68, 0.15); color: #ef4444; opacity: 1; }
+.Dashboard-groupHeader:hover .Dashboard-deleteGroupBtn, .Dashboard-task:hover .Dashboard-deleteTaskBtn { opacity: 0.6; }
+.Dashboard-groupHeader:hover .Dashboard-deleteGroupBtn:hover, .Dashboard-task:hover .Dashboard-deleteTaskBtn:hover { opacity: 1; }
+.Dashboard-menuWrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.Dashboard-menuToggle {
+  display: inline-flex; align-items: center; justify-content: center; border: none; background: none; padding: 6px 8px;
+  min-width: 28px; min-height: 28px; border-radius: 999px; cursor: pointer; color: var(--color); opacity: 0.9;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+.Dashboard-menuToggle:hover { background: rgba(127, 127, 127, 0.22); }
+.Dashboard-menuWrapper--open .Dashboard-menuToggle { opacity: 1; background: rgba(127, 127, 127, 0.22); }
+.Dashboard-menu {
+  position: absolute; top: 100%; left: 0; margin-top: 4px; min-width: 120px; background: var(--background, #101010);
+  border-radius: 8px; border: 1px solid rgba(127, 127, 127, 0.35); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  padding: 4px; display: none; z-index: 40;
+}
+.Dashboard-menuWrapper--open .Dashboard-menu { display: flex; flex-direction: column; align-items: stretch; }
+.Dashboard-menuItem {
+  width: 100%; display: flex; align-items: center; justify-content: flex-start; background: none; border: none; cursor: pointer;
+  font-size: 13px; line-height: 1.4; gap: 6px; padding: 6px 8px; border-radius: 6px; transition: background 0.15s; color: var(--color);
+}
+.Dashboard-menuItem:hover { background: rgba(127, 127, 127, 0.15); }
+.Dashboard-menuItem + .Dashboard-menuItem { margin-top: 2px; }
+.Dashboard-menuItem--danger { color: #ef4444; }
+.Dashboard-menuItem--danger:hover { background: rgba(239, 68, 68, 0.08); }
+.Dashboard-menuWrapper--open .Dashboard-deleteBtn,
+.Dashboard-groupHeader:hover .Dashboard-menuWrapper--open .Dashboard-deleteBtn,
+.Dashboard-task:hover .Dashboard-menuWrapper--open .Dashboard-deleteBtn { opacity: 1; }

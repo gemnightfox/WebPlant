@@ -76,7 +76,9 @@
         data-workspace-user-id="{{ wu.pk }}"
       >
         <span class="WsSettings-memberEmail">
-          {{ wu.user.email|default:wu.user.get_username }}
+          <span class="WsSettings-memberEmailValue">
+            {{ wu.user.email|default:wu.user.get_username }}
+          </span>
           {% if wu == workspace.owner %}<span class="WsSettings-memberOwnerBadge">(owner)</span>{% endif %}
         </span>
         <span class="WsSettings-memberMeta">

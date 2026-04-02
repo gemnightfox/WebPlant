@@ -161,15 +161,42 @@ body:has(.AccSettings) {
   gap: 8px;
 }
 
-.AccSettings-tempDisableSelect {
-  padding: 6px 10px;
+/*
+ * Temp-disable popup: #AccSettings-tempDisableDuration (classes Popup-input AccSettings-tempDisableSelect).
+ * Chevron as background-image: stroke must be explicit per theme — `currentColor` in data-URL SVGs
+ * does not use the control’s computed color in most browsers (reads as black → invisible on dark bg).
+ */
+#temp-disable-popup #AccSettings-tempDisableDuration {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 36px 6px 10px;
   font-size: 14px;
   color: var(--color);
-  background: var(--secondary-background);
   border: 1px solid rgba(127, 127, 127, 0.35);
   border-radius: 8px;
   font-family: inherit;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--secondary-background);
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px 16px;
+}
+
+/* Chevron stroke #F1F5F9 — matches base.css .theme-dark --color */
+body.theme-dark #temp-disable-popup #AccSettings-tempDisableDuration {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M4%206l4%204%204-4%22%20stroke%3D%22%23F1F5F9%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+}
+
+/* Chevron stroke #000000 — matches base.css .theme-light --color */
+body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M4%206l4%204%204-4%22%20stroke%3D%22%23000000%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+}
+
+#temp-disable-popup #AccSettings-tempDisableDuration:focus {
+  outline: none;
+  border-color: dodgerblue;
 }
 
 /* Blue toggle switch for notifications and workspace invites (Uiverse.io by arghyaBiswasDev).
@@ -316,6 +343,13 @@ body:has(.AccSettings) {
   min-width: 0;
 }
 
+.AccSettings-accountActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
 .AccSettings-accountTitleRow {
   display: flex;
   flex-wrap: wrap;
@@ -386,11 +420,6 @@ body:has(.AccSettings) {
   opacity: 0.85;
 }
 
-.AccSettings-accountRow--danger {
-  margin-top: 4px;
-  padding-top: 14px;
-}
-
 /* --- Mobile tweaks: avoid horizontal scroll & tighten UI --- */
 @media (max-width: 640px) {
   .AccSettings {
@@ -459,7 +488,7 @@ body:has(.AccSettings) {
 
 }
 
-@media (max-width: 500px) {
+@media (max-width: 900px) {
   /* Keep label + toggle on one line; shrink label text to fit narrow screens */
   .AccSettings-preferenceRow {
     flex-wrap: nowrap;

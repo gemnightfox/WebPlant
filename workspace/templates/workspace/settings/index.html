@@ -10,7 +10,7 @@
 
 {% block content %}
 <div
-  class="WsSettings"
+  class="WsSettings WsSettings--generalActive"
   data-workspace-id="{{ workspace.id }}"
   data-current-user-id="{{ user.id }}"
   data-custom-roles="{{ workspace_preference.custom_roles|yesno:'true,false' }}"
@@ -18,49 +18,51 @@
   <header class="WsSettings-header">
     <div class="WsSettings-headerTop">
       <h1 class="WsSettings-title">Workspace settings</h1>
-      {% if my_workspace_user == workspace.owner %}
-        {# hidden when other workspace users exist; JS will unhide if none are active #}
-        <button
-          type="button"
-          class="WsSettings-btn WsSettings-btnDanger"
-          id="ws-delete-workspace-btn"
-          data-delete-url="/workspace/remove-user/{{ workspace.id }}/{{ user.id }}/"
-          {% if all_workspace_users|length > 1 %}hidden{% endif %}
-        >
-          Leave workspace
-        </button>
-        {% if all_workspace_users|length > 1 %}
-          <div class="WsSettings-transferWrapper">
-            <button
-              type="button"
-              class="WsSettings-btn WsSettings-btnWarning"
-              id="ws-transfer-header-btn"
-            >
-              Transfer ownership
-            </button>
-            <div class="WsSettings-transferDropdown" id="ws-transfer-dropdown" hidden>
-              {% for wu in all_workspace_users %}
-                {% if wu.user != user and wu.is_active %}
-                  <div
-                    class="WsSettings-transferDropdownItem"
-                    data-wu-id="{{ wu.id }}"
-                    data-email="{{ wu.user.email }}"
-                  >{{ wu.user.email }}</div>
-                {% endif %}
-              {% endfor %}
+      <div class="WsSettings-headerActions" id="ws-header-actions">
+        {% if my_workspace_user == workspace.owner %}
+          {# hidden when other workspace users exist; JS will unhide if none are active #}
+          <button
+            type="button"
+            class="WsSettings-btn WsSettings-btnDanger"
+            id="ws-delete-workspace-btn"
+            data-delete-url="/workspace/remove-user/{{ workspace.id }}/{{ user.id }}/"
+            {% if all_workspace_users|length > 1 %}hidden{% endif %}
+          >
+            Leave workspace
+          </button>
+          {% if all_workspace_users|length > 1 %}
+            <div class="WsSettings-transferWrapper">
+              <button
+                type="button"
+                class="WsSettings-btn WsSettings-btnWarning"
+                id="ws-transfer-header-btn"
+              >
+                Transfer ownership
+              </button>
+              <div class="WsSettings-transferDropdown" id="ws-transfer-dropdown" hidden>
+                {% for wu in all_workspace_users %}
+                  {% if wu.user != user and wu.is_active %}
+                    <div
+                      class="WsSettings-transferDropdownItem"
+                      data-wu-id="{{ wu.id }}"
+                      data-email="{{ wu.user.email }}"
+                    >{{ wu.user.email }}</div>
+                  {% endif %}
+                {% endfor %}
+              </div>
             </div>
-          </div>
+          {% endif %}
+        {% else %}
+          <button
+            type="button"
+            class="WsSettings-btn WsSettings-btnDanger"
+            id="ws-leave-btn"
+            data-leave-url="/workspace/remove-user/{{ workspace.id }}/{{ user.id }}/"
+          >
+            Leave workspace
+          </button>
         {% endif %}
-      {% else %}
-        <button
-          type="button"
-          class="WsSettings-btn WsSettings-btnDanger"
-          id="ws-leave-btn"
-          data-leave-url="/workspace/remove-user/{{ workspace.id }}/{{ user.id }}/"
-        >
-          Leave workspace
-        </button>
-      {% endif %}
+      </div>
     </div>
     <p class="WsSettings-subtitle">{{ workspace.name }}</p>
   </header>
@@ -86,10 +88,10 @@
   {% endif %}
 </div>
 
-{% include 'workspace/settings/popup/add_role.html' %}
+{% include 'workspace_role/popup/add_role.html' %}
 {% endblock %}
 
 {% block js %}
-<script src="{% static 'workspace/settings/popup/add_role.js' %}"></script>
+<script src="{% static 'workspace_role/popup/add_role.js' %}"></script>
 <script src="{% static 'workspace/settings/index.js' %}"></script>
 {% endblock %}

@@ -11,7 +11,11 @@
     {% if user.is_authenticated %}
         <link rel="stylesheet" href="{% static 'sidebar/top.css' %}">
         <link rel="stylesheet" href="{% static 'sidebar/bottom.css' %}">
+        <link rel="stylesheet" href="{% static 'sidebar/bottom_workspace_tree.css' %}">
+        <link rel="stylesheet" href="{% static 'sidebar/bottom_project_tree.css' %}">
         <link rel="stylesheet" href="{% static 'sidebar/notification.css' %}">
+        <link rel="stylesheet" href="{% static 'sidebar/notification_filter.css' %}">
+        <link rel="stylesheet" href="{% static 'sidebar/notification_mobile.css' %}">
         <link rel="stylesheet" href="{% static 'popup.css' %}">
         <script>(function(){ try { if (localStorage.getItem("base_sidebar_collapsed") === "1") document.documentElement.classList.add("sidebar-collapsed"); } catch (_) {} })();</script>
     {% endif %}
@@ -49,6 +53,8 @@
         <script src="{% static 'sidebar/top.js' %}"></script>
         <script src="{% static 'sidebar/bottom.js' %}"></script>
         <script src="{% static 'sidebar/notification.js' %}"></script>
+        <script src="{% static 'sidebar/notification.filters.js' %}"></script>
+        <script src="{% static 'sidebar/notification.actions.js' %}"></script>
         <script src="{% static 'popup.js' %}"></script>
         <script src="{% static 'sidebar/popup/add_workspace.js' %}"></script>
         <script src="{% static 'sidebar/popup/join_workspace.js' %}"></script>

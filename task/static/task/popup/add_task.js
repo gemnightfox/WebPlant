@@ -30,46 +30,24 @@
 
   function init() {
     if (window.popupPrepare) window.popupPrepare["add-task-popup"] = prepare;
-
     var nameInput = document.getElementById("id_task_name");
     var form = document.getElementById("add-task-form");
-
     if (nameInput) {
-      // Auto-resize
-      nameInput.addEventListener("input", function () {
-        nameInput.style.height = "auto";
-        nameInput.style.height = nameInput.scrollHeight + "px";
-      });
-
-      // Enter = submit, Shift+Enter = newline
+      nameInput.addEventListener("input", function () { nameInput.style.height = "auto"; nameInput.style.height = nameInput.scrollHeight + "px"; });
       nameInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          if (form) form.requestSubmit();
-        }
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (form) form.requestSubmit(); }
       });
     }
-
-    // Whitespace-only validation
     if (form) {
       form.addEventListener("submit", function (e) {
         if (nameInput && !nameInput.value.trim()) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
+          e.preventDefault(); e.stopImmediatePropagation();
           var errorEl = form.querySelector('[data-role="task-error"]');
-          if (errorEl) {
-            errorEl.textContent = "Task name cannot be empty.";
-            errorEl.removeAttribute("hidden");
-          }
+          if (errorEl) { errorEl.textContent = "Task name cannot be empty."; errorEl.removeAttribute("hidden"); }
         }
-      }, true); // capture phase so it runs before initPopupForm's listener
+      }, true);
     }
-
-    if (typeof window.initPopupForm === "function") {
-      window.initPopupForm("add-task-form", "task-error");
-    }
-
-    // Suppress the success-block flash before reload
+    if (typeof window.initPopupForm === "function") window.initPopupForm("add-task-form", "task-error");
     window.addEventListener("popup-form-success", function (e) {
       if (e.detail.formId !== "add-task-form") return;
       var popup = document.getElementById("add-task-popup");
@@ -80,9 +58,6 @@
       if (formWrap) formWrap.removeAttribute("hidden");
     });
   }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();

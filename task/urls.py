@@ -16,7 +16,7 @@ urlpatterns = [
     path('comment/delete/<uuid:task_comment_id>/', delete_comment, name='delete_comment'),
 
     path('reminder/add/<uuid:task_id>/', add_reminder, name='add_reminder'),
-    path('reminder/delete/<uuid:task_comment_id>/', delete_reminder, name='delete_reminder'), 
+    path('reminder/delete/<uuid:task_reminder_id>/', delete_reminder, name='delete_reminder'), 
 ]
 
 

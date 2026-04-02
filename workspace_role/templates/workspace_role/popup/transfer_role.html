@@ -1,21 +1,12 @@
 {% extends 'popup.html' %}
-{# Popup: transfer all users from one workspace role to another. #}
-
 {% block popup_id %}transfer-role-popup{% endblock %}
 {% block popup_title_id %}transfer-role-popup-title{% endblock %}
 {% block popup_title_id_h2 %}transfer-role-popup-title{% endblock %}
 {% block popup_title %}Transfer members{% endblock %}
-
 {% block popup_content %}
-  <form
-    id="ws-transfer-role-form"
-    method="post"
-    data-url-base="/workspace-role/transfer/{{ workspace.id }}/"
-  >
+  <form id="ws-transfer-role-form" method="post" data-url-base="/workspace-role/transfer/{{ workspace.id }}/">
     {% csrf_token %}
-    <p class="WsSettings-transferRoleInfo">
-      Move all members of <strong id="ws-transfer-role-from-name"></strong> to another role.
-    </p>
+    <p class="WsSettings-transferRoleInfo">Move all members of <strong id="ws-transfer-role-from-name"></strong> to another role.</p>
     <div class="WsSettings-transferRow">
       <select id="ws-transfer-role-select" class="WsSettings-select Popup-input" required aria-label="Target role">
         {% for role in workspace.roles.all %}
@@ -24,8 +15,6 @@
       </select>
       <button type="submit" class="WsSettings-btn WsSettings-btnPrimary Popup-submit">Transfer</button>
     </div>
-    <small class="WsSettings-error" data-role="transfer-role-error" hidden>
-      Could not transfer users. Please try again.
-    </small>
+    <small class="WsSettings-error" data-role="transfer-role-error" hidden>Could not transfer users. Please try again.</small>
   </form>
 {% endblock %}
