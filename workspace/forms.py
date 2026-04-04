@@ -4,7 +4,7 @@ from .models import WorkspaceInviteCode, WorkspacePreference, WorkspaceUser, Wor
 from django.db import transaction
 from .utils import generate_workspace_invite_code
 from notification.utils import send_email
-from accounts.utils import get_preferences
+from accounts.utils import get_user_preferences
 from django.contrib.auth import get_user_model
 
 
@@ -127,7 +127,7 @@ class AddUsersForm(forms.ModelForm):
         if not user:
             raise forms.ValidationError(VALIDATION_ERROR_MESSAGE)
 
-        user_preferences = get_preferences(user)
+        user_preferences = get_user_preferences(user)
         if not user_preferences.workspace_invites:
             raise forms.ValidationError(VALIDATION_ERROR_MESSAGE)
 

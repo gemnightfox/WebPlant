@@ -41,7 +41,7 @@ One-to-one with `CustomUser`. Created on first access via `get_preferences(user)
 | GET | `/account/` | `dashboard` | Account dashboard |
 | GET | `/account/check-password-present/` | `check_password_present` | AJAX — returns `{is_password_present: bool}` |
 | POST | `/account/send-account-deletion-email/` | `send_account_deletion_email` | Sends deletion confirmation email |
-| GET/POST | `/account/delete-account/<user_pk>/<token>/` | `delete_account` | Confirms and executes account deletion |
+| GET/POST | `/account/delete-account/<user_id>/<token>/` | `delete_account` | Confirms and executes account deletion |
 | POST | `/account/set-preferences/` | `set_preferences` | Updates `UserPreference` |
 
 

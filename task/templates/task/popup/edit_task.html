@@ -47,19 +47,25 @@
       </div>
     </div>
     <div class="Popup-panel">
-      <button type="button" class="Popup-panelRow" id="edit-task-add-deadline-btn" aria-label="Add deadline"><span class="Popup-panelLabel">Deadline</span><span class="Popup-panelAdd">+</span></button>
-      <div class="Popup-deadlineDisplay" id="edit-task-deadline-display" hidden><span class="Popup-deadlineText" id="edit-task-deadline-display-text"></span><button type="button" class="Popup-deadlineRemoveBtn" id="edit-task-remove-deadline-btn" aria-label="Remove deadline">&times;</button></div>
-      <div id="edit-task-deadline-picker" hidden><div id="edit-task-calendar"></div></div>
-      <hr class="Popup-panelDivider">
-      <button type="button" class="Popup-panelRow" id="edit-task-add-reminder-btn" aria-label="Add reminder"><span class="Popup-panelLabel">Reminder</span><span class="Popup-panelAdd">+</span></button>
-      <ul class="TaskReminders" id="edit-task-reminders-list"></ul>
-      <div id="edit-task-reminder-picker" hidden>
-        <div id="edit-task-reminder-calendar"></div>
-        <div class="ReminderPicker-timeRow">
-          <label class="ReminderPicker-timeLabel" for="edit-task-reminder-time">Time</label>
-          <input type="text" id="edit-task-reminder-time" class="Popup-input ReminderPicker-timeInput" value="09:00" inputmode="numeric" placeholder="HH:mm" aria-label="Reminder time in 24-hour format">
+      <button type="button" class="TaskComments-toggle Popup-panelMobileToggle" id="edit-task-panel-toggle" aria-expanded="false" aria-controls="edit-task-panel-body">
+        <span class="TaskComments-toggleLabel">Settings</span>
+        <svg class="TaskComments-toggleChevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="Popup-panelBody" id="edit-task-panel-body">
+        <button type="button" class="Popup-panelRow" id="edit-task-add-deadline-btn" aria-label="Add deadline"><span class="Popup-panelLabel">Deadline</span><span class="Popup-panelAdd">+</span></button>
+        <div class="Popup-deadlineDisplay" id="edit-task-deadline-display" hidden><span class="Popup-deadlineText" id="edit-task-deadline-display-text"></span><button type="button" class="Popup-deadlineRemoveBtn" id="edit-task-remove-deadline-btn" aria-label="Remove deadline">&times;</button></div>
+        <div id="edit-task-deadline-picker" hidden><div id="edit-task-calendar"></div></div>
+        <hr class="Popup-panelDivider">
+        <button type="button" class="Popup-panelRow" id="edit-task-add-reminder-btn" aria-label="Add reminder"><span class="Popup-panelLabel">Reminder</span><span class="Popup-panelAdd">+</span></button>
+        <ul class="TaskReminders" id="edit-task-reminders-list"></ul>
+        <div id="edit-task-reminder-picker" hidden>
+          <div id="edit-task-reminder-calendar"></div>
+          <div class="ReminderPicker-timeRow">
+            <label class="ReminderPicker-timeLabel" for="edit-task-reminder-time">Time</label>
+            <input type="text" id="edit-task-reminder-time" class="Popup-input ReminderPicker-timeInput" value="09:00" inputmode="numeric" placeholder="HH:mm" aria-label="Reminder time in 24-hour format">
+          </div>
+          <button type="button" class="Popup-submit" id="edit-task-set-reminder-btn">Set Reminder</button>
         </div>
-        <button type="button" class="Popup-submit" id="edit-task-set-reminder-btn">Set Reminder</button>
       </div>
     </div>
   </div>

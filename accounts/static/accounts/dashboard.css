@@ -350,6 +350,22 @@ body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
   gap: 10px;
 }
 
+.AccSettings-accountActionsWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.AccSettings-disablePasswordHint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color);
+  opacity: 0.78;
+  max-width: 42ch;
+}
+
 .AccSettings-accountTitleRow {
   display: flex;
   flex-wrap: wrap;

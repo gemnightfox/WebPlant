@@ -2,7 +2,7 @@
 {% load static %}
 {% load socialaccount %}
 {# Login: email/password + optional Google. Uses account/login.css. #}
-{# DONT move to accounts app #}
+{# Kept under project templates/ (DIRS): allauth.account precedes "accounts" in INSTALLED_APPS, so app overrides would lose to allauth defaults. #}
 
 {% block css %}
     <link rel="stylesheet" href="{% static 'account/base.css' %}">

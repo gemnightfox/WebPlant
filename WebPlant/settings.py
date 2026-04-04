@@ -218,6 +218,8 @@ sentry_sdk.init(
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
+PASSWORD_RESET_TIMEOUT = 60 * 15 # 15 mins
+
 LOGIN_URL = '/account/login/'
 LOGIN_REDIRECT_URL = '/account/'
 LOGOUT_REDIRECT_URL = '/account/login/'
@@ -226,5 +228,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
 
 

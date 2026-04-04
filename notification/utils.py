@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from django.urls import reverse
 from .models import Notification, NotificationDisabledDuration
 from django.http import Http404
-from accounts.utils import get_preferences
+from accounts.utils import get_user_preferences
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from base_utils import CustomTokenGenerator
@@ -14,7 +14,7 @@ from base_utils import CustomTokenGenerator
 
 
 def can_send_notifications(user):
-    user_preferences = get_preferences(user)
+    user_preferences = get_user_preferences(user)
     if not user_preferences.send_notifications:
         return False # Immediately stop checks (already confirmed that user does not allow emails)
 
@@ -76,7 +76,7 @@ def generate_temporary_disable_notifications_link(receiver):
     token_generator = CustomTokenGenerator(purpose='disable-notifications')
     token = token_generator.make_token(receiver)
     path = reverse('notification:temp_disable', kwargs={
-        'user_pk': receiver.pk,
+        'user_id': receiver.id,
         'token': token,
     })
     DOMAIN_NAME = 'webplant.org'

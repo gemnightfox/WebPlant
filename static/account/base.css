@@ -1,7 +1,8 @@
 /* ==========================================================================
    Shared account styles (login, signup, email confirm, password reset,
-   verification sent, delete account). Load first; page CSS loads after.
+   password reset from key / done, password set, verification sent, delete account). Load first; page CSS loads after.
    Uses base theme variables from static/base.css.
+   Project static/account/: served before allauth app static (STATICFILES_DIRS first).
    ========================================================================== */
 
 /* --- Card and layout --- */
@@ -174,7 +175,8 @@
 
 /* --- Centering for login/signup cards --- */
 .Base-content:has(.Account-card--login),
-.Base-content:has(.Account-card--signup) {
+.Base-content:has(.Account-card--signup),
+.Base-content:has(.Account-card--passwordSet) {
   display: flex;
   align-items: center;
   justify-content: center;

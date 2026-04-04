@@ -33,8 +33,8 @@ def get_notifications(request):
 
 
 # No login required (token used)
-def temp_disable(request, user_pk, token):
-    user = get_object_or_404(get_user_model(), pk=user_pk)
+def temp_disable(request, user_id, token):
+    user = get_object_or_404(get_user_model(), id=user_id)
     token_generator = CustomTokenGenerator(purpose='disable-notifications')
     is_token_valid = token_generator.check_token(user, token)
 

@@ -38,7 +38,7 @@ One-to-one with `User`. When present, email notifications are suppressed until `
 |---|---|---|---|
 | GET | `/notification/get-unread-count/` | `get_unread_count` | AJAX — `{unread_count: int}` |
 | GET/POST | `/notification/get-notifications/` | `get_notifications` | Paginated, filtered notification list |
-| GET/POST | `/notification/temp-disable/<user_pk>/<token>/` | `temp_disable` | Token-based disable via email link (no login needed) |
+| GET/POST | `/notification/temp-disable/<user_id>/<token>/` | `temp_disable` | Token-based disable via email link (no login needed) |
 | GET | `/notification/temp-disable-success/` | `temp_disable_success` | Success page after disabling |
 | POST | `/notification/temp-disable/` | `login_temp_disable` | Disable for logged-in user |
 | POST | `/notification/remove-temp-disabled/` | `remove_temp_disabled` | Re-enable notifications |

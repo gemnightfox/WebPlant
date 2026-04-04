@@ -20,7 +20,7 @@ class CustomTokenGenerator(PasswordResetTokenGenerator):
         self.purpose = purpose # What the token is used for, eg. 'delete_account', appended to prevent clashes between different token verifications
 
     def _make_hash_value(self, user, timestamp):
-        return f'{self.purpose}___{timestamp}__{user.pk}__{user.email}'
+        return f'{self.purpose}___{timestamp}__{user.id}__{user.email}'
 
 
 

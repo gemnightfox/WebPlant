@@ -1,7 +1,8 @@
 /**
  * Account settings: theme toggle (light/dark) and account actions.
  * - Theme: POST to pick_light_mode / pick_dark_mode; update body class.
- * - Password button: label "Set up password" vs "Change password" from GET check_password_present.
+ * - Password button: label from server-rendered HTML; GET check_password_present keeps label + data in sync.
+ * - Gmail: optional Disable password (sends confirmation link by email); hint when no local password.
  * - Email popup: AJAX submit to account_email; success message in popup.
  * - Reset password: confirm then POST reset; on success open reset-password-popup.
  */
@@ -137,10 +138,69 @@
         } else {
           passwordButton.textContent = 'Change password';
         }
+        var disableBtn = document.getElementById('AccSettings-disablePasswordBtn');
+        var disableNoPwMsg = document.getElementById('AccSettings-disablePasswordNoPassword');
+        if (data.is_password_present === true) {
+          if (disableBtn) disableBtn.removeAttribute('hidden');
+          if (disableNoPwMsg) disableNoPwMsg.setAttribute('hidden', '');
+        } else {
+          if (disableBtn) disableBtn.setAttribute('hidden', '');
+          if (disableNoPwMsg) disableNoPwMsg.removeAttribute('hidden');
+        }
       }).catch(function() {
         // If this fails, just leave the default label as-is
       });
     }
+  }
+
+  /* Gmail: send email with link to disable local password (POST send_disable_password_email) */
+  var disablePasswordBtn = document.getElementById('AccSettings-disablePasswordBtn');
+  if (disablePasswordBtn) {
+    disablePasswordBtn.addEventListener('click', function() {
+      var confirmed = window.confirm(
+        'Send a link to your email to disable your local password? When disabled, you will only be able to sign in with Google.'
+      );
+      if (!confirmed) return;
+      var url = disablePasswordBtn.getAttribute('data-send-disable-password-url');
+      if (!url) return;
+      var csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+      var csrf = csrfEl ? csrfEl.value : '';
+      disablePasswordBtn.disabled = true;
+      var origText = disablePasswordBtn.textContent;
+      disablePasswordBtn.textContent = 'Sending…';
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrf,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({}),
+        credentials: 'same-origin'
+      }).then(function(r) {
+        return r.json().then(function(data) {
+          return { ok: r.ok, data: data };
+        });
+      }).then(function(result) {
+        disablePasswordBtn.disabled = false;
+        disablePasswordBtn.textContent = origText;
+        if (result.ok && result.data && result.data.status === 'success') {
+          alert(
+            'A link to disable your password has been sent to your email. Open the link to confirm.'
+          );
+          return;
+        }
+        var msg =
+          result.data && result.data.message
+            ? result.data.message
+            : 'Could not send the email. Please try again.';
+        alert(msg);
+      }).catch(function() {
+        disablePasswordBtn.disabled = false;
+        disablePasswordBtn.textContent = origText;
+        alert('Could not send the email. Please try again.');
+      });
+    });
   }
 
   /* Email change popup: AJAX submit to account email endpoint */

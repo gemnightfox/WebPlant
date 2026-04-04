@@ -108,17 +108,30 @@
           </div>
         </div>
         <div class="AccSettings-accountRow">
-          <div class="AccSettings-accountActions">
-            <button type="button"
-              class="AccSettings-accountAction"
-              data-reset-password
-              data-email="{{ user.email }}"
-              data-reset-password-url="{% url 'account_reset_password' %}"
-              data-check-password-url="{% url 'accounts:check_password_present' %}">Change password</button>
-            <button type="button"
-              class="AccSettings-accountAction AccSettings-accountAction--danger"
-              id="AccSettings-deleteAccountBtn"
-              data-send-deletion-url="{% url 'accounts:send_account_deletion_email' %}">Delete account</button>
+          <div class="AccSettings-accountActionsWrap">
+            <div class="AccSettings-accountActions">
+              <button type="button"
+                class="AccSettings-accountAction"
+                data-reset-password
+                data-email="{{ user.email }}"
+                data-reset-password-url="{% url 'account_reset_password' %}"
+                data-check-password-url="{% url 'accounts:check_password_present' %}"
+                data-has-password="{{ user.has_usable_password|yesno:'true,false' }}"
+              >{% if user.has_usable_password %}Change password{% else %}Set up password{% endif %}</button>
+              {% if "@gmail.com" in user.email|lower %}
+              {% if user.has_usable_password %}
+              <button type="button"
+                class="AccSettings-accountAction AccSettings-accountAction--danger"
+                id="AccSettings-disablePasswordBtn"
+                data-send-disable-password-url="{% url 'accounts:send_disable_password_email' %}"
+              >Disable password</button>
+              {% endif %}
+              {% endif %}
+              <button type="button"
+                class="AccSettings-accountAction AccSettings-accountAction--danger"
+                id="AccSettings-deleteAccountBtn"
+                data-send-deletion-url="{% url 'accounts:send_account_deletion_email' %}">Delete account</button>
+            </div>
           </div>
         </div>
       </div>
