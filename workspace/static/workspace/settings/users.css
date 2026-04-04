@@ -72,6 +72,12 @@
   color: var(--color);
   opacity: 0.85;
   font-size: 14px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 .WsSettings-memberStatus {
@@ -344,6 +350,12 @@
   background: rgba(127, 127, 127, 0.08);
   border-radius: 6px;
   line-height: 1.5;
+}
+
+.WsSettings-deleteRoleBlocked + .WsSettings-deleteRoleBlocked {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(127, 127, 127, 0.2);
 }
 
 .WsSettings-transferRoleInfo strong {

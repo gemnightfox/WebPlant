@@ -106,3 +106,20 @@
     justify-content: flex-start;
   }
 }
+
+/* Narrow phones: active filter summary on its own row between title row and action buttons */
+@media (max-width: 450px) {
+  .Base-notificationHeaderLeft {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .Base-notificationFilterCount:not([hidden]) {
+    display: block;
+    width: 100%;
+    font-size: 14px;
+    line-height: 1.4;
+    opacity: 0.9;
+  }
+}

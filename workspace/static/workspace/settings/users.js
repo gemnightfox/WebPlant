@@ -128,7 +128,10 @@
       var previousRoleId = select.getAttribute('data-prev-role-id') || select.value;
       var previousRoleName = select.getAttribute('data-prev-role-name') || select.value;
       var newRoleId = select.value;
-      var newRoleName = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : newRoleId;
+      var newOpt = select.options[select.selectedIndex];
+      var newRoleName = newOpt
+        ? newOpt.getAttribute('data-full-name') || newOpt.textContent || newOpt.text || newRoleId
+        : newRoleId;
       var userLabel = select.getAttribute('data-user-label') || 'this member';
 
       var confirmed = window.confirm(

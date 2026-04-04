@@ -101,45 +101,37 @@
     });
   });
 
-  var deleteRoleForm = document.getElementById('ws-delete-role-form');
-  var deleteRoleTransferField = document.getElementById('ws-delete-role-transfer-field');
-  var deleteRoleNameEl = document.getElementById('ws-delete-role-name');
+  var deleteRoleNameDefaultEl = document.getElementById('ws-delete-role-name-default');
+  var deleteRoleNameMembersEl = document.getElementById('ws-delete-role-name-members');
   var deleteRoleMemberCountEl = document.getElementById('ws-delete-role-member-count');
-  var deleteRoleTransferSelect = document.getElementById('ws-delete-role-transfer-select');
-  var deleteRoleSubmitBtn = document.getElementById('ws-delete-role-submit');
+  var deleteRoleMemberSuffixEl = document.getElementById('ws-delete-role-member-suffix');
+  var deleteRoleBlockDefault = document.getElementById('ws-delete-role-block-default');
+  var deleteRoleBlockMembers = document.getElementById('ws-delete-role-block-members');
   window.popupPrepare['delete-role-popup'] = function(trigger) {
     if (!trigger) return;
-    var roleId = trigger.getAttribute('data-role-id');
     var roleName = trigger.getAttribute('data-role-name');
     var memberCount = parseInt(trigger.getAttribute('data-member-count') || '0', 10);
-    var deleteUrl = trigger.getAttribute('data-delete-url');
-    if (deleteRoleForm) {
-      deleteRoleForm.setAttribute('data-role-id', roleId || '');
-      deleteRoleForm.setAttribute('data-delete-url', deleteUrl || '');
-      deleteRoleForm.setAttribute('data-member-count', memberCount);
-    }
-    if (deleteRoleNameEl) deleteRoleNameEl.textContent = roleName || '';
+    var isDefault = trigger.getAttribute('data-is-default-role') === 'true';
+    if (deleteRoleNameDefaultEl) deleteRoleNameDefaultEl.textContent = roleName || '';
+    if (deleteRoleNameMembersEl) deleteRoleNameMembersEl.textContent = roleName || '';
     if (deleteRoleMemberCountEl) deleteRoleMemberCountEl.textContent = memberCount;
-    if (memberCount > 0) {
-      if (deleteRoleTransferField) deleteRoleTransferField.removeAttribute('hidden');
-      if (deleteRoleTransferSelect) {
-        deleteRoleTransferSelect.setAttribute('required', '');
-        for (var i = 0; i < deleteRoleTransferSelect.options.length; i++) deleteRoleTransferSelect.options[i].hidden = (deleteRoleTransferSelect.options[i].value === roleId);
-        for (var j = 0; j < deleteRoleTransferSelect.options.length; j++) if (!deleteRoleTransferSelect.options[j].hidden) { deleteRoleTransferSelect.value = deleteRoleTransferSelect.options[j].value; break; }
-      }
-      if (deleteRoleSubmitBtn) deleteRoleSubmitBtn.textContent = 'Transfer & Delete';
-    } else {
-      if (deleteRoleTransferField) deleteRoleTransferField.setAttribute('hidden', '');
-      if (deleteRoleTransferSelect) deleteRoleTransferSelect.removeAttribute('required');
-      if (deleteRoleSubmitBtn) deleteRoleSubmitBtn.textContent = 'Delete';
-    }
-    var errorEl = deleteRoleForm ? deleteRoleForm.querySelector('[data-role="delete-role-error"]') : null;
-    if (errorEl) errorEl.setAttribute('hidden', '');
+    if (deleteRoleMemberSuffixEl) deleteRoleMemberSuffixEl.textContent = memberCount === 1 ? '' : 's';
+    if (deleteRoleBlockDefault) deleteRoleBlockDefault.hidden = !isDefault;
+    if (deleteRoleBlockMembers) deleteRoleBlockMembers.hidden = !(memberCount > 0);
   };
+  /* Delegation: roles.js loads before popup.js (script in page body), so closePopup is not defined yet.
+     Clicks happen after load, so we resolve closePopup at click time. */
+  document.body.addEventListener('click', function(e) {
+    if (!e.target.closest('#ws-delete-role-got-it')) return;
+    var popup = document.getElementById('delete-role-popup');
+    if (popup && typeof window.closePopup === 'function') window.closePopup(popup);
+  });
+
   document.querySelectorAll('.WsSettings-deleteRoleBtn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var memberCount = parseInt(btn.getAttribute('data-member-count') || '0', 10);
-      if (memberCount > 0) {
+      var isDefault = btn.getAttribute('data-is-default-role') === 'true';
+      if (memberCount > 0 || isDefault) {
         if (typeof window.popupPrepare['delete-role-popup'] === 'function') window.popupPrepare['delete-role-popup'](btn);
         if (typeof window.openPopup === 'function') window.openPopup('delete-role-popup');
       } else {
@@ -152,28 +144,4 @@
       }
     });
   });
-  if (deleteRoleForm) {
-    deleteRoleForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      var roleId = deleteRoleForm.getAttribute('data-role-id');
-      var deleteUrl = deleteRoleForm.getAttribute('data-delete-url');
-      var memberCount = parseInt(deleteRoleForm.getAttribute('data-member-count') || '0', 10);
-      var errorEl = deleteRoleForm.querySelector('[data-role="delete-role-error"]');
-      if (errorEl) errorEl.setAttribute('hidden', '');
-      function doDelete() {
-        fetch(deleteUrl, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken } })
-          .then(function(r) { return r.json().then(function(data) { if (data && data.status === 'success') window.location.reload(); else if (errorEl) errorEl.removeAttribute('hidden'); }); })
-          .catch(function() { if (errorEl) errorEl.removeAttribute('hidden'); });
-      }
-      if (memberCount > 0) {
-        var newRoleId = deleteRoleTransferSelect ? deleteRoleTransferSelect.value : '';
-        var transferUrlBase = deleteRoleForm.getAttribute('data-transfer-url-base');
-        if (!newRoleId || !transferUrlBase || !roleId) { if (errorEl) errorEl.removeAttribute('hidden'); return; }
-        var transferUrl = transferUrlBase + roleId + '/' + newRoleId + '/';
-        fetch(transferUrl, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken }, body: new FormData(deleteRoleForm) })
-          .then(function(r) { return r.json().then(function(data) { if (data && data.status === 'success') doDelete(); else if (errorEl) errorEl.removeAttribute('hidden'); }); })
-          .catch(function() { if (errorEl) errorEl.removeAttribute('hidden'); });
-      } else doDelete();
-    });
-  }
 })();

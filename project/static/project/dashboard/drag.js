@@ -338,7 +338,7 @@
 
     // Group drag — header only, not from buttons or task cards, not while editing
     var groupEl = e.target.closest('.Dashboard-group');
-    if (groupEl && e.target.closest('.Dashboard-groupHeader') && !e.target.closest('button, input, a, .Dashboard-task, .Dashboard-groupName') && !e.target.closest('.Dashboard-groupHeader--editing')) {
+    if (groupEl && e.target.closest('.Dashboard-groupHeader') && !e.target.closest('button, input, a, .Dashboard-task, .Dashboard-groupName')) {
       dragState = {
         type: 'group',
         el: groupEl,

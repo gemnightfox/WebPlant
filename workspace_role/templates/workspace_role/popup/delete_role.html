@@ -2,23 +2,23 @@
 {% block popup_id %}delete-role-popup{% endblock %}
 {% block popup_title_id %}delete-role-popup-title{% endblock %}
 {% block popup_title_id_h2 %}delete-role-popup-title{% endblock %}
-{% block popup_title %}Delete role{% endblock %}
+{% block popup_title %}Cannot delete role{% endblock %}
 {% block popup_content %}
-  <form id="ws-delete-role-form" method="post" data-transfer-url-base="/workspace-role/transfer/{{ workspace.id }}/">
-    {% csrf_token %}
-    <p class="WsSettings-transferRoleInfo">Delete the role <strong id="ws-delete-role-name"></strong>.</p>
-    <div class="WsSettings-field" id="ws-delete-role-transfer-field" hidden>
-      <p class="WsSettings-transferRoleInfo">This role has <strong id="ws-delete-role-member-count"></strong> member(s). Transfer them to another role before deleting.</p>
-      <label for="ws-delete-role-transfer-select">Transfer to</label>
-      <select id="ws-delete-role-transfer-select" class="WsSettings-select Popup-input" aria-label="Target role">
-        {% for role in workspace.roles.all %}
-          <option value="{{ role.id }}">{{ role.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <small class="WsSettings-error" data-role="delete-role-error" hidden>Could not delete role. Please try again.</small>
-    <div class="WsSettings-actions">
-      <button type="submit" class="WsSettings-btn WsSettings-btnDanger Popup-submit" id="ws-delete-role-submit">Delete</button>
-    </div>
-  </form>
+  <div id="ws-delete-role-block-default" class="WsSettings-deleteRoleBlocked" hidden>
+    <p class="WsSettings-transferRoleInfo">
+      <strong id="ws-delete-role-name-default"></strong> is set as the <strong>Default role</strong>. Change the default role to another role before deleting.
+    </p>
+  </div>
+  <div id="ws-delete-role-block-members" class="WsSettings-deleteRoleBlocked" hidden>
+    <p class="WsSettings-transferRoleInfo">
+      <strong id="ws-delete-role-name-members"></strong> has <strong id="ws-delete-role-member-count"></strong> member<span id="ws-delete-role-member-suffix">s</span>.
+      Transfer everyone to another role before deleting this role.
+    </p>
+    <p class="WsSettings-helpText">
+      Use the transfer button on this role's row, or open the Users tab and assign each person a different role.
+    </p>
+  </div>
+  <div class="WsSettings-actions WsSettings-actions--right">
+    <button type="button" class="WsSettings-btn WsSettings-btnPrimary" id="ws-delete-role-got-it">Got it</button>
+  </div>
 {% endblock %}

@@ -60,7 +60,12 @@
                 aria-label="Invite user role"
               >
                 {% for role in workspace.roles.all %}
-                  <option value="{{ role.id }}"{% if role.id == workspace.default_role_id %} selected{% endif %}>{{ role.name }}</option>
+                  <option
+                    value="{{ role.id }}"
+                    data-full-name="{{ role.name }}"
+                    title="{{ role.name }}"
+                    {% if role.id == workspace.default_role_id %} selected{% endif %}
+                  >{{ role.name|truncatechars:32 }}</option>
                 {% endfor %}
               </select>
             </span>
@@ -110,11 +115,16 @@
               data-user-label="{{ wu.user.email|default:wu.user.get_username }}"
             >
               {% for role in workspace.roles.all %}
-                <option value="{{ role.id }}" {% if wu.role.id == role.id %}selected{% endif %}>{{ role.name }}</option>
+                <option
+                  value="{{ role.id }}"
+                  data-full-name="{{ role.name }}"
+                  title="{{ role.name }}"
+                  {% if wu.role.id == role.id %}selected{% endif %}
+                >{{ role.name|truncatechars:32 }}</option>
               {% endfor %}
             </select>
           {% else %}
-            <span class="WsSettings-memberRole">{{ wu.role.name }}</span>
+            <span class="WsSettings-memberRole" title="{{ wu.role.name }}">{{ wu.role.name }}</span>
           {% endif %}
         </span>
       </li>

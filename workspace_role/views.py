@@ -42,6 +42,8 @@ def delete(request, workspace_id, workspace_role_id):
     workspace_role = get_workspace_role(workspace, workspace_role_id)
     if WorkspaceUser.objects.filter(role=workspace_role).count() > 0:
         raise ValueError('This role is currently assigned to a user. Assign them a different role before deleting this role.')
+    if workspace_role == workspace.default_role:
+        raise ValueError('Default role can not be deleted. Change default role to another role before deleting.')
 
     with transaction.atomic():
         workspace_role.delete()

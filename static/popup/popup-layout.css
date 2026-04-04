@@ -213,6 +213,27 @@
   max-width: 560px;
 }
 
+/* Delete project: wrap long names inside the dialog */
+#delete-project-popup .Popup-formWrap,
+#delete-project-popup .Popup-form {
+  min-width: 0;
+}
+
+#delete-project-popup .Popup-deleteProjectMsg {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color);
+  line-height: 1.5;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#delete-project-popup .Popup-deleteProjectName {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* --- Form and actions --- */
 .Popup-title {
   margin: 0 0 20px 0;

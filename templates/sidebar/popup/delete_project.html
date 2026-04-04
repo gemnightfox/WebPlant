@@ -17,8 +17,8 @@
     >
       {% csrf_token %}
 
-      <p style="margin: 0; font-size: 15px; color: var(--color); line-height: 1.5;">
-        Are you sure you want to delete <strong id="delete-project-name"></strong>? This action cannot be undone.
+      <p class="Popup-deleteProjectMsg">
+        Are you sure you want to delete <strong id="delete-project-name" class="Popup-deleteProjectName"></strong>? This action cannot be undone.
       </p>
 
       <small class="Popup-error" data-role="delete-project-error" hidden>

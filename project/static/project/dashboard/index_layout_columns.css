@@ -29,23 +29,6 @@
 .theme-light .Dashboard-group.Kanban-column { background: var(--background); border: 1px solid rgba(0, 0, 0, 0.12); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
 .theme-light .Dashboard-groupHeader.Kanban-columnHeader { background: transparent; border-bottom: 1px solid rgba(0, 0, 0, 0.08); }
 .Dashboard-groupHeaderRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
-.Dashboard-groupHeaderActions { display: none; align-items: center; gap: 6px; margin-top: 8px; }
-.Dashboard-groupHeader--editing .Dashboard-groupHeaderActions { display: flex; }
-.Dashboard-groupNameInput {
-  display: none; flex: 1; min-width: 0; font-size: 15.2px; font-weight: 600; color: var(--color);
-  background: transparent; border: 1.5px solid rgba(59, 130, 246, 0.7); border-radius: 6px;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15); outline: none; padding: 2px 8px;
-}
-.Dashboard-groupHeader--editing .Dashboard-groupName { display: none; }
-.Dashboard-groupHeader--editing .Dashboard-groupNameInput { display: block; flex: 1; }
-.Dashboard-groupHeader--editing .Dashboard-menuWrapper { display: none; }
-.Dashboard-groupSaveBtn, .Dashboard-groupCancelBtn {
-  font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 7px; border: none; cursor: pointer; white-space: nowrap;
-}
-.Dashboard-groupSaveBtn { background: rgba(59, 130, 246, 0.5); border: 1px solid rgba(59, 130, 246, 0.75); color: var(--color); }
-.Dashboard-groupSaveBtn:hover { background: rgba(59, 130, 246, 0.65); }
-.Dashboard-groupCancelBtn { background: rgba(127, 127, 127, 0.15); color: var(--color); }
-.Dashboard-groupCancelBtn:hover { background: rgba(127, 127, 127, 0.25); }
 .Dashboard-groupFooter { padding: 10px 12px 12px; flex-shrink: 0; }
 .Dashboard-groupFooter .Dashboard-addTaskBtn { width: 100%; justify-content: center; }
 .Dashboard-groupName {

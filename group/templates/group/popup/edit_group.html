@@ -1,11 +1,10 @@
 {% extends 'popup.html' %}
-{# Popup: edit group name, or delete group. data-url and fields set by edit_group.js. #}
+{# Popup: rename group. data-url and fields set by edit_group.js. #}
 
 {% block popup_id %}edit-group-popup{% endblock %}
 {% block popup_title_id %}edit-group-popup-title{% endblock %}
 {% block popup_title_id_h2 %}edit-group-popup-title{% endblock %}
-{% block popup_title %}{% endblock %}
-{% block popup_extra_attrs %}data-size="large"{% endblock %}
+{% block popup_title %}Rename group{% endblock %}
 
 {% block popup_content %}
   <div class="Popup-formWrap">
@@ -21,31 +20,22 @@
       <input type="hidden" name="project" id="edit-group-project-input" value="">
 
       <div class="Popup-field">
-        <label for="id_edit_group_name">Rename group</label>
-        <div class="Popup-nameRow">
-          <div class="Popup-nameWrap">
-            <input
-              type="text"
-              name="name"
-              id="id_edit_group_name"
-              class="Popup-input Popup-input--withEditBtn"
-              maxlength="300"
-              required
-              readonly
-            >
-            <button type="button" class="Popup-editNameBtn" id="edit-group-edit-btn">Edit</button>
-          </div>
-          <button type="submit" class="Popup-submit Popup-saveNameBtn" id="edit-group-save-btn" hidden>Save</button>
-        </div>
+        <label for="id_edit_group_name">Group name</label>
+        <input
+          type="text"
+          name="name"
+          id="id_edit_group_name"
+          class="Popup-input"
+          maxlength="300"
+          required
+        >
         <small class="Popup-error" data-role="edit-group-error" hidden>
           Something went wrong. Please try again.
         </small>
       </div>
 
       <div class="Popup-actions">
-        <button type="button" class="Popup-dangerBtn" id="edit-group-delete-btn">
-          Delete group
-        </button>
+        <button type="submit" class="Popup-submit">Save</button>
       </div>
     </form>
   </div>

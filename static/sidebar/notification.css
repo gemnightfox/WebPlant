@@ -48,6 +48,16 @@
   border-bottom: 1px solid #7f7f7f40;
 }
 
+.Base-notificationHeaderLeft {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
 .Base-notificationHeaderTop {
   display: flex;
   align-items: center;
@@ -87,7 +97,7 @@
 }
 
 .Base-notificationFilterCount {
-  font-size: 12px;
+  font-size: 14px;
   opacity: 0.85;
   user-select: none;
 }

@@ -1,5 +1,5 @@
 /**
- * Project dashboard: inline group rename, delete groups and tasks via AJAX.
+ * Project dashboard: delete groups and tasks via AJAX; group rename uses edit-group popup.
  */
 (function () {
   function getCsrfToken() {
@@ -8,59 +8,6 @@
     var match = document.cookie.match(/csrftoken=([^;]+)/);
     return match ? match[1] : "";
   }
-
-  // ---- Inline group rename ----
-
-  function enterGroupEditMode(header) {
-    header.classList.add("Dashboard-groupHeader--editing");
-    var input = header.querySelector(".Dashboard-groupNameInput");
-    if (input) { input.value = header.getAttribute("data-group-name") || ""; input.focus(); input.select(); }
-  }
-
-  function exitGroupEditMode(header) {
-    header.classList.remove("Dashboard-groupHeader--editing");
-  }
-
-  function saveGroupName(header) {
-    var input = header.querySelector(".Dashboard-groupNameInput");
-    var groupId = header.getAttribute("data-group-id");
-    var position = header.getAttribute("data-group-position");
-    var projectId = (document.querySelector(".Dashboard") || { dataset: {} }).dataset.dashboardPath;
-    var newName = input ? input.value.trim() : "";
-    if (!newName || !groupId) return;
-
-    var formData = new FormData();
-    formData.append("name", newName);
-    formData.append("position", position || "0");
-    formData.append("project", projectId);
-
-    fetch("/group/edit/" + groupId + "/", {
-      method: "POST",
-      headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": getCsrfToken() },
-      body: formData,
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (data && data.status === "success") {
-          var nameEl = header.querySelector(".Dashboard-groupName");
-          if (nameEl) { nameEl.textContent = newName; nameEl.title = newName; }
-          header.setAttribute("data-group-name", newName);
-          exitGroupEditMode(header);
-        } else {
-          alert("Could not rename. Please try again.");
-        }
-      })
-      .catch(function () { alert("Something went wrong. Please try again."); });
-  }
-
-  document.body.addEventListener("keydown", function (e) {
-    var input = e.target.closest(".Dashboard-groupNameInput");
-    if (!input) return;
-    var header = input.closest(".Dashboard-groupHeader");
-    if (!header) return;
-    if (e.key === "Enter") { e.preventDefault(); saveGroupName(header); }
-    if (e.key === "Escape") { exitGroupEditMode(header); }
-  });
 
   function deleteRequest(url, onSuccess) {
     var doDelete = function () {
@@ -157,18 +104,6 @@
       closeAllMenus();
     }
 
-    if (e.target.closest(".Dashboard-groupSaveBtn")) {
-      var header = e.target.closest(".Dashboard-groupHeader");
-      if (header) saveGroupName(header);
-      return;
-    }
-
-    if (e.target.closest(".Dashboard-groupCancelBtn")) {
-      var header = e.target.closest(".Dashboard-groupHeader");
-      if (header) exitGroupEditMode(header);
-      return;
-    }
-
     var menuToggle = e.target.closest(".Dashboard-menuToggle");
     if (menuToggle) {
       var wrapper = menuToggle.closest(".Dashboard-menuWrapper");
@@ -186,14 +121,6 @@
           menu.style.marginTop = "0";
         }
       }
-      return;
-    }
-
-    var editGroupNameBtn = e.target.closest(".Dashboard-editGroupNameBtn");
-    if (editGroupNameBtn) {
-      closeAllMenus();
-      var header = editGroupNameBtn.closest(".Dashboard-group").querySelector(".Dashboard-groupHeader");
-      if (header && !header.classList.contains("Dashboard-groupHeader--editing")) enterGroupEditMode(header);
       return;
     }
 

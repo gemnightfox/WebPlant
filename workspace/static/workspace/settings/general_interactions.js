@@ -80,17 +80,6 @@
     options.forEach(function(opt) { opt.addEventListener('click', function() { setSliderValue(opt.getAttribute('data-value'), true); }); });
   });
 
-  var mobileRoleToggle = document.getElementById('ws-custom-roles-mobile-toggle');
-  var customRolesSlider = document.getElementById('ws-slider-custom-roles');
-  if (mobileRoleToggle && customRolesSlider) {
-    mobileRoleToggle.addEventListener('change', function() {
-      var targetValue = mobileRoleToggle.checked ? 'true' : 'false';
-      var targetOption = customRolesSlider.querySelector('.WsSettings-sliderOption[data-value="' + targetValue + '"]');
-      if (targetOption) targetOption.click();
-    });
-    customRolesSlider.addEventListener('slider-change', function(e) { mobileRoleToggle.checked = e.detail.value === 'true'; });
-  }
-
   function postAndRedirect(url, errorEl) {
     fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken } })
       .then(function(r) {

@@ -27,7 +27,6 @@
           >
             <div class="Dashboard-groupHeaderRow">
               <h3 class="Dashboard-groupName" title="{{ group.name }}">{{ group.name }}</h3>
-              <input type="text" class="Dashboard-groupNameInput" value="{{ group.name }}" maxlength="300" aria-label="Group name">
               <div class="Dashboard-menuWrapper">
                 <button type="button" class="Dashboard-menuToggle" aria-label="Group options">
                   <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
@@ -37,15 +36,18 @@
                   </svg>
                 </button>
                 <div class="Dashboard-menu">
-                  <button type="button" class="Dashboard-btn Dashboard-menuItem Dashboard-editGroupNameBtn" data-group-id="{{ group.id }}">Edit name</button>
+                  <button
+                    type="button"
+                    class="Dashboard-btn Dashboard-menuItem"
+                    data-popup="edit-group-popup"
+                    data-group-id="{{ group.id }}"
+                  >
+                    Edit name
+                  </button>
                   <button type="button" class="Dashboard-btn Dashboard-menuItem Dashboard-duplicateGroupBtn" data-group-id="{{ group.id }}" data-group-position="{{ group.position }}">Duplicate</button>
                   <button type="button" class="Dashboard-btn Dashboard-deleteBtn Dashboard-menuItem Dashboard-menuItem--danger Dashboard-deleteGroupBtn" data-group-id="{{ group.id }}">Delete group</button>
                 </div>
               </div>
-            </div>
-            <div class="Dashboard-groupHeaderActions">
-              <button type="button" class="Dashboard-groupSaveBtn">Save</button>
-              <button type="button" class="Dashboard-groupCancelBtn">Cancel</button>
             </div>
           </div>
           <ul class="Dashboard-tasks Kanban-cards">
