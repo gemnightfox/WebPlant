@@ -20,6 +20,15 @@
     }
   }
 
+  var sendFeedbackLink = document.querySelector('.AccSettings-sendFeedback');
+  if (sendFeedbackLink) {
+    sendFeedbackLink.addEventListener('click', function(e) {
+      if (!window.confirm('Leave account settings to send feedback?')) {
+        e.preventDefault();
+      }
+    });
+  }
+
   var workspaceInvitesToggle = document.querySelector('.AccSettings-workspaceInvitesToggle');
   var notificationsToggle = document.querySelector('.AccSettings-notificationsToggle');
 

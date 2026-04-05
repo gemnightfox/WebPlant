@@ -58,6 +58,8 @@ def duplicate(request, project_id):
     project = get_project(request, project_id)
     my_workspace_user = get_workspace_user(request.user, workspace=project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_projects')
+    verify_workspace_role(my_workspace_user, 'can_edit_groups')
+    verify_workspace_role(my_workspace_user, 'can_edit_tasks')
 
     groups = Group.objects.filter(project=project)
     name_max_length = project._meta.get_field('name').max_length

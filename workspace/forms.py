@@ -29,14 +29,16 @@ class CreateNewForm(forms.ModelForm):
                     name='Admin',
                     can_edit_workspace_name=True,
                     can_edit_workspace_preference=True,
-                    can_add_users=True,
-                    can_assign_roles_to_users=True,
-                    can_remove_users=True,
-                    can_edit_roles=True,
-                    can_edit_invite_codes=True,
+                    can_edit_workspace_invite_codes=True,
+                    can_add_workspace_users=True,
+                    can_assign_roles_to_workspace_users=True,
+                    can_remove_workspace_users=True,
+                    can_edit_workspace_roles=True,
                     can_edit_projects=True,
                     can_edit_groups=True,
                     can_edit_tasks=True,
+                    can_add_task_comments=True,
+                    can_edit_task_deadline=True,
                 )
 
                 editor_role = WorkspaceRole.objects.create(
@@ -44,14 +46,33 @@ class CreateNewForm(forms.ModelForm):
                     name='Editor',
                     can_edit_workspace_name=False,
                     can_edit_workspace_preference=True,
-                    can_add_users=False,
-                    can_assign_roles_to_users=False,
-                    can_remove_users=False,
-                    can_edit_roles=False,
-                    can_edit_invite_codes=False,
+                    can_edit_workspace_invite_codes=False,
+                    can_add_workspace_users=False,
+                    can_assign_roles_to_workspace_users=False,
+                    can_remove_workspace_users=False,
+                    can_edit_workspace_roles=False,
                     can_edit_projects=True,
                     can_edit_groups=True,
                     can_edit_tasks=True,
+                    can_add_task_comments=True,
+                    can_edit_task_deadline=True,
+                )
+
+                WorkspaceRole.objects.create(
+                    workspace=workspace_instance,
+                    name='Viewer',
+                    can_edit_workspace_name=False,
+                    can_edit_workspace_preference=False,
+                    can_edit_workspace_invite_codes=False,
+                    can_add_workspace_users=False,
+                    can_assign_roles_to_workspace_users=False,
+                    can_remove_workspace_users=False,
+                    can_edit_workspace_roles=False,
+                    can_edit_projects=False,
+                    can_edit_groups=False,
+                    can_edit_tasks=False,
+                    can_add_task_comments=False,
+                    can_edit_task_deadline=False,
                 )
 
                 # Creates a WorkspaceUser object for request.user (current user)
@@ -64,6 +85,7 @@ class CreateNewForm(forms.ModelForm):
                 workspace_instance.owner = owner_workspace_user
                 workspace_instance.default_role = editor_role
                 workspace_instance.save()
+                return workspace_instance
 
 
 
@@ -112,11 +134,11 @@ class AddUsersForm(forms.ModelForm):
         model = WorkspaceUser
         fields = ['role']
 
-    def __init__(self, *args, workspace, my_user, can_assign_roles_to_users, **kwargs):
+    def __init__(self, *args, workspace, my_user, can_assign_roles_to_workspace_users, **kwargs):
         super().__init__(*args, **kwargs)
         self.workspace = workspace
         self.my_user = my_user
-        self.can_assign_roles_to_users = can_assign_roles_to_users
+        self.can_assign_roles_to_workspace_users = can_assign_roles_to_workspace_users
 
     def clean(self):
         cleaned_data = super().clean()
@@ -141,17 +163,18 @@ class AddUsersForm(forms.ModelForm):
     def save(self, commit=True):
         if commit:
             with transaction.atomic():
-                if self.can_assign_roles_to_users:
+                if self.can_assign_roles_to_workspace_users:
                     role = self.cleaned_data['role']
                 else:
                     role = self.workspace.default_role
 
-                WorkspaceUser.objects.create(
+                new_object = WorkspaceUser.objects.create(
                     workspace=self.workspace,
                     user=self.user, # Defined in clean()
                     role=role,
                 )
                 send_email(receiver=self.user, sender=self.my_user, content=f'You have been invited to workspace: {self.workspace.name}')
+                return new_object
 
 
 
@@ -172,16 +195,18 @@ class AddInviteCodeForm(forms.ModelForm):
         self.workspace = workspace
 
     def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.workspace = self.workspace
+        
+        for _ in range(5): # In practice, its very rare that it runs a second time, let alone 5 times
+            invite_code = generate_workspace_invite_code()
+            if not WorkspaceInviteCode.objects.filter(invite_code=invite_code).exists():
+                instance.invite_code = invite_code
+                break
+
         if commit:
-            instance = super().save(commit=False)
-            instance.workspace = self.workspace
-            
-            for _ in range(5): # In practice, its very rare that it runs a second time, let alone 5 times
-                invite_code = generate_workspace_invite_code()
-                if not WorkspaceInviteCode.objects.filter(invite_code=invite_code).exists():
-                    instance.invite_code = invite_code
-                    break
             instance.save()
+        return instance
 
 
 

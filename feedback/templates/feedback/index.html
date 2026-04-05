@@ -9,40 +9,15 @@
 
 {% block content %}
 <div class="Feedback">
-  <header class="Feedback-header">
-    <h1 class="Feedback-title">Feedback</h1>
-    <p class="Feedback-subtitle">Share your thoughts to help us improve WebPlant.</p>
-  </header>
 
   <section class="Feedback-card" aria-labelledby="feedback-form-heading">
-    <h2 id="feedback-form-heading" class="Feedback-cardTitle">Send us your feedback</h2>
-    <p class="Feedback-cardSubtitle">
-      Tell us what’s working well and what could be better.
-    </p>
+    <h2 id="feedback-form-heading" class="Feedback-cardTitle">Feedback form</h2>
 
-    {% if form.errors %}
-      <div class="Feedback-alert Feedback-alert--error" role="alert">
-        <p class="Feedback-alertMessage">
-          There were some problems with your submission. Please review the form below.
-        </p>
-      </div>
-    {% endif %}
-
-    <form method="post" class="Feedback-form" novalidate>
+    <form method="post" class="Feedback-form">
       {% csrf_token %}
 
       <div class="Feedback-field">
-        <label for="id_content" class="Feedback-label">
-          Your feedback
-        </label>
-        <textarea
-          name="content"
-          id="id_content"
-          maxlength="9000"
-          required
-          placeholder="Tell us what you think..."
-        >{{ form.content.value|default:'' }}</textarea>
-
+        <label for="id_content" class="Feedback-label">Your feedback</label>
         {% if form.content.errors %}
           <div class="Feedback-fieldErrors">
             {% for error in form.content.errors %}
@@ -50,6 +25,14 @@
             {% endfor %}
           </div>
         {% endif %}
+        <textarea
+          name="content"
+          id="id_content"
+          maxlength="9000"
+          required
+          rows="1"
+          placeholder="Tell us what you think..."
+        >{{ form.content.value|default:'' }}</textarea>
       </div>
 
       <div class="Feedback-actions">
@@ -60,5 +43,9 @@
     </form>
   </section>
 </div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'feedback/index.js' %}"></script>
 {% endblock %}
 

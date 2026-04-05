@@ -4,13 +4,16 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 
 # POST is required (@require_POST is used in views)
-def reusable_form_submission(request, form, **kwargs):
+def reusable_form_submission(request, form, return_new_object=False, **kwargs):
     form_instance = form(request.POST, **kwargs)
-    if form_instance.is_valid():
-        form_instance.save()
-        return JsonResponse({'status': 'success'})
-    else:
+    if not form_instance.is_valid():
         raise Exception(f'Error encountered during form submission. Error: {form_instance.errors}')
+    
+    new_object = form_instance.save()
+    if return_new_object:
+        return new_object
+    else:
+        return JsonResponse({'status': 'success', 'new_object_id': new_object.id})
 
 
 

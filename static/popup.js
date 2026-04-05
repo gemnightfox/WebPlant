@@ -46,6 +46,11 @@
     el.setAttribute("hidden", "");
     el.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    try {
+      window.dispatchEvent(
+        new CustomEvent("popup-closed", { detail: { id: el.id, popupEl: el } })
+      );
+    } catch (_) {}
   }
 
   function bindCloseHandlers(popup) {

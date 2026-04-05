@@ -13,6 +13,68 @@
   var currentTaskId = null;
   var currentGroupId = null;
 
+  var EDIT_TASK_POPUP_STORAGE_KEY = "webplant_edit_task_popup";
+
+  function getDashboardProjectId() {
+    var dash = document.querySelector(".Dashboard[data-dashboard-path]");
+    return dash ? String(dash.getAttribute("data-dashboard-path") || "") : "";
+  }
+
+  function persistEditTaskPopupOpen() {
+    try {
+      var projectId = getDashboardProjectId();
+      if (!projectId || !currentTaskId) return;
+      sessionStorage.setItem(
+        EDIT_TASK_POPUP_STORAGE_KEY,
+        JSON.stringify({ projectId: projectId, taskId: currentTaskId })
+      );
+    } catch (e) {}
+  }
+
+  function clearEditTaskPopupPersist() {
+    try {
+      sessionStorage.removeItem(EDIT_TASK_POPUP_STORAGE_KEY);
+    } catch (e) {}
+  }
+
+  function tryRestoreEditTaskPopup(prepareFn) {
+    var projectId = getDashboardProjectId();
+    if (!projectId) return;
+    var raw;
+    try {
+      raw = sessionStorage.getItem(EDIT_TASK_POPUP_STORAGE_KEY);
+    } catch (e) {
+      return;
+    }
+    if (!raw) return;
+    var data;
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      clearEditTaskPopupPersist();
+      return;
+    }
+    if (!data || !data.taskId) {
+      clearEditTaskPopupPersist();
+      return;
+    }
+    if (String(data.projectId) !== String(projectId)) {
+      clearEditTaskPopupPersist();
+      return;
+    }
+    var taskIdStr = String(data.taskId);
+    var card = document.querySelector(
+      '.Dashboard-task[data-task-id="' + taskIdStr.replace(/"/g, "") + '"]'
+    );
+    if (!card) {
+      clearEditTaskPopupPersist();
+      return;
+    }
+    window.openPopup("edit-task-popup");
+    prepareFn(card);
+    focusEditTaskPopupContainer();
+  }
+
   function getDashboardEl() {
     return document.querySelector('.Dashboard[data-current-user]');
   }
@@ -137,6 +199,44 @@
 
   // ── Populate deadline from ISO UTC ──────────────────────────────────────────
 
+  function canEditTaskDeadline() {
+    var dash = document.querySelector(".Dashboard[data-dashboard-path]");
+    return !!(dash && dash.getAttribute("data-can-edit-task-deadline") === "true");
+  }
+
+  function applyEditTaskDeadlinePermission() {
+    var can = canEditTaskDeadline();
+    var addBtn = document.getElementById("edit-task-add-deadline-btn");
+    var removeBtn = document.getElementById("edit-task-remove-deadline-btn");
+    var displayRow = document.getElementById("edit-task-deadline-display");
+    var picker = document.getElementById("edit-task-deadline-picker");
+    if (addBtn) {
+      if (can) {
+        addBtn.removeAttribute("hidden");
+        addBtn.classList.remove("Popup-panelRow--noAccess");
+        addBtn.removeAttribute("aria-disabled");
+      } else {
+        addBtn.classList.add("Popup-panelRow--noAccess");
+        addBtn.setAttribute("aria-disabled", "true");
+        var hasDeadline = displayRow && !displayRow.hasAttribute("hidden");
+        if (hasDeadline) {
+          addBtn.setAttribute("hidden", "");
+        } else {
+          addBtn.removeAttribute("hidden");
+        }
+      }
+    }
+    if (removeBtn && displayRow) {
+      if (can && !displayRow.hasAttribute("hidden")) removeBtn.removeAttribute("hidden");
+      else removeBtn.setAttribute("hidden", "");
+    }
+    if (!can && picker) picker.setAttribute("hidden", "");
+    if (displayRow) {
+      if (can) displayRow.classList.remove("Popup-deadlineDisplay--readOnly");
+      else displayRow.classList.add("Popup-deadlineDisplay--readOnly");
+    }
+  }
+
   function updateDeadlineBtn() {
     var displayRow = document.getElementById("edit-task-deadline-display");
     var displayText = document.getElementById("edit-task-deadline-display-text");
@@ -150,6 +250,7 @@
     } else {
       displayRow.setAttribute("hidden", "");
     }
+    applyEditTaskDeadlinePermission();
   }
 
   function positionPicker(picker, anchorEl) {
@@ -167,6 +268,7 @@
   }
 
   function showDeadlinePicker(anchorEl) {
+    if (!canEditTaskDeadline()) return;
     var picker = document.getElementById("edit-task-deadline-picker");
     if (!picker) return;
     positionPicker(picker, anchorEl);
@@ -347,6 +449,27 @@
     if (scriptEl) scriptEl.textContent = JSON.stringify(comments);
   }
 
+  /** Keeps the task card comment bubble in sync with embedded JSON (first comment creates the badge). */
+  function syncDashboardCommentBadge(taskId) {
+    var card = document.querySelector('.Dashboard-task[data-task-id="' + taskId + '"]');
+    if (!card) return;
+    var body = card.querySelector('.Dashboard-taskBody');
+    if (!body) return;
+    var count = getTaskComments(taskId).length;
+    var countEl = card.querySelector('.Dashboard-commentCount');
+    var bubbleSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+    if (count <= 0) {
+      if (countEl) countEl.remove();
+      return;
+    }
+    if (!countEl) {
+      countEl = document.createElement('span');
+      countEl.className = 'Dashboard-commentCount';
+      body.appendChild(countEl);
+    }
+    countEl.innerHTML = bubbleSvg + ' ' + count;
+  }
+
   function renderComments(taskId) {
     var list = document.getElementById('edit-task-comments-list');
     if (!list) return;
@@ -514,21 +637,7 @@
               var idx = comments.findIndex(function (c) { return c.id === comment.id; });
               if (idx !== -1) comments.splice(idx, 1);
               updateTaskComments(currentTaskId, comments);
-              var card = document.querySelector('.Dashboard-task[data-task-id="' + currentTaskId + '"]');
-              if (card) {
-                var countEl = card.querySelector('.Dashboard-commentCount');
-                if (countEl) {
-                  var newCount = comments.length;
-                  if (newCount <= 0) {
-                    countEl.remove();
-                  } else {
-                    var textNode = countEl.lastChild;
-                    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
-                      textNode.textContent = ' ' + newCount;
-                    }
-                  }
-                }
-              }
+              syncDashboardCommentBadge(currentTaskId);
             } else {
               showCommentError();
             }
@@ -640,20 +749,6 @@
   // ── Init ─────────────────────────────────────────────────────────────────────
 
   function init() {
-    // Reopen popup after comment submit reload
-    try {
-      var reopenTaskId = sessionStorage.getItem("reopen_task_popup");
-      if (reopenTaskId) {
-        sessionStorage.removeItem("reopen_task_popup");
-        var card = document.querySelector('.Dashboard-task[data-task-id="' + reopenTaskId + '"]');
-        if (card) {
-          window.openPopup("edit-task-popup");
-          prepare(card);
-          focusEditTaskPopupContainer();
-        }
-      }
-    } catch (_) {}
-
     // Open popup on task card click
     document.body.addEventListener("click", function (e) {
       if (e.target.closest(".Dashboard-menuWrapper")) return;
@@ -665,6 +760,7 @@
       window.openPopup("edit-task-popup");
       prepare(card);
       focusEditTaskPopupContainer();
+      persistEditTaskPopupOpen();
     });
 
     // Deadline row button: toggle calendar open / closed
@@ -672,6 +768,7 @@
     if (addDeadlineBtn) {
       addDeadlineBtn.addEventListener("click", function (e) {
         e.stopPropagation();
+        if (!canEditTaskDeadline()) return;
         var picker = document.getElementById("edit-task-deadline-picker");
         if (picker && !picker.hasAttribute("hidden")) {
           picker.setAttribute("hidden", "");
@@ -692,6 +789,7 @@
     if (removeDeadlineBtn) {
       removeDeadlineBtn.addEventListener("click", function (e) {
         e.stopPropagation();
+        if (!canEditTaskDeadline()) return;
         if (!confirm("Remove the deadline?")) return;
         hideDeadlinePicker();
         var editTaskForm = document.getElementById("edit-task-form");
@@ -744,10 +842,21 @@
         })
           .then(function (r) { return r.json(); })
           .then(function (data) {
-            if (data && data.status === "success") {
-              try { sessionStorage.setItem("reopen_task_popup", currentTaskId); } catch (_) {}
-              window.location.reload();
+            if (data && data.status === "success" && data.new_object_id != null && currentTaskId) {
+              var idStr = String(data.new_object_id);
+              var deleteUrl = "/task/reminder/delete/" + idStr + "/";
+              var sendAtIso = dt.toISOString();
+              var reminders = getTaskReminders(currentTaskId);
+              reminders.push({ id: idStr, send_at: sendAtIso, delete_url: deleteUrl });
+              updateTaskReminders(currentTaskId, reminders);
+              hideReminderPicker();
+              renderReminders(currentTaskId);
+            } else if (data && data.status === "success") {
+              alert("Could not update the reminder list. Try refreshing the page.");
             }
+          })
+          .catch(function () {
+            alert("Something went wrong. Please try again.");
           });
       });
     }
@@ -826,6 +935,7 @@
     document.body.addEventListener("click", function (e) {
       var navBtn = e.target.closest("[data-cal-dir]");
       if (navBtn) {
+        if (!navBtn.closest("#edit-task-deadline-picker") || !canEditTaskDeadline()) return;
         e.stopPropagation();
         var dir = parseInt(navBtn.getAttribute("data-cal-dir"), 10);
         calendarMonth += dir;
@@ -836,6 +946,7 @@
       }
       var dayBtn = e.target.closest("[data-cal-date]");
       if (dayBtn) {
+        if (!dayBtn.closest("#edit-task-deadline-picker") || !canEditTaskDeadline()) return;
         e.stopPropagation();
         var parts = dayBtn.getAttribute("data-cal-date").split("-");
         calendarYear  = parseInt(parts[0], 10);
@@ -930,9 +1041,19 @@
         })
           .then(function (r) { return r.json(); })
           .then(function (data) {
-            if (data && data.status === "success") {
-              try { sessionStorage.setItem("reopen_task_popup", currentTaskId); } catch (_) {}
-              window.location.reload();
+            if (data && data.status === "success" && data.new_object_id != null) {
+              var idStr = String(data.new_object_id);
+              var addedBy = getCurrentUser();
+              var comments = getTaskComments(currentTaskId);
+              comments.push({ id: idStr, content: content, added_by: addedBy });
+              updateTaskComments(currentTaskId, comments);
+              if (commentInputEl) {
+                commentInputEl.value = "";
+                commentInputEl.style.height = "auto";
+                commentInputEl.style.height = commentInputEl.scrollHeight + "px";
+              }
+              renderComments(currentTaskId);
+              syncDashboardCommentBadge(currentTaskId);
             } else {
               showCommentError();
             }
@@ -1108,6 +1229,24 @@
         doSubmit();
       });
     }
+
+    document.addEventListener("popup-closed", function (e) {
+      if (e.detail && e.detail.id === "edit-task-popup") {
+        clearEditTaskPopupPersist();
+      }
+    });
+
+    /* Reload/navigation does not call closePopup; clear stale persist when the popup is not open at leave. */
+    function clearPersistIfEditTaskPopupClosedAtLeave() {
+      var pop = document.getElementById("edit-task-popup");
+      if (!pop || pop.hasAttribute("hidden")) {
+        clearEditTaskPopupPersist();
+      }
+    }
+    window.addEventListener("pagehide", clearPersistIfEditTaskPopupClosedAtLeave);
+    window.addEventListener("beforeunload", clearPersistIfEditTaskPopupClosedAtLeave);
+
+    tryRestoreEditTaskPopup(prepare);
   }
 
   if (document.readyState === "loading") {

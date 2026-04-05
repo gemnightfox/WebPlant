@@ -10,10 +10,13 @@
 <div class="AccSettings" data-notification-alert-allowed="{{ user_preferences.send_notifications|yesno:'true,false' }}" data-set-preferences-url="{% url 'accounts:set_preferences' %}">
   <header class="AccSettings-header">
     <span class="AccSettings-email" title="{{ user.email }}">{{ user.email }}</span>
-    <form method="post" action="{% url 'account_logout' %}" class="AccSettings-logoutForm" autocomplete="off" onsubmit="return confirm('Are you sure you want to log out?');">
-      {% csrf_token %}
-      <button type="submit" class="AccSettings-logout">Log out</button>
-    </form>
+    <div class="AccSettings-headerActions">
+      <a href="{% url 'feedback:dashboard' %}" class="AccSettings-accountAction AccSettings-accountAction--link AccSettings-sendFeedback">Send feedback</a>
+      <form method="post" action="{% url 'account_logout' %}" class="AccSettings-logoutForm" autocomplete="off" onsubmit="return confirm('Are you sure you want to log out?');">
+        {% csrf_token %}
+        <button type="submit" class="AccSettings-logout">Log out</button>
+      </form>
+    </div>
   </header>
 
   <div class="AccSettings-sections">

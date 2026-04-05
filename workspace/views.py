@@ -48,7 +48,7 @@ def set_preference(request, workspace_id):
 def change_default_role(request, workspace_id):
     workspace = get_workspace(request, workspace_id)
     my_workspace_user = get_workspace_user(request.user, workspace)
-    verify_workspace_role(my_workspace_user, 'can_assign_roles_to_users')
+    verify_workspace_role(my_workspace_user, 'can_assign_roles_to_workspace_users')
     return reusable_form_submission(request, ChangeDefaultRoleForm, instance=workspace)
 
 
@@ -129,9 +129,9 @@ def edit_name(request, workspace_id):
 def add_users(request, workspace_id):
     workspace = get_workspace(request, workspace_id)
     my_workspace_user = get_workspace_user(request.user, workspace)
-    verify_workspace_role(my_workspace_user, 'can_add_users')
-    can_assign_roles_to_users = my_workspace_user.role.can_assign_roles_to_users
-    return reusable_form_submission(request, AddUsersForm, workspace=workspace, my_user=request.user, can_assign_roles_to_users=can_assign_roles_to_users)
+    verify_workspace_role(my_workspace_user, 'can_add_workspace_users')
+    can_assign_roles_to_workspace_users = my_workspace_user.role.can_assign_roles_to_workspace_users
+    return reusable_form_submission(request, AddUsersForm, workspace=workspace, my_user=request.user, can_assign_roles_to_workspace_users=can_assign_roles_to_workspace_users)
 
 
 
@@ -140,7 +140,7 @@ def add_users(request, workspace_id):
 def assign_role_to_user(request, workspace_id, user_id):
     workspace = get_workspace(request, workspace_id)
     my_workspace_user = get_workspace_user(request.user, workspace)
-    verify_workspace_role(my_workspace_user, 'can_assign_roles_to_users')
+    verify_workspace_role(my_workspace_user, 'can_assign_roles_to_workspace_users')
 
     user = get_object_or_404(get_user_model(), id=user_id)
     workspace_user = get_workspace_user(user, workspace, allow_false_is_active=True)
@@ -170,7 +170,7 @@ def remove_user(request, workspace_id, user_id):
 
     # Users can leave the workspace, no perms required
     if user != request.user:
-        verify_workspace_role(my_workspace_user, 'can_remove_users')
+        verify_workspace_role(my_workspace_user, 'can_remove_workspace_users')
 
     with transaction.atomic():
         workspace_user.delete()
@@ -220,7 +220,7 @@ def join_using_invite_code(request):
 def add_invite_code(request, workspace_id):
     workspace = get_workspace(request, workspace_id)
     my_workspace_user = get_workspace_user(request.user, workspace)
-    verify_workspace_role(my_workspace_user, 'can_edit_invite_codes')
+    verify_workspace_role(my_workspace_user, 'can_edit_workspace_invite_codes')
     return reusable_form_submission(request, AddInviteCodeForm, workspace=workspace)
 
 
@@ -230,7 +230,7 @@ def add_invite_code(request, workspace_id):
 def edit_invite_code_password(request, workspace_id, workspace_invite_code_id):
     workspace = get_workspace(request, workspace_id)
     my_workspace_user = get_workspace_user(request.user, workspace)
-    verify_workspace_role(my_workspace_user, 'can_edit_invite_codes')
+    verify_workspace_role(my_workspace_user, 'can_edit_workspace_invite_codes')
     workspace_invite_code = WorkspaceInviteCode(id=workspace_invite_code_id, workspace=workspace)
     return reusable_form_submission(request, EditInviteCodePasswordForm, instance=workspace_invite_code)
 
@@ -241,7 +241,7 @@ def edit_invite_code_password(request, workspace_id, workspace_invite_code_id):
 def delete_invite_code(request, workspace_id, workspace_invite_code_id):
     workspace = get_workspace(request, workspace_id)
     my_workspace_user = get_workspace_user(request.user, workspace)
-    verify_workspace_role(my_workspace_user, 'can_edit_invite_codes')
+    verify_workspace_role(my_workspace_user, 'can_edit_workspace_invite_codes')
     workspace_invite_code = WorkspaceInviteCode(id=workspace_invite_code_id, workspace=workspace)
     workspace_invite_code.delete()
     return JsonResponse({'status': 'success'})

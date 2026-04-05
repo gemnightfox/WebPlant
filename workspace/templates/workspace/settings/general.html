@@ -25,7 +25,10 @@
           >
           <button type="button" class="WsSettings-editBtn" id="ws-rename-edit-btn">Edit</button>
         </div>
-        <button type="submit" class="WsSettings-btn WsSettings-btnPrimary WsSettings-saveNameBtn" id="ws-rename-save-btn" hidden>Save</button>
+        <div class="WsSettings-renameActions" id="ws-rename-actions" hidden>
+          <button type="button" class="WsSettings-btn WsSettings-btnSecondary" id="ws-rename-cancel-btn">Cancel</button>
+          <button type="submit" class="WsSettings-btn WsSettings-btnPrimary" id="ws-rename-save-btn">Save</button>
+        </div>
       </div>
       <small class="WsSettings-error" data-role="rename-error" hidden>
         Could not rename. Please try again.
@@ -85,12 +88,12 @@
 <section class="WsSettings-section WsSettings-inviteCodes">
   <div class="WsSettings-rolesHeader">
     <h2 class="WsSettings-sectionTitle">Invite codes</h2>
-    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_invite_codes %}
+    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_workspace_invite_codes %}
       <button type="button" class="WsSettings-btn WsSettings-btnPrimary" id="ws-add-invite-code-btn">Add code</button>
     {% endif %}
   </div>
 
-  {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_invite_codes %}
+  {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_workspace_invite_codes %}
   <div id="ws-add-invite-modal" class="Popup" role="dialog" aria-modal="true" aria-labelledby="ws-add-invite-title" aria-hidden="true" hidden>
     <div class="Popup-backdrop"></div>
     <div class="Popup-box">
@@ -154,7 +157,7 @@
           >
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           </button>
-          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_invite_codes %}
+          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_workspace_invite_codes %}
           <button
             type="button"
             class="WsSettings-roleCardBtn WsSettings-roleCardBtn--delete ws-delete-invite-code-btn"
@@ -186,10 +189,11 @@
       class="WsSettings-slider"
       id="ws-slider-custom-roles"
       data-url="{% url 'workspace:set_preference' workspace.id %}"
-      data-value="{{ workspace_preference.custom_roles|yesno:'true,false' }}"
+      data-value="{{ workspace_preference.custom_roles }}"
     >
-      <button type="button" class="WsSettings-sliderOption" data-value="false">Disabled</button>
-      <button type="button" class="WsSettings-sliderOption" data-value="true">Enabled</button>
+      <button type="button" class="WsSettings-sliderOption" data-value="disabled">Disabled</button>
+      <button type="button" class="WsSettings-sliderOption" data-value="simple">Simple</button>
+      <button type="button" class="WsSettings-sliderOption" data-value="complex">Complex</button>
       <div class="WsSettings-sliderThumb"></div>
     </div>
   </div>

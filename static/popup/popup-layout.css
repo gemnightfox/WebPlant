@@ -398,6 +398,24 @@
   background: rgba(127, 127, 127, 0.12);
 }
 
+/* Deadline row: no permission (still visible when task has no deadline) */
+.Popup-panelRow.Popup-panelRow--noAccess {
+  cursor: not-allowed;
+}
+
+.Popup-panelRow.Popup-panelRow--noAccess .Popup-panelLabel,
+.Popup-panelRow.Popup-panelRow--noAccess .Popup-panelAdd {
+  cursor: not-allowed;
+}
+
+.Popup-panelRow.Popup-panelRow--noAccess:hover {
+  background: rgba(220, 38, 38, 0.16);
+}
+
+.theme-light .Popup-panelRow.Popup-panelRow--noAccess:hover {
+  background: rgba(220, 38, 38, 0.12);
+}
+
 .Popup-panelLabel {
   font-size: 13px;
   color: var(--color);
@@ -428,6 +446,20 @@
 .Popup-deadlineDisplay:hover {
   background: rgba(30, 144, 255, 0.1);
   border-radius: 6px;
+}
+
+.Popup-deadlineDisplay.Popup-deadlineDisplay--readOnly {
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.Popup-deadlineDisplay.Popup-deadlineDisplay--readOnly:hover {
+  background: rgba(220, 38, 38, 0.16);
+  border-radius: 6px;
+}
+
+.theme-light .Popup-deadlineDisplay.Popup-deadlineDisplay--readOnly:hover {
+  background: rgba(220, 38, 38, 0.12);
 }
 
 .Popup-deadlineText {

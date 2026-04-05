@@ -3,7 +3,7 @@
   <div class="WsSettings-rolesHeader">
     <div class="WsSettings-rolesTitleGroup">
       <h2 class="WsSettings-sectionTitle">Default role</h2>
-      {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_roles %}
+      {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_workspace_roles %}
       <form
         id="ws-default-role-form"
         method="post"
@@ -51,7 +51,7 @@
         </div>
         <span class="WsSettings-roleCardBadge">{{ role.workspaceuser_set.count }} member{{ role.workspaceuser_set.count|pluralize }}</span>
         <div class="WsSettings-roleCardActions">
-          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_assign_roles_to_users %}
+          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_assign_roles_to_workspace_users %}
             <button
               type="button"
               class="WsSettings-roleCardBtn WsSettings-roleCardBtn--transfer"
@@ -65,7 +65,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
             </button>
           {% endif %}
-          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_roles %}
+          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_workspace_roles %}
             <button
               type="button"
               class="WsSettings-roleCardBtn WsSettings-roleCardBtn--edit"
@@ -76,7 +76,7 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
             </button>
           {% endif %}
-          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_roles %}
+          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_workspace_roles %}
             <button
               type="button"
               class="WsSettings-roleCardBtn WsSettings-roleCardBtn--delete WsSettings-deleteRoleBtn"

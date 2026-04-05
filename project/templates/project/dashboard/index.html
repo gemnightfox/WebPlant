@@ -11,7 +11,7 @@
 {% include 'task/popup/add_task.html' %}
 {% include 'task/popup/edit_task.html' %}
 
-<div class="Dashboard{% if project.groups.all %} Dashboard--hasGroups{% endif %}" data-dashboard-path="{{ request.resolver_match.kwargs.project_id|default:'' }}" data-current-user="{{ request.user.email }}" data-workspace-owner="{{ project.workspace.owner.user.email }}">
+<div class="Dashboard{% if project.groups.all %} Dashboard--hasGroups{% endif %}" data-dashboard-path="{{ request.resolver_match.kwargs.project_id|default:'' }}" data-current-user="{{ request.user.email }}" data-workspace-owner="{{ project.workspace.owner.user.email }}" data-can-edit-task-deadline="{% if project.workspace.owner.user == request.user %}true{% else %}{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.role.can_edit_task_deadline|yesno:'true,false' }}{% endif %}{% endfor %}{% endif %}">
   <header class="Dashboard-header">
   </header>
 

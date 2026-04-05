@@ -48,6 +48,7 @@ def duplicate(request, group_id, position):
     group = get_group(request, group_id)
     my_workspace_user = get_workspace_user(request.user, workspace=group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_groups')
+    verify_workspace_role(my_workspace_user, 'can_edit_tasks')
 
     name_max_length = group._meta.get_field('name').max_length
     new_name = f'(copy) {group.name}'

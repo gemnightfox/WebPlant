@@ -20,13 +20,13 @@ def transfer_workspace_ownership_to_successor(owner, workspace):
         return
 
     workspace_roles = WorkspaceRole.objects.filter(workspace=workspace)
-    highest_roles = [] # Example: [Role(can_add_users=False, can_remove_users=True), Role(can_add_users=True, can_remove_users=False)]
+    highest_roles = [] # Example: [Role(can_add_workspace_users=False, can_remove_workspace_users=True), Role(can_add_workspace_users=True, can_remove_workspace_users=False)]
     highest_count = 0
 
     for role in workspace_roles:
         # This is the amount of True that is in each WorkspaceRole permission fields (can_...)
-        # Example: Role(can_add_users=True, can_remove_users=False), count = 1
-        # Example: Role(can_add_users=True, can_remove_users=True), count = 2
+        # Example: Role(can_add_workspace_users=True, can_remove_workspace_users=False), count = 1
+        # Example: Role(can_add_workspace_users=True, can_remove_workspace_users=True), count = 2
         count = sum(
             getattr(role, field.name)
             for field in role._meta.concrete_fields

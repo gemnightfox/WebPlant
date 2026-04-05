@@ -3,7 +3,7 @@
 <section class="WsSettings-section WsSettings-users">
   <div class="WsSettings-usersHeader">
     <h2 class="WsSettings-sectionTitle">Members</h2>
-    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_add_users %}
+    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_add_workspace_users %}
       <div class="WsSettings-actions">
         <button
           type="button"
@@ -20,7 +20,7 @@
     aria-label="Current workspace members"
     data-role-update-url-base="/workspace/assign-role-to-user/{{ workspace.id }}/"
   >
-    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_add_users %}
+    {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_add_workspace_users %}
       <li
         class="WsSettings-member WsSettings-member--pending WsSettings-member--invite"
         id="ws-invite-row"
@@ -89,7 +89,7 @@
         <span class="WsSettings-memberMeta">
           {% if not wu.is_active %}<span class="WsSettings-memberStatus WsSettings-memberStatus--pending">Pending</span>{% endif %}
           {% if wu != workspace.owner and wu.user.id != user.id %}
-            {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_remove_users %}
+            {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_remove_workspace_users %}
               <div class="WsSettings-moreMenu">
                 <button type="button" class="WsSettings-moreBtn" aria-label="More options">···</button>
                 <div class="WsSettings-moreDropdown" hidden>
@@ -105,7 +105,7 @@
               </div>
             {% endif %}
           {% endif %}
-          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_assign_roles_to_users %}
+          {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_assign_roles_to_workspace_users %}
             <select
               class="WsSettings-select WsSettings-roleSelect"
               name="role"
@@ -132,7 +132,7 @@
       <li class="WsSettings-member WsSettings-member--empty">No members yet.</li>
     {% endfor %}
   </ul>
-  {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_assign_roles_to_users %}
+  {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_assign_roles_to_workspace_users %}
     <small class="WsSettings-error" data-role="role-error" hidden>
       Could not update member role. Please try again.
     </small>

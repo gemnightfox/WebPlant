@@ -1,5 +1,5 @@
 /**
- * Edit group popup. Opens from group header or "Edit name" (data-popup); prepare fills form from column header.
+ * Edit group popup. Opens from group header (not the title text) or "Edit name" in the menu; prepare fills form from column header.
  */
 (function () {
   var currentGroupId = null;
@@ -46,6 +46,7 @@
     document.body.addEventListener("click", function (e) {
       if (e.target.closest(".Dashboard-menuWrapper")) return;
       if (e.target.closest("[data-popup]")) return;
+      if (e.target.closest(".Dashboard-groupName")) return;
       var header = e.target.closest(".Dashboard-groupHeader");
       if (!header) return;
       prepare(header);

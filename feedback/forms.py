@@ -13,12 +13,12 @@ class FeedbackForm(forms.ModelForm):
         self.current_user = current_user
 
     def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.user = self.current_user
+
         if commit:
-            instance = super().save(commit=False)
-            instance.user = self.current_user
             instance.save()
-
-
+        return instance
 
 
 

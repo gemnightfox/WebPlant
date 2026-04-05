@@ -10,7 +10,7 @@ def get_workspace_role(workspace, workspace_role_id):
 
 
 
-def verify_workspace_role(my_workspace_user, permission_field_name: str): # permission_field_name is something like: 'can_add_users'
+def verify_workspace_role(my_workspace_user, permission_field_name: str): # permission_field_name is something like: 'can_add_workspace_users'
     if my_workspace_user == my_workspace_user.workspace.owner: # If current user is the owner, skip the rest of the checks (owner has unrestricted access to workspace)
         return
 
@@ -27,8 +27,8 @@ def get_lowest_level_workspace_role(workspace):
 
     for role in workspace_roles:
         # This is the amount of True that is in each WorkspaceRole permission fields (can_...)
-        # Example: Role(can_add_users=True, can_remove_users=False), count = 1
-        # Example: Role(can_add_users=False, can_remove_users=False), count = 0
+        # Example: Role(can_add_workspace_users=True, can_remove_workspace_users=False), count = 1
+        # Example: Role(can_add_workspace_users=False, can_remove_workspace_users=False), count = 0
         count = sum(
             getattr(role, field.name)
             for field in role._meta.concrete_fields

@@ -46,7 +46,7 @@
 
     function toggleRolesTab(customRolesValue) {
       var v = (customRolesValue + '').toLowerCase();
-      var show = v === 'true' || v === '1';
+      var show = v === 'simple' || v === 'complex' || v === 'true' || v === '1';
       if (rolesTabBtn) rolesTabBtn.style.display = show ? '' : 'none';
       if (rolesTabPanel) rolesTabPanel.style.display = show ? '' : 'none';
       if (!show && rolesTabBtn && rolesTabBtn.classList.contains('is-active')) {

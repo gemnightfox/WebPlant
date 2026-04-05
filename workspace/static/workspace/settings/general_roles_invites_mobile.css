@@ -90,8 +90,13 @@
   .WsSettings-showPwIcon--closed { display: inline-block; }
   .WsSettings-showPwBtn.is-showing .WsSettings-showPwIcon--closed { display: none; }
   .WsSettings-showPwBtn.is-showing .WsSettings-showPwIcon--open { display: inline-block; }
-  .WsSettings-sliderRow { gap: 10px; }
+  .WsSettings-sliderRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
   .WsSettings-sliderLabel { min-width: 0; }
+  .WsSettings-slider { width: 100%; }
   .WsSettings-roleCard { flex-wrap: wrap; align-items: center; gap: 6px; }
   .WsSettings-roleCardInfo { flex-basis: 100%; }
   .WsSettings-roleCardName { font-size: 12.8px; }

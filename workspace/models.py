@@ -44,9 +44,15 @@ class WorkspaceInviteCode(models.Model):
 
 
 class WorkspacePreference(models.Model):
+    class PreferenceChoices(models.TextChoices):
+        DISABLED = 'disabled', 'Disabled'
+        SIMPLE = 'simple', 'Simple'
+        COMPLEX = 'complex', 'Complex'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.OneToOneField(Workspace, on_delete=models.CASCADE)
-    custom_roles = models.BooleanField(default=False)
+    custom_roles = models.CharField(max_length=20, choices=PreferenceChoices.choices, default=PreferenceChoices.DISABLED)
+
 
 
 

@@ -28,7 +28,7 @@ def edit(request, task_id):
     task = get_task(request, task_id)
     my_workspace_user = get_workspace_user(request.user, workspace=task.group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
-    return reusable_form_submission(request, EditForm, instance=task)
+    return reusable_form_submission(request, EditForm, instance=task, my_workspace_user=my_workspace_user)
 
 
 
@@ -68,7 +68,7 @@ def duplicate(request, task_id, position):
 def add_comment(request, task_id):
     task = get_task(request, task_id)
     my_workspace_user = get_workspace_user(request.user, workspace=task.group.project.workspace)
-    verify_workspace_role(my_workspace_user, 'can_edit_tasks')
+    verify_workspace_role(my_workspace_user, 'can_add_task_comments')
     return reusable_form_submission(request, AddCommentForm, task=task, my_workspace_user=my_workspace_user)
 
 

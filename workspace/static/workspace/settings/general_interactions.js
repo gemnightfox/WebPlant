@@ -7,24 +7,42 @@
   var transferHeaderBtn = document.getElementById('ws-transfer-header-btn');
   var transferDropdown = document.getElementById('ws-transfer-dropdown');
   var transferForm;
+  var renameForm = document.getElementById('ws-rename-form');
 
   var renameInput = document.getElementById('id_ws_rename');
   var renameEditBtn = document.getElementById('ws-rename-edit-btn');
   var renameSaveBtn = document.getElementById('ws-rename-save-btn');
-  if (renameEditBtn && renameInput && renameSaveBtn) {
+  var renameCancelBtn = document.getElementById('ws-rename-cancel-btn');
+  var renameActions = document.getElementById('ws-rename-actions');
+  var renameBaselineValue = '';
+  if (renameEditBtn && renameInput && renameSaveBtn && renameCancelBtn && renameActions) {
+    function exitRenameEditMode() {
+      renameInput.readOnly = true;
+      renameInput.setAttribute('readonly', '');
+      renameInput.classList.remove('is-editing');
+      renameActions.setAttribute('hidden', '');
+      renameEditBtn.removeAttribute('hidden');
+    }
     renameEditBtn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
+      renameBaselineValue = renameInput.value;
       renameInput.readOnly = false;
       renameInput.removeAttribute('readonly');
       renameInput.classList.add('is-editing');
       renameInput.focus();
-      renameSaveBtn.removeAttribute('hidden');
+      renameActions.removeAttribute('hidden');
       renameEditBtn.setAttribute('hidden', '');
+    });
+    renameCancelBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      renameInput.value = renameBaselineValue;
+      exitRenameEditMode();
+      var errEl = renameForm && renameForm.querySelector('[data-role="rename-error"]');
+      if (errEl) errEl.setAttribute('hidden', '');
     });
   }
 
-  var renameForm = document.getElementById('ws-rename-form');
   if (renameForm) {
     renameForm.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -50,9 +68,16 @@
     var thumb = slider.querySelector('.WsSettings-sliderThumb');
     var url = slider.getAttribute('data-url');
     function positionThumb(activeBtn) { thumb.style.left = activeBtn.offsetLeft + 'px'; thumb.style.width = activeBtn.offsetWidth + 'px'; }
-    function normalizeValue(raw) { return (raw === true || raw === 'true' || raw === 'True' || raw === '1') ? 'true' : 'false'; }
+    function normalizeValue(raw) {
+      if (raw === true || raw === 'true' || raw === 'True' || raw === '1') return 'simple';
+      if (raw === false || raw === 'false' || raw === 'False' || raw === '0') return 'disabled';
+      var s = (raw == null ? '' : String(raw)).trim().toLowerCase();
+      if (s === 'simple') return 'simple';
+      if (s === 'complex') return 'complex';
+      return 'disabled';
+    }
     function setSliderValue(rawValue, save) {
-      var prevValue = slider.getAttribute('data-value') || 'false';
+      var prevValue = slider.getAttribute('data-value') || 'disabled';
       var value = normalizeValue(rawValue);
       slider.setAttribute('data-value', value);
       options.forEach(function(opt) {

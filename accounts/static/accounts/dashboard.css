@@ -40,6 +40,14 @@ body:has(.AccSettings) {
   white-space: nowrap;
 }
 
+.AccSettings-headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .AccSettings-logoutForm {
   display: inline-block;
   margin: 0;
@@ -401,6 +409,12 @@ body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
   font-family: inherit;
 }
 
+a.AccSettings-accountAction--link {
+  display: inline-block;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
 .AccSettings-accountAction--inline {
   margin-left: 0;
 }
@@ -443,13 +457,23 @@ body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
   }
 
   .AccSettings-header {
-    gap: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
     margin-bottom: 20px;
   }
 
   .AccSettings-email {
     font-size: 15.2px;
     margin-right: 0;
+    flex: none;
+    width: 100%;
+  }
+
+  .AccSettings-headerActions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .AccSettings-sectionTitle {

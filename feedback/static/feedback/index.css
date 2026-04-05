@@ -1,6 +1,5 @@
 /* ==========================================================================
-   Feedback dashboard – user feedback form
-   Extends base.html and follows existing layout conventions (Dashboard / *Settings).
+   Feedback form (feedback/index.html)
    ========================================================================== */
 
 body.Base-body--feedback {
@@ -12,24 +11,6 @@ body.Base-body--feedback {
   margin: 0 auto;
   padding: 24px 0;
   min-width: 0;
-}
-
-.Feedback-header {
-  margin-bottom: 24px;
-}
-
-.Feedback-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color);
-  margin: 0 0 4px 0;
-}
-
-.Feedback-subtitle {
-  font-size: 15.2px;
-  color: var(--color);
-  opacity: 0.8;
-  margin: 0;
 }
 
 .Feedback-card {
@@ -44,31 +25,7 @@ body.Base-body--feedback {
   font-size: 18.4px;
   font-weight: 600;
   color: var(--color);
-  margin: 0 0 4px 0;
-}
-
-.Feedback-cardSubtitle {
-  font-size: 14.88px;
-  color: var(--color);
-  opacity: 0.8;
   margin: 0 0 16px 0;
-}
-
-.Feedback-alert {
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
-  font-size: 14.4px;
-}
-
-.Feedback-alert--error {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-}
-
-.Feedback-alertMessage {
-  margin: 0;
 }
 
 .Feedback-form {
@@ -89,29 +46,22 @@ body.Base-body--feedback {
   color: var(--color);
 }
 
-.Feedback-field textarea,
-.Feedback-field input[type="text"],
-.Feedback-field input[type="email"],
-.Feedback-field input[type="password"] {
+.Feedback-field textarea {
   width: 100%;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1.5;
   color: var(--color);
   background: var(--secondary-background);
   border: 1px solid rgba(127, 127, 127, 0.35);
   border-radius: 8px;
-}
-
-.Feedback-field textarea {
-  min-height: 140px;
-  resize: vertical;
+  resize: none;
+  overflow: hidden;
   font-family: inherit;
+  box-sizing: border-box;
 }
 
-.Feedback-field textarea:focus,
-.Feedback-field input[type="text"]:focus,
-.Feedback-field input[type="email"]:focus,
-.Feedback-field input[type="password"]:focus {
+.Feedback-field textarea:focus {
   outline: none;
   border-color: rgba(59, 130, 246, 0.7);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
@@ -156,6 +106,7 @@ body.Base-body--feedback {
   background: rgba(59, 130, 246, 0.1);
   color: #1d4ed8;
 }
+
 .theme-light .Feedback-submit:hover {
   background: rgba(59, 130, 246, 0.18);
 }
@@ -173,4 +124,3 @@ body.Base-body--feedback {
     padding-inline: 16px;
   }
 }
-

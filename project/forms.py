@@ -13,10 +13,12 @@ class CreateNewForm(forms.ModelForm):
         self.workspace = workspace
     
     def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.workspace = self.workspace
+
         if commit:
-            instance = super().save(commit=False)
-            instance.workspace = self.workspace
             instance.save()
+        return instance
 
 
 

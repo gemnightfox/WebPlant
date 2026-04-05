@@ -16,11 +16,11 @@ Unique on `(workspace, name)`.
 | `name` | CharField (max 100) | — |
 | `can_edit_workspace_name` | BooleanField | `False` |
 | `can_edit_workspace_preference` | BooleanField | `False` |
-| `can_add_users` | BooleanField | `False` |
-| `can_assign_roles_to_users` | BooleanField | `False` |
-| `can_remove_users` | BooleanField | `False` |
-| `can_edit_roles` | BooleanField | `False` |
-| `can_edit_invite_codes` | BooleanField | `False` |
+| `can_add_workspace_users` | BooleanField | `False` |
+| `can_assign_roles_to_workspace_users` | BooleanField | `False` |
+| `can_remove_workspace_users` | BooleanField | `False` |
+| `can_edit_workspace_roles` | BooleanField | `False` |
+| `can_edit_workspace_invite_codes` | BooleanField | `False` |
 | `can_edit_projects` | BooleanField | `False` |
 | `can_edit_groups` | BooleanField | `False` |
 | `can_edit_tasks` | BooleanField | `False` |
@@ -38,7 +38,7 @@ Unique on `(workspace, name)`.
 | POST | `/workspace-role/delete/<workspace_id>/<role_id>/` | Delete a role |
 | POST | `/workspace-role/transfer/<workspace_id>/<old_role_id>/<new_role_id>/` | Move all users from one role to another |
 
-All four views require `can_edit_roles` except `transfer`, which requires `can_assign_roles_to_users`.
+All four views require `can_edit_workspace_roles` except `transfer`, which requires `can_assign_roles_to_workspace_users`.
 
 
 
