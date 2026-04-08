@@ -7,10 +7,10 @@
   var csrfToken = getCookie('csrftoken');
 
   // ── Add user form + invite row ──
-  function isEmailInMemberList(email) {
-    var normalized = email.trim().toLowerCase();
+  function isUsernameInMemberList(username) {
+    var normalized = username.trim().toLowerCase();
 
-    // Preferred markup: dedicated element for email text (owner badge is separate).
+    // Preferred markup: dedicated element for username text (owner badge is separate).
     var members = document.querySelectorAll(
       '.WsSettings-memberList .WsSettings-member:not(.WsSettings-member--invite) .WsSettings-memberEmailValue'
     );
@@ -22,7 +22,7 @@
       return false;
     }
 
-    // Fallback for older markup without the email-value span.
+    // Fallback for older markup without the value span.
     members = document.querySelectorAll(
       '.WsSettings-memberList .WsSettings-member:not(.WsSettings-member--invite) .WsSettings-memberEmail'
     );
@@ -37,11 +37,11 @@
     return false;
   }
 
-  function showAddUserError(errorEl, email) {
+  function showAddUserError(errorEl, username) {
     if (!errorEl) return;
-    errorEl.textContent = isEmailInMemberList(email)
+    errorEl.textContent = isUsernameInMemberList(username)
       ? 'User has already been invited to the workspace.'
-      : 'Given email is not registered to an account, or does not accept workspace invites.';
+      : 'Given username is not registered to an account, or does not accept workspace invites.';
     errorEl.removeAttribute('hidden');
   }
 
@@ -49,17 +49,17 @@
   if (form) {
     var inviteRow = document.getElementById('ws-invite-row');
     var inviteToggleBtn = document.getElementById('ws-show-invite-row');
-    var emailInput = document.getElementById('id_add_user_email');
+    var usernameInput = document.getElementById('id_add_user_username');
 
     if (inviteToggleBtn && inviteRow) {
       inviteToggleBtn.addEventListener('click', function() {
         var isHidden = inviteRow.hasAttribute('hidden');
         if (isHidden) {
           inviteRow.removeAttribute('hidden');
-          if (emailInput) {
-            emailInput.focus();
-            if (typeof emailInput.select === 'function') {
-              emailInput.select();
+          if (usernameInput) {
+            usernameInput.focus();
+            if (typeof usernameInput.select === 'function') {
+              usernameInput.select();
             }
           }
         } else {
@@ -68,8 +68,8 @@
       });
     }
 
-    if (emailInput) {
-      emailInput.addEventListener('input', function() {
+    if (usernameInput) {
+      usernameInput.addEventListener('input', function() {
         var errorEl = form.querySelector('[data-role="add-user-error"]');
         if (errorEl) errorEl.setAttribute('hidden', '');
       });
@@ -79,7 +79,7 @@
       e.preventDefault();
       var url = form.getAttribute('data-url-base');
       var errorEl = form.querySelector('[data-role="add-user-error"]');
-      var email = emailInput ? emailInput.value : '';
+      var username = usernameInput ? usernameInput.value : '';
       if (errorEl) errorEl.setAttribute('hidden', '');
       fetch(url, {
         method: 'POST',
@@ -87,20 +87,20 @@
         body: new FormData(form)
       }).then(function(r) {
         if (!r.ok) {
-          showAddUserError(errorEl, email);
+          showAddUserError(errorEl, username);
           return;
         }
         return r.json().then(function(data) {
           if (data && data.status === 'success') {
             window.location.reload();
           } else {
-            showAddUserError(errorEl, email);
+            showAddUserError(errorEl, username);
           }
         }).catch(function() {
-          showAddUserError(errorEl, email);
+          showAddUserError(errorEl, username);
         });
       }).catch(function() {
-        showAddUserError(errorEl, email);
+        showAddUserError(errorEl, username);
       });
     });
   }

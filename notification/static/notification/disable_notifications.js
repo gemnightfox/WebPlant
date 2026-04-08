@@ -2,8 +2,7 @@
     'use strict';
 
     var form = document.getElementById('disable-notifications-form');
-    var range = document.getElementById('hours-range');
-    var label = document.getElementById('hours-label');
+    var durationSelect = document.getElementById('hours-select');
     var hidden = document.getElementById('disable_notifications_duration');
     var confirmBtn = document.getElementById('confirm-btn');
     var modal = document.getElementById('confirm-modal');
@@ -21,14 +20,14 @@
         return d + ' days, ' + h + ' hours';
     }
 
-    function updateLabel() {
-        var val = range.value;
-        label.textContent = val;
-        hidden.value = val;
+    function syncDurationValue() {
+        if (!durationSelect || !hidden) return;
+        hidden.value = durationSelect.value;
     }
 
     function showConfirmation() {
-        var hours = range.value;
+        if (!durationSelect) return;
+        var hours = durationSelect.value;
         var text = hoursToDaysAndHours(hours);
         modalMessage.textContent = 'Disable notifications for ' + text + '?';
         modal.hidden = false;
@@ -39,7 +38,8 @@
     }
 
     function confirmAndSubmit() {
-        var hours = range.value;
+        if (!durationSelect) return;
+        var hours = durationSelect.value;
         try {
             sessionStorage.setItem('disable_notifications_duration_hours', hours);
             sessionStorage.setItem('disable_notifications_duration_display', hoursToDaysAndHours(hours));
@@ -48,9 +48,9 @@
         form.submit();
     }
 
-    if (range) {
-        range.addEventListener('input', updateLabel);
-        updateLabel();
+    if (durationSelect) {
+        durationSelect.addEventListener('change', syncDurationValue);
+        syncDurationValue();
     }
 
     if (confirmBtn) confirmBtn.addEventListener('click', showConfirmation);

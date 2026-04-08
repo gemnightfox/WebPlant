@@ -148,8 +148,8 @@
     transferDropdown.querySelectorAll('.WsSettings-transferDropdownItem').forEach(function(item) {
       item.addEventListener('click', function() {
         var wuId = item.getAttribute('data-wu-id');
-        var email = item.getAttribute('data-email');
-        if (!window.confirm('Transfer ownership to ' + email + '? This cannot be undone.')) return;
+        var username = item.getAttribute('data-username');
+        if (!window.confirm('Transfer ownership to ' + username + '? This cannot be undone.')) return;
         transferDropdown.setAttribute('hidden', '');
         transferForm = document.getElementById('ws-transfer-form');
         var select = transferForm && transferForm.querySelector('select[name="owner"]');

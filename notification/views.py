@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
 from base_utils import CustomTokenGenerator
 from .models import Notification, NotificationDisabledDuration
-from .utils import get_filtered_notifications, get_temp_disabled_duration, save_temp_disabled_duration
+from .utils import get_temp_disabled_duration, save_temp_disabled_duration
 from django.http import JsonResponse, Http404
 
 
@@ -20,8 +20,7 @@ def get_unread_count(request):
 @login_required
 @require_POST # Note: GET queries are still present (eg. URL: .../?unread&read), just that POST is used for dates filtering (long GET queries for dates could cause URL issues)
 def get_notifications(request):
-    notifications = get_filtered_notifications(request)
-    notifications = notifications.order_by('-sent_at')
+    notifications = request.user.notifications.order_by('-sent_at')[:9999]
     
     paginator = Paginator(notifications, 100)
     page_number = request.GET.get('notifications_page', 1)
@@ -45,7 +44,7 @@ def temp_disable(request, user_id, token):
         duration = get_temp_disabled_duration(request)
         save_temp_disabled_duration(user, duration)
         return redirect('notification:temp_disable_success')
-    return render(request, 'notification/temp_disable_notifications.html', {'user_email': user.email})
+    return render(request, 'notification/temp_disable_notifications.html', {'email': user.email, 'username': user.username})
 
 
 

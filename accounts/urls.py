@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import dashboard, check_password_present, send_disable_password_email, disable_password, disable_password_success, send_account_deletion_email, delete_account, set_preferences
+from .views import dashboard, check_password_present, send_disable_password_email, disable_password, disable_password_success, send_account_deletion_email, delete_account, set_preferences, logout_all_devices, edit_username
 
 app_name = 'accounts'
 
@@ -12,6 +12,8 @@ urlpatterns = [
     path('send-account-deletion-email/', send_account_deletion_email, name='send_account_deletion_email'),
     path('delete-account/<user_id>/<token>/', delete_account, name='delete_account'),
     path('set-preferences/', set_preferences, name='set_preferences'),
+    path('logout-all-devices/', logout_all_devices, name='logout_all_devices'),
+    path('edit-username/', edit_username, name='edit_username'),
 ]
 
 

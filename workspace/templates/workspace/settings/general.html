@@ -55,7 +55,7 @@
         <option value="">— Select a user —</option>
         {% for wu in all_workspace_users %}
           {% if wu.user != user and wu.is_active %}
-            <option value="{{ wu.id }}">{{ wu.user.email }}</option>
+            <option value="{{ wu.id }}">{{ wu.user.username }}</option>
           {% endif %}
         {% endfor %}
       </select>

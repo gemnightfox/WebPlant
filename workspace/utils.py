@@ -24,8 +24,8 @@ def get_workspace_preference(workspace):
 
 
 def generate_workspace_invite_code():
-    ALLOWED_LETTERS = 'ACDEFHJKMNPQRTUVWXY3479'
-    list_of_random_characters = random.choices(ALLOWED_LETTERS, k=16)
+    ALLOWED_CHARACTERS = 'ACDEFHJKMNPQRTUVWXY3479'
+    list_of_random_characters = random.choices(ALLOWED_CHARACTERS, k=16)
     return ''.join(list_of_random_characters)
 
 

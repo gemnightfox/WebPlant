@@ -1,0 +1,24 @@
+{% extends 'popup.html' %}
+
+{% block popup_id %}timezone-popup{% endblock %}
+{% block popup_title_id %}timezone-popup-title{% endblock %}
+{% block popup_title_id_h2 %}timezone-popup-title{% endblock %}
+{% block popup_title %}Select timezone{% endblock %}
+
+{% block popup_content %}
+  <div class="Popup-formWrap">
+    <form class="Popup-form" autocomplete="off">
+      <div class="Popup-field">
+        <label>Region</label>
+        <div id="AccSettings-timezoneRegionButtons" class="AccSettings-timezoneRegionButtons" role="group" aria-label="Timezone regions"></div>
+      </div>
+      <div class="Popup-field">
+        <label for="AccSettings-timezonePopupSelect">Timezone</label>
+        <select id="AccSettings-timezonePopupSelect" class="Popup-input AccSettings-timezonePopupSelect"></select>
+      </div>
+      <div class="Popup-actions">
+        <button type="button" class="Popup-submit" id="AccSettings-saveTimezoneBtn">Save</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

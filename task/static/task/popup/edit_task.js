@@ -1,6 +1,6 @@
 /**
  * Edit task popup (task app). Opens on task card click.
- * Supports: inline rename, delete, deadline (calendar + drag spinners).
+ * Supports: inline rename, delete, deadline & reminders (calendars + time use account timezone from body[data-user-timezone]; deadline/reminder posted as UTC ISO).
  */
 (function () {
   function getCsrfToken() {
@@ -37,7 +37,27 @@
     } catch (e) {}
   }
 
+  function isReloadNavigation() {
+    try {
+      if (window.performance && typeof window.performance.getEntriesByType === "function") {
+        var navEntries = window.performance.getEntriesByType("navigation");
+        if (navEntries && navEntries.length > 0) {
+          return navEntries[0].type === "reload";
+        }
+      }
+      if (window.performance && window.performance.navigation) {
+        return window.performance.navigation.type === 1;
+      }
+    } catch (e) {}
+    return false;
+  }
+
   function tryRestoreEditTaskPopup(prepareFn) {
+    // Do not reopen the task popup after an explicit page reload.
+    if (isReloadNavigation()) {
+      clearEditTaskPopupPersist();
+      return;
+    }
     var projectId = getDashboardProjectId();
     if (!projectId) return;
     var raw;
@@ -76,19 +96,23 @@
   }
 
   function getDashboardEl() {
-    return document.querySelector('.Dashboard[data-current-user]');
+    return document.querySelector('.Dashboard[data-current-user-id]');
   }
-  function getCurrentUser() {
+  function getCurrentUserId() {
     var el = getDashboardEl();
-    return el ? el.getAttribute('data-current-user') : '';
+    return el ? el.getAttribute('data-current-user-id') : '';
   }
-  function getWorkspaceOwner() {
+  function getCurrentUsername() {
     var el = getDashboardEl();
-    return el ? el.getAttribute('data-workspace-owner') : '';
+    return el ? el.getAttribute('data-current-username') : '';
   }
-  function canManageComment(addedBy) {
-    var me = getCurrentUser();
-    return me && (me === addedBy || me === getWorkspaceOwner());
+  function getWorkspaceOwnerId() {
+    var el = getDashboardEl();
+    return el ? el.getAttribute('data-workspace-owner-id') : '';
+  }
+  function canManageComment(addedById) {
+    var me = getCurrentUserId();
+    return me && (me === String(addedById || '') || me === getWorkspaceOwnerId());
   }
 
   // ── Calendar state ──────────────────────────────────────────────────────────
@@ -102,13 +126,191 @@
   var reminderDay   = 0; // 0 = no date selected
 
   function pad2(n) { return String(n).padStart(2, "0"); }
+  function floorMinuteToFive(minute) {
+    var m = parseInt(minute, 10);
+    if (isNaN(m)) return 55;
+    if (m < 0) m = 0;
+    if (m > 59) m = 59;
+    return Math.floor(m / 5) * 5;
+  }
 
-  /** Write YYYY-MM-DD into the hidden deadline input. */
+  function getEffectiveTaskTz() {
+    try {
+      var raw = document.body && document.body.getAttribute("data-user-timezone");
+      if (raw && typeof raw === "string" && raw.trim()) return raw.trim();
+    } catch (e) {}
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (e2) {
+      return "UTC";
+    }
+  }
+
+  var ymdFormatterCache = {};
+  function getYmdFormatter(tz) {
+    if (!ymdFormatterCache[tz]) {
+      ymdFormatterCache[tz] = new Intl.DateTimeFormat("en-CA", {
+        timeZone: tz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    }
+    return ymdFormatterCache[tz];
+  }
+
+  function ymdInTz(ms, tz) {
+    return getYmdFormatter(tz).format(new Date(ms));
+  }
+
+  (function initCalendarNavStateFromAccountTz() {
+    try {
+      var tz = getEffectiveTaskTz();
+      var parts = ymdInTz(Date.now(), tz).split("-");
+      calendarYear = parseInt(parts[0], 10);
+      calendarMonth = parseInt(parts[1], 10) - 1;
+      reminderYear = calendarYear;
+      reminderMonth = calendarMonth;
+    } catch (e) {}
+  })();
+
+  function startOfDayInTz(year, month, day, tz) {
+    var target = year + "-" + pad2(month) + "-" + pad2(day);
+    var lo = Date.UTC(year, month - 1, day - 3, 12, 0, 0);
+    var hi = Date.UTC(year, month - 1, day + 3, 12, 0, 0);
+    var guard = 0;
+    while (lo < hi - 1 && guard < 100) {
+      guard++;
+      var mid = Math.floor((lo + hi) / 2);
+      var ymd = ymdInTz(mid, tz);
+      if (ymd >= target) hi = mid;
+      else lo = mid;
+    }
+    return hi;
+  }
+
+  function addOneGregorianDay(ymd) {
+    var p = ymd.split("-").map(Number);
+    var dt = new Date(Date.UTC(p[0], p[1] - 1, p[2]));
+    dt.setUTCDate(dt.getUTCDate() + 1);
+    return dt.getUTCFullYear() + "-" + pad2(dt.getUTCMonth() + 1) + "-" + pad2(dt.getUTCDate());
+  }
+
+  function getDaysInMonthGregorian(year, month0) {
+    return new Date(Date.UTC(year, month0 + 1, 0)).getUTCDate();
+  }
+
+  function weekdayInTz(ms, tz) {
+    var parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short" }).formatToParts(new Date(ms));
+    var w = parts.find(function (x) {
+      return x.type === "weekday";
+    });
+    var map = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    return w && map[w.value] != null ? map[w.value] : 0;
+  }
+
+  function timeHmInTz(ms, tz) {
+    var parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: tz,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date(ms));
+    var h = parts.find(function (x) {
+      return x.type === "hour";
+    });
+    var m = parts.find(function (x) {
+      return x.type === "minute";
+    });
+    if (!h || !m) return "";
+    return pad2(parseInt(h.value, 10)) + ":" + pad2(parseInt(m.value, 10));
+  }
+
+  /** Wall clock in account TZ → UTC ms (DST-aware). Returns NaN if no matching instant (gap). */
+  function localDateTimeToUtcMs(y, m, d, hour, minute, tz) {
+    var ymdTarget = y + "-" + pad2(m) + "-" + pad2(d);
+    var hmTarget = pad2(hour) + ":" + pad2(minute);
+    var dayStart = startOfDayInTz(y, m, d, tz);
+    var nextYmd = addOneGregorianDay(ymdTarget);
+    var np = nextYmd.split("-").map(Number);
+    var dayEnd = startOfDayInTz(np[0], np[1], np[2], tz);
+    for (var ms = dayStart; ms < dayEnd; ms += 60000) {
+      if (ymdInTz(ms, tz) !== ymdTarget) continue;
+      if (timeHmInTz(ms, tz) === hmTarget) return ms;
+    }
+    return NaN;
+  }
+
+  function setDeadlineTimeValue(timeStr) {
+    var hEl = document.getElementById("edit-task-deadline-time-h");
+    var mEl = document.getElementById("edit-task-deadline-time-m");
+    var merEl = document.getElementById("edit-task-deadline-time-meridiem");
+    if (!hEl || !mEl || !merEl) return;
+    var match = /^(\d{2}):(\d{2})$/.exec(timeStr || "");
+    var h24 = match ? parseInt(match[1], 10) : 23;
+    var mer = h24 >= 12 ? "PM" : "AM";
+    var h12 = h24 % 12;
+    if (h12 === 0) h12 = 12;
+    var h = String(h12);
+    var mi = pad2(match ? floorMinuteToFive(match[2]) : 55);
+    hEl.value = h;
+    mEl.value = mi;
+    merEl.value = mer;
+  }
+
+  function getDeadlineTimeValue() {
+    var hEl = document.getElementById("edit-task-deadline-time-h");
+    var mEl = document.getElementById("edit-task-deadline-time-m");
+    var merEl = document.getElementById("edit-task-deadline-time-meridiem");
+    if (!hEl || !mEl || !merEl) return "";
+    var hs = hEl.value.trim();
+    var ms = mEl.value.trim();
+    var mer = (merEl.value || "").toUpperCase();
+    if (hs === "" && ms === "") return "";
+    var h12 = parseInt(hs, 10);
+    var mi = parseInt(ms, 10);
+    if (hs === "" || ms === "" || isNaN(h12) || isNaN(mi)) return "";
+    if (h12 < 1 || h12 > 12 || mi < 0 || mi > 59 || mi % 5 !== 0) return "";
+    if (mer !== "AM" && mer !== "PM") return "";
+    var h = h12 % 12;
+    if (mer === "PM") h += 12;
+    return pad2(h) + ":" + pad2(mi);
+  }
+
+  /** Wall date + time (account TZ) → UTC ISO in the hidden deadline input. */
   function syncDeadlineHidden() {
     var dateInput = document.getElementById("edit-task-deadline-date");
     var hidden = document.getElementById("edit-task-deadline-value");
     if (!hidden) return;
-    hidden.value = dateInput ? dateInput.value : "";
+    var dv = dateInput && dateInput.value ? dateInput.value.trim() : "";
+    if (!dv) {
+      hidden.value = "";
+      return;
+    }
+    var dp = dv.split("-");
+    if (dp.length !== 3) {
+      hidden.value = "";
+      return;
+    }
+    var y = parseInt(dp[0], 10);
+    var mo = parseInt(dp[1], 10);
+    var da = parseInt(dp[2], 10);
+    var hm = getDeadlineTimeValue();
+    if (!hm) hm = "23:55";
+    var hmp = /^(\d{2}):(\d{2})$/.exec(hm);
+    if (!hmp) {
+      hidden.value = "";
+      return;
+    }
+    var hour = parseInt(hmp[1], 10);
+    var minute = parseInt(hmp[2], 10);
+    var tz = getEffectiveTaskTz();
+    var ms = localDateTimeToUtcMs(y, mo, da, hour, minute, tz);
+    if (isNaN(ms)) {
+      hidden.value = "";
+      return;
+    }
+    hidden.value = new Date(ms).toISOString();
   }
 
   // ── Calendar (grid) ─────────────────────────────────────────────────────────
@@ -117,11 +319,69 @@
                     "July","August","September","October","November","December"];
   var CAL_DAYS   = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 
+  /** One implementation for deadline + reminder pickers (account TZ, DST via Intl). */
+  function buildTaskPopupMonthGridHtml(opts) {
+    var tz = getEffectiveTaskTz();
+    var year = opts.year;
+    var month0 = opts.month0;
+    var daySelected = opts.daySelected;
+    var todayStr = ymdInTz(Date.now(), tz);
+    var firstMs = startOfDayInTz(year, month0 + 1, 1, tz);
+    var firstDay = weekdayInTz(firstMs, tz);
+    var daysInMonth = getDaysInMonthGregorian(year, month0);
+    var selStr =
+      daySelected > 0
+        ? year + "-" + pad2(month0 + 1) + "-" + pad2(daySelected)
+        : "";
+    var navAttr = opts.navAttr;
+    var dateAttr = opts.dateAttr;
+    var html =
+      '<div class="Base-notifCalHeader">' +
+      '<button type="button" class="Base-notifCalNav" ' +
+      navAttr +
+      '="-1">&#8249;</button>' +
+      '<span class="Base-notifCalMonthYear">' +
+      CAL_MONTHS[month0] +
+      " " +
+      year +
+      "</span>" +
+      '<button type="button" class="Base-notifCalNav" ' +
+      navAttr +
+      '="1">&#8250;</button>' +
+      '</div><div class="Base-notifCalGrid">';
+    CAL_DAYS.forEach(function (d) {
+      html += '<span class="Base-notifCalDayName">' + d + "</span>";
+    });
+    for (var i = 0; i < firstDay; i++) html += "<span></span>";
+    for (var d = 1; d <= daysInMonth; d++) {
+      var ds = year + "-" + pad2(month0 + 1) + "-" + pad2(d);
+      var cls = "Base-notifCalDay";
+      if (ds === selStr) cls += " is-selected";
+      if (ds === todayStr) cls += " is-today";
+      if (ds < todayStr) cls += " is-past";
+      html +=
+        '<button type="button" class="' +
+        cls +
+        '"' +
+        (ds < todayStr ? " disabled" : "") +
+        " " +
+        dateAttr +
+        '="' +
+        ds +
+        '">' +
+        d +
+        "</button>";
+    }
+    html += "</div>";
+    return html;
+  }
+
   function initToday() {
-    var t = new Date();
-    calendarDay   = t.getDate();
-    calendarMonth = t.getMonth();
-    calendarYear  = t.getFullYear();
+    var tz = getEffectiveTaskTz();
+    var parts = ymdInTz(Date.now(), tz).split("-");
+    calendarYear = parseInt(parts[0], 10);
+    calendarMonth = parseInt(parts[1], 10) - 1;
+    calendarDay = parseInt(parts[2], 10);
   }
 
   function setDateFromParts() {
@@ -136,32 +396,14 @@
   function renderCalendar() {
     var container = document.getElementById("edit-task-calendar");
     if (!container) return;
-    var firstDay    = new Date(calendarYear, calendarMonth, 1).getDay();
-    var daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-    var today       = new Date();
-    var todayStr    = today.getFullYear() + "-" + pad2(today.getMonth() + 1) + "-" + pad2(today.getDate());
-    var selStr      = calendarDay > 0
-      ? calendarYear + "-" + pad2(calendarMonth + 1) + "-" + pad2(calendarDay)
-      : "";
-
-    var html = '<div class="Base-notifCalHeader">' +
-      '<button type="button" class="Base-notifCalNav" data-cal-dir="-1">&#8249;</button>' +
-      '<span class="Base-notifCalMonthYear">' + CAL_MONTHS[calendarMonth] + " " + calendarYear + "</span>" +
-      '<button type="button" class="Base-notifCalNav" data-cal-dir="1">&#8250;</button>' +
-      '</div><div class="Base-notifCalGrid">';
-    CAL_DAYS.forEach(function (d) { html += '<span class="Base-notifCalDayName">' + d + "</span>"; });
-    for (var i = 0; i < firstDay; i++) html += "<span></span>";
-    for (var d = 1; d <= daysInMonth; d++) {
-      var ds  = calendarYear + "-" + pad2(calendarMonth + 1) + "-" + pad2(d);
-      var cls = "Base-notifCalDay";
-      if (ds === selStr)   cls += " is-selected";
-      if (ds === todayStr) cls += " is-today";
-      if (ds < todayStr)   cls += " is-past";
-      html += '<button type="button" class="' + cls + '"' + (ds < todayStr ? ' disabled' : '') + ' data-cal-date="' + ds + '">' + d + "</button>";
-    }
-    html += "</div>";
     container.className = "Base-notifCalendar";
-    container.innerHTML = html;
+    container.innerHTML = buildTaskPopupMonthGridHtml({
+      year: calendarYear,
+      month0: calendarMonth,
+      daySelected: calendarDay,
+      navAttr: "data-cal-dir",
+      dateAttr: "data-cal-date",
+    });
   }
 
   // ── Reminder calendar (grid) ────────────────────────────────────────────────
@@ -169,32 +411,14 @@
   function renderReminderCalendar() {
     var container = document.getElementById("edit-task-reminder-calendar");
     if (!container) return;
-    var firstDay    = new Date(reminderYear, reminderMonth, 1).getDay();
-    var daysInMonth = new Date(reminderYear, reminderMonth + 1, 0).getDate();
-    var today       = new Date();
-    var todayStr    = today.getFullYear() + "-" + pad2(today.getMonth() + 1) + "-" + pad2(today.getDate());
-    var selStr      = reminderDay > 0
-      ? reminderYear + "-" + pad2(reminderMonth + 1) + "-" + pad2(reminderDay)
-      : "";
-
-    var html = '<div class="Base-notifCalHeader">' +
-      '<button type="button" class="Base-notifCalNav" data-reminder-cal-dir="-1">&#8249;</button>' +
-      '<span class="Base-notifCalMonthYear">' + CAL_MONTHS[reminderMonth] + " " + reminderYear + "</span>" +
-      '<button type="button" class="Base-notifCalNav" data-reminder-cal-dir="1">&#8250;</button>' +
-      '</div><div class="Base-notifCalGrid">';
-    CAL_DAYS.forEach(function (d) { html += '<span class="Base-notifCalDayName">' + d + "</span>"; });
-    for (var i = 0; i < firstDay; i++) html += "<span></span>";
-    for (var d = 1; d <= daysInMonth; d++) {
-      var ds  = reminderYear + "-" + pad2(reminderMonth + 1) + "-" + pad2(d);
-      var cls = "Base-notifCalDay";
-      if (ds === selStr)   cls += " is-selected";
-      if (ds === todayStr) cls += " is-today";
-      if (ds < todayStr)   cls += " is-past";
-      html += '<button type="button" class="' + cls + '"' + (ds < todayStr ? ' disabled' : '') + ' data-reminder-cal-date="' + ds + '">' + d + "</button>";
-    }
-    html += "</div>";
     container.className = "Base-notifCalendar";
-    container.innerHTML = html;
+    container.innerHTML = buildTaskPopupMonthGridHtml({
+      year: reminderYear,
+      month0: reminderMonth,
+      daySelected: reminderDay,
+      navAttr: "data-reminder-cal-dir",
+      dateAttr: "data-reminder-cal-date",
+    });
   }
 
   // ── Populate deadline from ISO UTC ──────────────────────────────────────────
@@ -244,8 +468,26 @@
     if (!displayRow || !displayText) return;
     if (dateInput && dateInput.value) {
       var p = dateInput.value.split("-");
-      var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      displayText.textContent = parseInt(p[2], 10) + " " + months[parseInt(p[1], 10) - 1] + " " + p[0];
+      var tz = getEffectiveTaskTz();
+      var y = parseInt(p[0], 10);
+      var mo = parseInt(p[1], 10);
+      var da = parseInt(p[2], 10);
+      var hm = getDeadlineTimeValue();
+      if (!hm) hm = "23:55";
+      var hmp = /^(\d{2}):(\d{2})$/.exec(hm);
+      var hour = hmp ? parseInt(hmp[1], 10) : 23;
+      var minute = hmp ? parseInt(hmp[2], 10) : 59;
+      var ms = localDateTimeToUtcMs(y, mo, da, hour, minute, tz);
+      if (isNaN(ms)) ms = startOfDayInTz(y, mo, da, tz);
+      displayText.textContent = new Intl.DateTimeFormat(undefined, {
+        timeZone: tz,
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }).format(new Date(ms));
       displayRow.removeAttribute("hidden");
     } else {
       displayRow.setAttribute("hidden", "");
@@ -260,7 +502,7 @@
     var left = rect.left;
     var availableW = window.innerWidth - 8 - left;
     var width = Math.min(300, availableW);
-    if (top + 380 > window.innerHeight - 8) top = window.innerHeight - 388;
+    if (top + 430 > window.innerHeight - 8) top = window.innerHeight - 438;
     if (top < 8) top = 8;
     picker.style.top   = top + "px";
     picker.style.left  = left + "px";
@@ -282,6 +524,7 @@
     if (dateInput) dateInput.value = "";
     var hidden = document.getElementById("edit-task-deadline-value");
     if (hidden) hidden.value = "";
+    setDeadlineTimeValue("23:55");
     calendarDay = 0;
     updateDeadlineBtn();
   }
@@ -292,19 +535,44 @@
     if (!dateInput || !hidden) return;
     var picker = document.getElementById("edit-task-deadline-picker");
     if (picker) picker.setAttribute("hidden", "");
-    var parts = iso ? iso.split("-") : [];
-    if (parts.length !== 3 || parts.some(function (p) { return isNaN(parseInt(p, 10)); })) {
+    var tz = getEffectiveTaskTz();
+    if (!iso || !String(iso).trim()) {
       var t = new Date();
       calendarYear = t.getFullYear(); calendarMonth = t.getMonth(); calendarDay = 0;
       dateInput.value = ""; hidden.value = "";
+      setDeadlineTimeValue("23:55");
       updateDeadlineBtn();
       return;
     }
-    calendarYear  = parseInt(parts[0], 10);
-    calendarMonth = parseInt(parts[1], 10) - 1;
-    calendarDay   = parseInt(parts[2], 10);
-    dateInput.value = calendarYear + "-" + pad2(calendarMonth + 1) + "-" + pad2(calendarDay);
-    syncDeadlineHidden();
+    iso = String(iso).trim();
+    var plain = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    if (plain) {
+      calendarYear = parseInt(plain[1], 10);
+      calendarMonth = parseInt(plain[2], 10) - 1;
+      calendarDay = parseInt(plain[3], 10);
+      dateInput.value = iso;
+      setDeadlineTimeValue("23:55");
+      syncDeadlineHidden();
+      updateDeadlineBtn();
+      return;
+    }
+    var ms = Date.parse(iso);
+    if (!isNaN(ms)) {
+      var ymd = ymdInTz(ms, tz);
+      var yp = ymd.split("-");
+      calendarYear = parseInt(yp[0], 10);
+      calendarMonth = parseInt(yp[1], 10) - 1;
+      calendarDay = parseInt(yp[2], 10);
+      dateInput.value = ymd;
+      setDeadlineTimeValue(timeHmInTz(ms, tz));
+      syncDeadlineHidden();
+      updateDeadlineBtn();
+      return;
+    }
+    var t = new Date();
+    calendarYear = t.getFullYear(); calendarMonth = t.getMonth(); calendarDay = 0;
+    dateInput.value = ""; hidden.value = "";
+    setDeadlineTimeValue("23:55");
     updateDeadlineBtn();
   }
 
@@ -317,32 +585,79 @@
       : null;
   }
 
+  function dismissDeadlinePicker(revert) {
+    var picker = document.getElementById("edit-task-deadline-picker");
+    if (picker) picker.setAttribute("hidden", "");
+    if (revert) {
+      var card = getCurrentCard();
+      populateDeadline(card ? (card.getAttribute("data-task-deadline") || "") : "");
+    }
+  }
+
+  function commitDeadlineAndClose() {
+    if (!canEditTaskDeadline()) return;
+    if (calendarDay === 0) {
+      alert("Please select a date for the deadline.");
+      return;
+    }
+    syncDeadlineHidden();
+    updateDeadlineBtn();
+    var picker = document.getElementById("edit-task-deadline-picker");
+    if (picker) picker.setAttribute("hidden", "");
+    var editTaskForm = document.getElementById("edit-task-form");
+    if (editTaskForm) editTaskForm.requestSubmit();
+  }
+
   function formatReminderDisplay(isoStr) {
     if (!isoStr) return "";
-    var d = new Date(isoStr);
-    if (isNaN(d.getTime())) return isoStr;
-    var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    return d.getDate() + " " + months[d.getMonth()] + " " + String(d.getFullYear()).slice(-2) + " (" + pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ")";
+    var ms = new Date(isoStr).getTime();
+    if (isNaN(ms)) return isoStr;
+    var tz = getEffectiveTaskTz();
+    return new Intl.DateTimeFormat(undefined, {
+      timeZone: tz,
+      day: "numeric",
+      month: "short",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).format(new Date(ms));
   }
 
   function setReminderTimeValue(timeStr) {
-    var input = document.getElementById("edit-task-reminder-time");
-    if (!input) return;
+    var hEl = document.getElementById("edit-task-reminder-time-h");
+    var mEl = document.getElementById("edit-task-reminder-time-m");
+    var merEl = document.getElementById("edit-task-reminder-time-meridiem");
+    if (!hEl || !mEl || !merEl) return;
     var match = /^(\d{2}):(\d{2})$/.exec(timeStr || "");
-    var h = match ? match[1] : "09";
-    var m = match ? match[2] : "00";
-    input.value = h + ":" + m;
+    var h24 = match ? parseInt(match[1], 10) : 23;
+    var mer = h24 >= 12 ? "PM" : "AM";
+    var h12 = h24 % 12;
+    if (h12 === 0) h12 = 12;
+    var h = String(h12);
+    var m = pad2(match ? floorMinuteToFive(match[2]) : 55);
+    hEl.value = h;
+    mEl.value = m;
+    merEl.value = mer;
   }
 
   function getReminderTimeValue() {
-    var input = document.getElementById("edit-task-reminder-time");
-    var raw = (input && input.value) ? input.value.trim() : "09:00";
-    var match = /^(\d{1,2}):(\d{1,2})$/.exec(raw);
-    if (!match) return "";
-    var h = parseInt(match[1], 10);
-    var m = parseInt(match[2], 10);
-    if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return "";
-    return pad2(h) + ":" + pad2(m);
+    var hEl = document.getElementById("edit-task-reminder-time-h");
+    var mEl = document.getElementById("edit-task-reminder-time-m");
+    var merEl = document.getElementById("edit-task-reminder-time-meridiem");
+    if (!hEl || !mEl || !merEl) return "";
+    var hs = hEl.value.trim();
+    var ms = mEl.value.trim();
+    var mer = (merEl.value || "").toUpperCase();
+    if (hs === "" && ms === "") return "";
+    var h12 = parseInt(hs, 10);
+    var mi = parseInt(ms, 10);
+    if (hs === "" || ms === "" || isNaN(h12) || isNaN(mi)) return "";
+    if (h12 < 1 || h12 > 12 || mi < 0 || mi > 59 || mi % 5 !== 0) return "";
+    if (mer !== "AM" && mer !== "PM") return "";
+    var h = h12 % 12;
+    if (mer === "PM") h += 12;
+    return pad2(h) + ":" + pad2(mi);
   }
 
   function getTaskReminders(taskId) {
@@ -402,11 +717,12 @@
   function populateReminderFromCard(card) {
     var picker = document.getElementById("edit-task-reminder-picker");
     if (picker) picker.setAttribute("hidden", "");
-    var t = new Date();
-    reminderYear  = t.getFullYear();
-    reminderMonth = t.getMonth();
-    reminderDay   = 0;
-    setReminderTimeValue("09:00");
+    var tz = getEffectiveTaskTz();
+    var parts = ymdInTz(Date.now(), tz).split("-");
+    reminderYear = parseInt(parts[0], 10);
+    reminderMonth = parseInt(parts[1], 10) - 1;
+    reminderDay = 0;
+    setReminderTimeValue("23:55");
     var taskId = card ? card.getAttribute("data-task-id") : currentTaskId;
     renderReminders(taskId);
   }
@@ -645,7 +961,7 @@
           .catch(showCommentError);
       });
 
-      if (canManageComment(comment.added_by)) {
+      if (canManageComment(comment.added_by_id)) {
         actions.appendChild(menuBtn);
         actions.appendChild(menuDropdown);
       }
@@ -771,15 +1087,16 @@
         if (!canEditTaskDeadline()) return;
         var picker = document.getElementById("edit-task-deadline-picker");
         if (picker && !picker.hasAttribute("hidden")) {
-          picker.setAttribute("hidden", "");
+          dismissDeadlinePicker(true);
           return;
         }
         var reminderPicker = document.getElementById("edit-task-reminder-picker");
         if (reminderPicker) reminderPicker.setAttribute("hidden", "");
         if (calendarDay === 0) {
-          var t = new Date();
-          calendarYear = t.getFullYear();
-          calendarMonth = t.getMonth();
+          var tz = getEffectiveTaskTz();
+          var p = ymdInTz(Date.now(), tz).split("-");
+          calendarYear = parseInt(p[0], 10);
+          calendarMonth = parseInt(p[1], 10) - 1;
         }
         renderCalendar();
         showDeadlinePicker(this);
@@ -797,6 +1114,25 @@
       });
     }
 
+    function onDeadlineTimeInput() {
+      syncDeadlineHidden();
+      updateDeadlineBtn();
+    }
+    var deadlineTimeH = document.getElementById("edit-task-deadline-time-h");
+    var deadlineTimeM = document.getElementById("edit-task-deadline-time-m");
+    var deadlineTimeMer = document.getElementById("edit-task-deadline-time-meridiem");
+    if (deadlineTimeH) deadlineTimeH.addEventListener("change", onDeadlineTimeInput);
+    if (deadlineTimeM) deadlineTimeM.addEventListener("change", onDeadlineTimeInput);
+    if (deadlineTimeMer) deadlineTimeMer.addEventListener("change", onDeadlineTimeInput);
+
+    var saveDeadlineBtn = document.getElementById("edit-task-save-deadline-btn");
+    if (saveDeadlineBtn) {
+      saveDeadlineBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        commitDeadlineAndClose();
+      });
+    }
+
     // Reminder row button: toggle reminder picker
     var addReminderBtn = document.getElementById("edit-task-add-reminder-btn");
     if (addReminderBtn) {
@@ -805,11 +1141,12 @@
         var picker = document.getElementById("edit-task-reminder-picker");
         if (picker && !picker.hasAttribute("hidden")) { picker.setAttribute("hidden", ""); return; }
         var deadlinePicker = document.getElementById("edit-task-deadline-picker");
-        if (deadlinePicker) deadlinePicker.setAttribute("hidden", "");
+        if (deadlinePicker) dismissDeadlinePicker(true);
         if (reminderDay === 0) {
-          var t = new Date();
-          reminderYear  = t.getFullYear();
-          reminderMonth = t.getMonth();
+          var tz = getEffectiveTaskTz();
+          var p = ymdInTz(Date.now(), tz).split("-");
+          reminderYear = parseInt(p[0], 10);
+          reminderMonth = parseInt(p[1], 10) - 1;
         }
         renderReminderCalendar();
         showReminderPicker(this);
@@ -821,11 +1158,26 @@
       setReminderBtn.addEventListener("click", function () {
         if (reminderDay === 0) { alert("Please select a date for the reminder."); return; }
         var timeVal = getReminderTimeValue();
-        if (!timeVal) { alert("Please enter time in 24-hour format (HH:mm)."); return; }
-        var datetimeStr = reminderYear + "-" + pad2(reminderMonth + 1) + "-" + pad2(reminderDay) + " " + timeVal;
-        var dt = new Date(reminderYear, reminderMonth, reminderDay,
-          parseInt(timeVal.split(":")[0], 10), parseInt(timeVal.split(":")[1], 10));
-        if (isNaN(dt.getTime()) || dt <= new Date()) {
+        if (!timeVal) { alert("Please enter a valid time (hh:mm and AM/PM)."); return; }
+        var tz = getEffectiveTaskTz();
+        var h = parseInt(timeVal.split(":")[0], 10);
+        var min = parseInt(timeVal.split(":")[1], 10);
+        var utcMs = localDateTimeToUtcMs(
+          reminderYear,
+          reminderMonth + 1,
+          reminderDay,
+          h,
+          min,
+          tz
+        );
+        if (isNaN(utcMs)) {
+          alert("That local time does not exist on this date (DST). Try another time.");
+          return;
+        }
+        var selectedYmd = reminderYear + "-" + pad2(reminderMonth + 1) + "-" + pad2(reminderDay);
+        var todayYmd = ymdInTz(Date.now(), tz);
+        var isToday = selectedYmd === todayYmd;
+        if (!isToday && utcMs <= Date.now()) {
           alert("Please select a future date and time for the reminder.");
           return;
         }
@@ -834,7 +1186,7 @@
         if (!addUrl) return;
         var formData = new FormData();
         formData.append("csrfmiddlewaretoken", getCsrfToken());
-        formData.append("send_at", datetimeStr);
+        formData.append("send_at", new Date(utcMs).toISOString());
         fetch(addUrl, {
           method: "POST",
           headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -845,7 +1197,7 @@
             if (data && data.status === "success" && data.new_object_id != null && currentTaskId) {
               var idStr = String(data.new_object_id);
               var deleteUrl = "/task/reminder/delete/" + idStr + "/";
-              var sendAtIso = dt.toISOString();
+              var sendAtIso = new Date(utcMs).toISOString();
               var reminders = getTaskReminders(currentTaskId);
               reminders.push({ id: idStr, send_at: sendAtIso, delete_url: deleteUrl });
               updateTaskReminders(currentTaskId, reminders);
@@ -883,8 +1235,6 @@
         renderReminderCalendar();
       }
     });
-
-    setReminderTimeValue("09:00");
 
     // Click on task name display → enter edit mode
     function enterNameEditMode() {
@@ -955,10 +1305,6 @@
         setDateFromParts();
         renderCalendar();
         updateDeadlineBtn();
-        var picker = document.getElementById("edit-task-deadline-picker");
-        if (picker) picker.setAttribute("hidden", "");
-        var editTaskForm = document.getElementById("edit-task-form");
-        if (editTaskForm) editTaskForm.requestSubmit();
       }
     });
 
@@ -977,7 +1323,7 @@
       if (!picker || picker.hasAttribute("hidden")) return;
       if (picker.contains(e.target)) return;
       if (e.target.closest("#edit-task-add-deadline-btn")) return;
-      picker.setAttribute("hidden", "");
+      dismissDeadlinePicker(true);
     });
 
     // Close reminder picker on outside click
@@ -1043,9 +1389,10 @@
           .then(function (data) {
             if (data && data.status === "success" && data.new_object_id != null) {
               var idStr = String(data.new_object_id);
-              var addedBy = getCurrentUser();
+              var addedBy = getCurrentUsername();
+              var addedById = getCurrentUserId();
               var comments = getTaskComments(currentTaskId);
-              comments.push({ id: idStr, content: content, added_by: addedBy });
+              comments.push({ id: idStr, content: content, added_by: addedBy, added_by_id: addedById });
               updateTaskComments(currentTaskId, comments);
               if (commentInputEl) {
                 commentInputEl.value = "";
@@ -1104,7 +1451,7 @@
           var reminderPicker = document.getElementById("edit-task-reminder-picker");
           var deadlineOpen = deadlinePicker && !deadlinePicker.hasAttribute("hidden");
           var reminderOpen = reminderPicker && !reminderPicker.hasAttribute("hidden");
-          if (deadlineOpen) { deadlinePicker.setAttribute("hidden", ""); return; }
+          if (deadlineOpen) { dismissDeadlinePicker(true); return; }
           if (reminderOpen) { reminderPicker.setAttribute("hidden", ""); return; }
           window.closePopup(popup);
         });
@@ -1132,6 +1479,7 @@
         }
 
         var saveBtn = document.getElementById("edit-task-save-btn");
+        syncDeadlineHidden();
         var formData = new FormData(editTaskForm);
         var submittedName = (formData.get("name") || "").toString();
         var wasEditingName = editTaskForm.classList.contains("is-editing-name");
@@ -1183,15 +1531,51 @@
                   var badge = card.querySelector(".Dashboard-taskDeadlineBadge");
                   if (badge) {
                     if (deadlineVal) {
-                      var dp = deadlineVal.split("-");
-                      var d = dp.length === 3 ? new Date(parseInt(dp[0], 10), parseInt(dp[1], 10) - 1, parseInt(dp[2], 10)) : null;
-                      if (d && !isNaN(d.getTime())) {
-                        badge.textContent = d.toLocaleString(undefined, { month: "short", day: "numeric" });
+                      var tz = getEffectiveTaskTz();
+                      var todayStr = ymdInTz(Date.now(), tz);
+                      var dms = Date.parse(deadlineVal);
+                      if (!isNaN(dms)) {
+                        badge.textContent = new Intl.DateTimeFormat(undefined, {
+                          timeZone: tz,
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        }).format(new Date(dms));
                         badge.removeAttribute("hidden");
-                        var today = new Date(); today.setHours(0, 0, 0, 0);
-                        badge.classList.toggle("Dashboard-taskDeadlineBadge--overdue", d < today);
+                        badge.classList.toggle("Dashboard-taskDeadlineBadge--overdue", dms < Date.now());
                       } else {
-                        badge.setAttribute("hidden", "");
+                        var dp = deadlineVal.split("-");
+                        if (dp.length === 3) {
+                          var yy = parseInt(dp[0], 10);
+                          var mm = parseInt(dp[1], 10);
+                          var dd = parseInt(dp[2], 10);
+                          var ms0 = startOfDayInTz(yy, mm, dd, tz);
+                          var overdue = false;
+                          try {
+                            var nextDate = new Date(Date.UTC(yy, mm - 1, dd));
+                            nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+                            var nextStartMs = startOfDayInTz(
+                              nextDate.getUTCFullYear(),
+                              nextDate.getUTCMonth() + 1,
+                              nextDate.getUTCDate(),
+                              tz
+                            );
+                            overdue = Date.now() >= nextStartMs;
+                          } catch (e) {
+                            overdue = deadlineVal < todayStr;
+                          }
+                          badge.textContent = new Intl.DateTimeFormat(undefined, {
+                            timeZone: tz,
+                            month: "short",
+                            day: "numeric",
+                          }).format(new Date(ms0));
+                          badge.removeAttribute("hidden");
+                          badge.classList.toggle("Dashboard-taskDeadlineBadge--overdue", overdue);
+                        } else {
+                          badge.setAttribute("hidden", "");
+                        }
                       }
                     } else {
                       badge.setAttribute("hidden", "");
@@ -1254,4 +1638,10 @@
   } else {
     init();
   }
+
+  window.WebPlantAccountTimezone = {
+    getEffective: getEffectiveTaskTz,
+    ymdInTz: ymdInTz,
+    startOfDayInTz: startOfDayInTz,
+  };
 })();

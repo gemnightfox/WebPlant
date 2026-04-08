@@ -54,15 +54,90 @@
       <div class="Popup-panelBody" id="edit-task-panel-body">
         <button type="button" class="Popup-panelRow" id="edit-task-add-deadline-btn" aria-label="Add deadline"><span class="Popup-panelLabel">Deadline</span><span class="Popup-panelAdd">+</span></button>
         <div class="Popup-deadlineDisplay" id="edit-task-deadline-display" hidden><span class="Popup-deadlineText" id="edit-task-deadline-display-text"></span><button type="button" class="Popup-deadlineRemoveBtn" id="edit-task-remove-deadline-btn" aria-label="Remove deadline">&times;</button></div>
-        <div id="edit-task-deadline-picker" hidden><div id="edit-task-calendar"></div></div>
+        <div id="edit-task-deadline-picker" hidden>
+          <div id="edit-task-calendar"></div>
+          <div class="ReminderPicker-timeRow">
+            <label class="ReminderPicker-timeLabel" for="edit-task-deadline-time-h">Time</label>
+            <div class="ReminderPicker-timeField" role="group" aria-label="Deadline time in 12-hour format, in your account timezone">
+              <select id="edit-task-deadline-time-h" class="Popup-input ReminderPicker-timePart" aria-label="Hour (1 to 12)">
+                <option value="01">1</option>
+                <option value="02">2</option>
+                <option value="03">3</option>
+                <option value="04">4</option>
+                <option value="05">5</option>
+                <option value="06">6</option>
+                <option value="07">7</option>
+                <option value="08">8</option>
+                <option value="09">9</option>
+                <option value="10">10</option>
+                <option value="11" selected>11</option>
+                <option value="12">12</option>
+              </select>
+              <span class="ReminderPicker-timeSep" aria-hidden="true">:</span>
+              <select id="edit-task-deadline-time-m" class="Popup-input ReminderPicker-timePart" aria-label="Minutes">
+                <option value="00">00</option>
+                <option value="05">05</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="30">30</option>
+                <option value="35">35</option>
+                <option value="40">40</option>
+                <option value="45">45</option>
+                <option value="50">50</option>
+                <option value="55" selected>55</option>
+              </select>
+              <select id="edit-task-deadline-time-meridiem" class="Popup-input ReminderPicker-timePart" aria-label="AM or PM">
+                <option value="AM">AM</option>
+                <option value="PM" selected>PM</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" class="Popup-submit" id="edit-task-save-deadline-btn">Save</button>
+        </div>
         <hr class="Popup-panelDivider">
         <button type="button" class="Popup-panelRow" id="edit-task-add-reminder-btn" aria-label="Add reminder"><span class="Popup-panelLabel">Reminder</span><span class="Popup-panelAdd">+</span></button>
         <ul class="TaskReminders" id="edit-task-reminders-list"></ul>
         <div id="edit-task-reminder-picker" hidden>
           <div id="edit-task-reminder-calendar"></div>
           <div class="ReminderPicker-timeRow">
-            <label class="ReminderPicker-timeLabel" for="edit-task-reminder-time">Time</label>
-            <input type="text" id="edit-task-reminder-time" class="Popup-input ReminderPicker-timeInput" value="09:00" inputmode="numeric" placeholder="HH:mm" aria-label="Reminder time in 24-hour format">
+            <label class="ReminderPicker-timeLabel" for="edit-task-reminder-time-h">Time</label>
+            <div class="ReminderPicker-timeField" role="group" aria-label="Reminder time in 12-hour format, in your account timezone">
+              <select id="edit-task-reminder-time-h" class="Popup-input ReminderPicker-timePart" aria-label="Hour (1 to 12)">
+                <option value="01">1</option>
+                <option value="02">2</option>
+                <option value="03">3</option>
+                <option value="04">4</option>
+                <option value="05">5</option>
+                <option value="06">6</option>
+                <option value="07">7</option>
+                <option value="08">8</option>
+                <option value="09">9</option>
+                <option value="10">10</option>
+                <option value="11" selected>11</option>
+                <option value="12">12</option>
+              </select>
+              <span class="ReminderPicker-timeSep" aria-hidden="true">:</span>
+              <select id="edit-task-reminder-time-m" class="Popup-input ReminderPicker-timePart" aria-label="Minutes">
+                <option value="00">00</option>
+                <option value="05">05</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="30">30</option>
+                <option value="35">35</option>
+                <option value="40">40</option>
+                <option value="45">45</option>
+                <option value="50">50</option>
+                <option value="55" selected>55</option>
+              </select>
+              <select id="edit-task-reminder-time-meridiem" class="Popup-input ReminderPicker-timePart" aria-label="AM or PM">
+                <option value="AM">AM</option>
+                <option value="PM" selected>PM</option>
+              </select>
+            </div>
           </div>
           <button type="button" class="Popup-submit" id="edit-task-set-reminder-btn">Set Reminder</button>
         </div>

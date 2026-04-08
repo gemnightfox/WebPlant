@@ -231,22 +231,92 @@
 
   });
 
-  // Render deadline badges using user's local timezone
+  // Deadline badges: calendar date vs "today" in account timezone (data-user-timezone); helpers from edit_task.js
   function renderDeadlineBadges() {
+    var W = window.WebPlantAccountTimezone;
+    var tz =
+      W && typeof W.getEffective === "function"
+        ? W.getEffective()
+        : (function () {
+            try {
+              var raw = document.body && document.body.getAttribute("data-user-timezone");
+              if (raw && raw.trim()) return raw.trim();
+              return Intl.DateTimeFormat().resolvedOptions().timeZone;
+            } catch (e) {
+              return "UTC";
+            }
+          })();
+    var ymdInTz =
+      W && typeof W.ymdInTz === "function"
+        ? W.ymdInTz
+        : function (ms, t) {
+            return new Intl.DateTimeFormat("en-CA", {
+              timeZone: t,
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }).format(new Date(ms));
+          };
+    var startOfDayInTz = W && typeof W.startOfDayInTz === "function" ? W.startOfDayInTz : null;
+    var todayStr = ymdInTz(Date.now(), tz);
+
     var cards = document.querySelectorAll(".Dashboard-task[data-task-deadline]");
     cards.forEach(function (card) {
       var iso = card.getAttribute("data-task-deadline");
       var badge = card.querySelector(".Dashboard-taskDeadlineBadge");
       if (!badge) return;
-      if (!iso) { badge.setAttribute("hidden", ""); return; }
+      if (!iso) {
+        badge.setAttribute("hidden", "");
+        return;
+      }
+      var dms = Date.parse(iso);
+      if (!isNaN(dms)) {
+        badge.textContent = new Intl.DateTimeFormat(undefined, {
+          timeZone: tz,
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }).format(new Date(dms));
+        badge.removeAttribute("hidden");
+        badge.classList.toggle("Dashboard-taskDeadlineBadge--overdue", dms < Date.now());
+        return;
+      }
       var parts = iso.split("-");
-      var d = parts.length === 3 ? new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)) : null;
-      if (!d || isNaN(d.getTime())) { badge.setAttribute("hidden", ""); return; }
-      var today = new Date(); today.setHours(0, 0, 0, 0);
-      var isOverdue = d < today;
-      badge.textContent = d.toLocaleString(undefined, { month: "short", day: "numeric" });
+      if (parts.length !== 3 || !startOfDayInTz) {
+        badge.setAttribute("hidden", "");
+        return;
+      }
+      var yy = parseInt(parts[0], 10);
+      var mm = parseInt(parts[1], 10);
+      var dd = parseInt(parts[2], 10);
+      if (isNaN(yy) || isNaN(mm) || isNaN(dd)) {
+        badge.setAttribute("hidden", "");
+        return;
+      }
+      var ms = startOfDayInTz(yy, mm, dd, tz);
+      var overdue = false;
+      try {
+        var nextDate = new Date(Date.UTC(yy, mm - 1, dd));
+        nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+        var nextStartMs = startOfDayInTz(
+          nextDate.getUTCFullYear(),
+          nextDate.getUTCMonth() + 1,
+          nextDate.getUTCDate(),
+          tz
+        );
+        overdue = Date.now() >= nextStartMs;
+      } catch (e) {
+        overdue = iso < todayStr;
+      }
+      badge.textContent = new Intl.DateTimeFormat(undefined, {
+        timeZone: tz,
+        month: "short",
+        day: "numeric",
+      }).format(new Date(ms));
       badge.removeAttribute("hidden");
-      badge.classList.toggle("Dashboard-taskDeadlineBadge--overdue", isOverdue);
+      badge.classList.toggle("Dashboard-taskDeadlineBadge--overdue", overdue);
     });
   }
 
@@ -255,14 +325,4 @@
   } else {
     renderDeadlineBadges();
   }
-
-  var now = new Date();
-  var offsetMinutes = -now.getTimezoneOffset();
-  var offsetSign = offsetMinutes >= 0 ? "+" : "-";
-  var offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
-  var offsetMins = Math.abs(offsetMinutes) % 60;
-  var utcOffset = "UTC" + offsetSign + String(offsetHours).padStart(2, "0") + ":" + String(offsetMins).padStart(2, "0");
-  console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-  console.log("UTC offset:", utcOffset);
-  console.log("Current time (UTC):", now.toUTCString());
 })();

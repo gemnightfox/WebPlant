@@ -37,14 +37,14 @@
           <div class="WsSettings-memberCard">
             <span class="WsSettings-memberEmail">
               <input
-                type="email"
-                name="email"
-                id="id_add_user_email"
+                type="text"
+                name="username"
+                id="id_add_user_username"
                 class="WsSettings-input"
-                maxlength="254"
+                maxlength="150"
                 required
-                placeholder="user@example.com"
-                aria-label="Invite user email"
+                placeholder="username"
+                aria-label="Invite user username"
               >
             </span>
             <span class="WsSettings-inviteActions">
@@ -82,7 +82,7 @@
       >
         <span class="WsSettings-memberEmail">
           <span class="WsSettings-memberEmailValue">
-            {{ wu.user.email|default:wu.user.get_username }}
+            {{ wu.user.username }}
           </span>
           {% if wu == workspace.owner %}<span class="WsSettings-memberOwnerBadge">(owner)</span>{% endif %}
         </span>
@@ -97,7 +97,7 @@
                     type="button"
                     class="WsSettings-moreDropdown-item WsSettings-removeUserBtn"
                     data-remove-url="/workspace/remove-user/{{ workspace.id }}/{{ wu.user.id }}/"
-                    data-user-label="{{ wu.user.email|default:wu.user.get_username }}"
+                    data-user-label="{{ wu.user.username }}"
                   >
                     Remove user
                   </button>
@@ -109,10 +109,10 @@
             <select
               class="WsSettings-select WsSettings-roleSelect"
               name="role"
-              aria-label="Role for {{ wu.user.email|default:wu.user.get_username }}"
+              aria-label="Role for {{ wu.user.username }}"
               data-prev-role-id="{{ wu.role.id }}"
               data-prev-role-name="{{ wu.role.name }}"
-              data-user-label="{{ wu.user.email|default:wu.user.get_username }}"
+              data-user-label="{{ wu.user.username }}"
             >
               {% for role in workspace.roles.all %}
                 <option

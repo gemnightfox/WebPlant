@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
-{# User preferences (theme) and account info (email/password). Includes email and reset-password popups; script: accounts/dashboard.js. #}
+{# User preferences (theme, timezone) and account info (email/password). Includes email and reset-password popups; script: accounts/dashboard.js. #}
 
 {% block css %}
 <link rel="stylesheet" href="{% static 'accounts/dashboard.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="AccSettings" data-notification-alert-allowed="{{ user_preferences.send_notifications|yesno:'true,false' }}" data-set-preferences-url="{% url 'accounts:set_preferences' %}">
+<div class="AccSettings" data-notification-alert-allowed="{{ user_preferences.can_send_notifications|yesno:'true,false' }}" data-set-preferences-url="{% url 'accounts:set_preferences' %}">
   <header class="AccSettings-header">
     <span class="AccSettings-email" title="{{ user.email }}">{{ user.email }}</span>
     <div class="AccSettings-headerActions">
@@ -38,6 +38,27 @@
           </div>
         </div>
 
+        <div class="AccSettings-preferenceRow AccSettings-preferenceRow--timezone">
+          <span class="AccSettings-preferenceLabel" id="AccSettings-timezoneLabel">Timezone</span>
+          <div
+            class="AccSettings-timezoneDisplayWrap"
+            data-current-timezone="{{ user_preferences.timezone|default:'' }}"
+            id="AccSettings-timezoneWrap"
+          >
+            <span
+              class="AccSettings-timezoneValue {% if not user_preferences.timezone %}AccSettings-timezoneValue--muted{% endif %}"
+              id="AccSettings-timezoneValue"
+              aria-labelledby="AccSettings-timezoneLabel"
+            >{% if user_preferences.timezone %}{{ user_preferences.timezone }}{% else %}Use browser default{% endif %}</span>
+            <button
+              type="button"
+              class="AccSettings-accountAction AccSettings-accountAction--inline"
+              data-popup="timezone-popup"
+              id="AccSettings-editTimezoneBtn"
+            >Edit</button>
+          </div>
+        </div>
+
         <div class="AccSettings-preferenceRow AccSettings-preferenceRow--notifications">
           <span class="AccSettings-preferenceLabel">Allow email notifications</span>
           <div class="AccSettings-notificationChooser" aria-label="Allow email notifications">
@@ -46,8 +67,8 @@
               <input
                 type="checkbox"
                 class="AccSettings-notificationsToggle"
-                data-initial-allowed="{{ user_preferences.send_notifications|yesno:'true,false' }}"
-                {% if user_preferences.send_notifications %}checked{% endif %}
+                data-initial-allowed="{{ user_preferences.can_send_notifications|yesno:'true,false' }}"
+                {% if user_preferences.can_send_notifications %}checked{% endif %}
               >
               <span class="slider"></span>
             </label>
@@ -60,8 +81,8 @@
               <input
                 type="checkbox"
                 class="AccSettings-workspaceInvitesToggle"
-                data-initial-allowed="{{ user_preferences.workspace_invites|yesno:'true,false' }}"
-                {% if user_preferences.workspace_invites %}checked{% endif %}
+                data-initial-allowed="{{ user_preferences.allows_workspace_invites|yesno:'true,false' }}"
+                {% if user_preferences.allows_workspace_invites %}checked{% endif %}
               >
               <span class="slider"></span>
             </label>
@@ -69,14 +90,17 @@
         </div>
         {% if notification_disabled_duration %}
         <div class="AccSettings-tempDisabledRow" id="AccSettings-tempDisabledRow">
-          <p
-            class="AccSettings-tempDisabledText"
-            id="AccSettings-tempDisabledText"
-            data-ends-at="{{ notification_disabled_duration.ends_at|date:'c' }}"
-          >
-            Notifications are temporarily disabled.
-          </p>
-          <button type="button" class="AccSettings-accountAction" id="AccSettings-removeTempDisabledBtn" data-remove-url="{% url 'notification:remove_temp_disabled' %}">Remove</button>
+          <span class="AccSettings-preferenceLabel">Temporarily disable notifications</span>
+          <div class="AccSettings-tempDisabledActions">
+            <p
+              class="AccSettings-tempDisabledText"
+              id="AccSettings-tempDisabledText"
+              data-ends-at="{{ notification_disabled_duration.ends_at|date:'c' }}"
+            >
+              Notifications are temporarily disabled.
+            </p>
+            <button type="button" class="AccSettings-accountAction" id="AccSettings-removeTempDisabledBtn" data-remove-url="{% url 'notification:remove_temp_disabled' %}">Remove</button>
+          </div>
         </div>
         {% endif %}
         <div
@@ -104,32 +128,69 @@
         <div class="AccSettings-accountRow">
           <div class="AccSettings-accountRowMain">
             <div class="AccSettings-accountTitleRow">
-              <span class="AccSettings-accountLabel">Email</span>
-              <button type="button" class="AccSettings-accountAction AccSettings-accountAction--inline" data-popup="email-popup">Change email</button>
+              <span class="AccSettings-accountLabel">Username / Email</span>
+              <button
+                type="button"
+                class="AccSettings-accountAction AccSettings-accountAction--inline"
+                id="AccSettings-editUsernameBtn"
+                data-popup="username-popup"
+              >Edit username</button>
+              <button type="button" class="AccSettings-accountAction AccSettings-accountAction--inline" data-popup="email-popup">Edit email</button>
             </div>
+            <span
+              class="AccSettings-accountValue {% if not user.username %}AccSettings-accountValue--muted{% endif %}"
+              id="AccSettings-usernameValue"
+              data-current-username="{{ user.username|default:'' }}"
+            >{% if user.username %}{{ user.username }}{% else %}(No username yet){% endif %}</span>
             <span class="AccSettings-accountValue AccSettings-accountValue--email">{{ user.email }}</span>
           </div>
         </div>
         <div class="AccSettings-accountRow">
           <div class="AccSettings-accountActionsWrap">
+            <div class="AccSettings-accountTitleRow AccSettings-accountTitleRow--password">
+              <span class="AccSettings-accountLabel">Password</span>
+              <div class="AccSettings-accountActions">
+                <button type="button"
+                  class="AccSettings-accountAction"
+                  data-reset-password
+                  data-email="{{ user.email }}"
+                  data-reset-password-url="{% url 'account_reset_password' %}"
+                  data-check-password-url="{% url 'accounts:check_password_present' %}"
+                  data-has-password="{{ user.has_usable_password|yesno:'true,false' }}"
+                >{% if user.has_usable_password %}Change{% else %}Setup{% endif %}</button>
+                <button type="button"
+                  class="AccSettings-accountAction AccSettings-accountAction--danger"
+                  id="AccSettings-disablePasswordBtn"
+                  data-send-disable-password-url="{% url 'accounts:send_disable_password_email' %}"
+                  {% if not user.has_usable_password %}hidden{% endif %}
+                >Disable</button>
+              </div>
+            </div>
+            <p
+              class="AccSettings-disablePasswordHint"
+              id="AccSettings-disablePasswordDots"
+              {% if not user.has_usable_password %}hidden{% endif %}
+            >······</p>
+            <p
+              class="AccSettings-disablePasswordHint"
+              id="AccSettings-disablePasswordNoPassword"
+              {% if user.has_usable_password %}hidden{% endif %}
+            >(No password yet)</p>
+          </div>
+        </div>
+        <div class="AccSettings-accountRow">
+          <div class="AccSettings-accountActionsWrap">
+            <div class="AccSettings-accountTitleRow">
+              <span class="AccSettings-accountLabel">General</span>
+            </div>
             <div class="AccSettings-accountActions">
-              <button type="button"
+              <button
+                type="button"
+                id="AccSettings-logoutAllDevicesBtn"
                 class="AccSettings-accountAction"
-                data-reset-password
-                data-email="{{ user.email }}"
-                data-reset-password-url="{% url 'account_reset_password' %}"
-                data-check-password-url="{% url 'accounts:check_password_present' %}"
-                data-has-password="{{ user.has_usable_password|yesno:'true,false' }}"
-              >{% if user.has_usable_password %}Change password{% else %}Set up password{% endif %}</button>
-              {% if "@gmail.com" in user.email|lower %}
-              {% if user.has_usable_password %}
-              <button type="button"
-                class="AccSettings-accountAction AccSettings-accountAction--danger"
-                id="AccSettings-disablePasswordBtn"
-                data-send-disable-password-url="{% url 'accounts:send_disable_password_email' %}"
-              >Disable password</button>
-              {% endif %}
-              {% endif %}
+                data-logout-all-url="{% url 'accounts:logout_all_devices' %}"
+                data-login-url="{% url 'account_login' %}"
+              >Logout all devices</button>
               <button type="button"
                 class="AccSettings-accountAction AccSettings-accountAction--danger"
                 id="AccSettings-deleteAccountBtn"
@@ -143,6 +204,8 @@
 </div>
 
 {% include 'accounts/popup/email.html' %}
+{% include 'accounts/popup/username.html' %}
+{% include 'accounts/popup/timezone.html' %}
 {% include 'accounts/popup/reset_password.html' %}
 {% include 'accounts/popup/temp_disable.html' %}
 {% endblock %}

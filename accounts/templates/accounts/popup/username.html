@@ -1,0 +1,33 @@
+{% extends 'popup.html' %}
+{# Popup: edit username. Submit handled by accounts/dashboard.js. #}
+
+{% block popup_id %}username-popup{% endblock %}
+{% block popup_title_id %}username-popup-title{% endblock %}
+{% block popup_title_id_h2 %}username-popup-title{% endblock %}
+{% block popup_title %}Edit username{% endblock %}
+{% block popup_extra_attrs %}data-username-url="{% url 'accounts:edit_username' %}"{% endblock %}
+
+{% block popup_content %}
+  <div class="Popup-formWrap">
+    <form class="Popup-form" id="AccSettings-usernameForm" autocomplete="off">
+      {% csrf_token %}
+      <div class="Popup-field">
+        <label for="AccSettings-usernameInput">Username</label>
+        <input
+          type="text"
+          class="Popup-input AccSettings-usernameInput"
+          id="AccSettings-usernameInput"
+          name="username"
+          maxlength="150"
+          autocomplete="off"
+          placeholder="Enter username"
+          required
+        >
+      </div>
+      <p class="AccSettings-usernameHint">Letters (a-z), numbers (0-9), and underscore only.</p>
+      <div class="Popup-actions">
+        <button type="submit" class="Popup-submit" id="AccSettings-saveUsernameBtn">Save</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

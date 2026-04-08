@@ -1,8 +1,7 @@
 from django_ratelimit.core import is_ratelimited
 from django.core.mail import send_mail
 from django.utils import timezone
-import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.urls import reverse
 from .models import Notification, NotificationDisabledDuration
 from django.http import Http404
@@ -15,7 +14,7 @@ from base_utils import CustomTokenGenerator
 
 def can_send_notifications(user):
     user_preferences = get_user_preferences(user)
-    if not user_preferences.send_notifications:
+    if not user_preferences.can_send_notifications:
         return False # Immediately stop checks (already confirmed that user does not allow emails)
 
     try:
@@ -57,11 +56,9 @@ def send_email(receiver, sender, content, save_to_db=True): # Don't save to DB f
 
     if can_send_notifications(receiver) and not is_short_limited and not is_long_limited:
         if receiver == sender:
-            title = f'To: {receiver.email}\n'
+            message = content + generate_temporary_disable_notifications_link(receiver)
         else:
-            title = f'From: {sender.email}, To: {receiver.email}\n'
-        
-        message = title + content + generate_temporary_disable_notifications_link(receiver)
+            message = f'From: {sender.username}\n' + content + generate_temporary_disable_notifications_link(receiver)
         send_mail(
             subject='WebPlant',
             message=message,
@@ -82,30 +79,6 @@ def generate_temporary_disable_notifications_link(receiver):
     DOMAIN_NAME = 'webplant.org'
     link = f'{DOMAIN_NAME}{path}' # Can't use request.build_absolute_uri cause "request" is not always available (eg. celery task)
     return f'\n\n\nClick the link below if you would like to temporarily disable notifications:\n{link}'
-
-
-
-def get_filtered_notifications(request):
-    if 'unread' in request.GET and 'read' in request.GET:
-        notifications = request.user.notifications
-    elif 'unread' in request.GET:
-        notifications = request.user.notifications.filter(read_status=False)
-    elif 'read' in request.GET:
-        notifications = request.user.notifications.filter(read_status=True)
-    else:
-        raise Http404('No read/unread GET query given.')
-
-    dates = request.POST.get('notification_dates', None) # Should return (YYYY-MM-DD): ['2025-01-01', '2026-01-01', ...]
-    if not dates:
-        return notifications # If no dates given (user didnt select), default to showing everything (no filter on dates)
-
-    dates = json.loads(dates)
-    refined_dates = set()
-    for date in dates:
-        date_object = datetime.strptime(date, '%Y-%m-%d')
-        refined_dates.add(date_object)
-
-    return notifications.filter(sent_at__date__in=refined_dates) # Note: its using the notifications object (filtered read/unread) defined in the code above
 
 
 

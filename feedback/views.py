@@ -17,3 +17,8 @@ def dashboard(request):
 
 
 
+@login_required
+def success(request):
+    return render(request, '') # TO BE CHANGED
+
+

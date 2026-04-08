@@ -1,10 +1,11 @@
 /**
- * Account settings: theme toggle (light/dark) and account actions.
- * - Theme: POST to pick_light_mode / pick_dark_mode; update body class.
+ * Account settings: theme toggle (light/dark), timezone (IANA via Intl.supportedValuesOf), and account actions.
+ * - Theme: POST set_preferences; update body class.
  * - Password button: label from server-rendered HTML; GET check_password_present keeps label + data in sync.
- * - Gmail: optional Disable password (sends confirmation link by email); hint when no local password.
+ * - Optional Disable password (sends confirmation link by email); hint when no local password.
  * - Email popup: AJAX submit to account_email; success message in popup.
  * - Reset password: confirm then POST reset; on success open reset-password-popup.
+ * - Logout all devices: POST logout_all_devices; redirect to login (all sessions cleared).
  */
 (function() {
   var body = document.body;
@@ -29,11 +30,328 @@
     });
   }
 
+  var logoutAllDevicesBtn = document.getElementById('AccSettings-logoutAllDevicesBtn');
+  if (logoutAllDevicesBtn) {
+    logoutAllDevicesBtn.addEventListener('click', function() {
+      if (
+        !window.confirm(
+          'Sign out on every device where you are logged in, including this one? You will need to sign in again.'
+        )
+      ) {
+        return;
+      }
+      var url = logoutAllDevicesBtn.getAttribute('data-logout-all-url');
+      var loginUrl = logoutAllDevicesBtn.getAttribute('data-login-url') || '/account/login/';
+      if (!url) return;
+      var csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+      var csrf = csrfEl ? csrfEl.value : '';
+      logoutAllDevicesBtn.disabled = true;
+      var origText = logoutAllDevicesBtn.textContent;
+      logoutAllDevicesBtn.textContent = 'Signing out…';
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrf,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({}),
+        credentials: 'same-origin'
+      })
+        .then(function(r) {
+          return r.json().then(function(data) {
+            return { ok: r.ok, data: data };
+          });
+        })
+        .then(function(result) {
+          if (result.ok && result.data && result.data.status === 'success') {
+            window.location.href = loginUrl;
+            return;
+          }
+          logoutAllDevicesBtn.disabled = false;
+          logoutAllDevicesBtn.textContent = origText;
+          alert('Could not sign out everywhere. Please try again.');
+        })
+        .catch(function() {
+          logoutAllDevicesBtn.disabled = false;
+          logoutAllDevicesBtn.textContent = origText;
+          alert('Could not sign out everywhere. Please try again.');
+        });
+    });
+  }
+
   var workspaceInvitesToggle = document.querySelector('.AccSettings-workspaceInvitesToggle');
   var notificationsToggle = document.querySelector('.AccSettings-notificationsToggle');
+  var editUsernameBtn = document.getElementById('AccSettings-editUsernameBtn');
+  var usernamePopup = document.getElementById('username-popup');
+  var usernameForm = document.getElementById('AccSettings-usernameForm');
+  var usernameValue = document.getElementById('AccSettings-usernameValue');
+  var usernameInput = document.getElementById('AccSettings-usernameInput');
+  var saveUsernameBtn = document.getElementById('AccSettings-saveUsernameBtn');
+
+  function getCurrentUsername() {
+    if (!usernameValue) return '';
+    return (usernameValue.getAttribute('data-current-username') || '').trim();
+  }
+
+  function setCurrentUsername(username) {
+    if (!usernameValue) return;
+    var clean = (username || '').trim();
+    usernameValue.setAttribute('data-current-username', clean);
+    usernameValue.textContent = clean || '(No username yet)';
+    if (clean) {
+      usernameValue.classList.remove('AccSettings-accountValue--muted');
+    } else {
+      usernameValue.classList.add('AccSettings-accountValue--muted');
+    }
+    if (usernameInput) {
+      usernameInput.value = clean;
+    }
+  }
+
+  function isValidUsername(username) {
+    return /^[a-z0-9_]+$/.test(username);
+  }
+
+  if (editUsernameBtn && usernamePopup && window.popupPrepare) {
+    window.popupPrepare['username-popup'] = function() {
+      if (!usernameInput) return;
+      var current = getCurrentUsername();
+      usernameInput.defaultValue = current;
+      usernameInput.value = current;
+    };
+  }
+
+  if (usernameForm) {
+    usernameForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!usernameInput || !saveUsernameBtn) return;
+
+      var rawValue = usernameInput.value || '';
+      var nextUsername = rawValue.trim().toLowerCase();
+      var currentUsername = getCurrentUsername();
+      if (nextUsername === currentUsername) {
+        if (usernamePopup && window.closePopup) {
+          window.closePopup(usernamePopup);
+        }
+        return;
+      }
+      if (!nextUsername) {
+        alert('Username cannot be empty.');
+        usernameInput.focus();
+        return;
+      }
+      if (!isValidUsername(nextUsername)) {
+        alert('Use only lowercase letters, numbers, and underscore.');
+        usernameInput.focus();
+        return;
+      }
+
+      var csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+      var csrf = csrfEl ? csrfEl.value : '';
+      var usernameUrl = (usernamePopup && usernamePopup.getAttribute('data-username-url')) || '/account/edit-username/';
+      var formBody = new URLSearchParams();
+      formBody.append('username', nextUsername);
+      if (csrf) formBody.append('csrfmiddlewaretoken', csrf);
+
+      saveUsernameBtn.disabled = true;
+      var originalText = saveUsernameBtn.textContent;
+      saveUsernameBtn.textContent = 'Saving...';
+
+      fetch(usernameUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrf,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json,text/html'
+        },
+        body: formBody.toString(),
+        credentials: 'same-origin'
+      })
+        .then(function(r) {
+          if (r.ok) {
+            setCurrentUsername(nextUsername);
+            if (usernamePopup && window.closePopup) {
+              window.closePopup(usernamePopup);
+            }
+            return;
+          }
+          if (r.status === 404) {
+            alert('Username update endpoint is unavailable right now.');
+            return;
+          }
+          return r.text().then(function(text) {
+            if (text && (text.indexOf('unique') !== -1 || text.indexOf('already') !== -1)) {
+              alert('This username is already taken.');
+              return;
+            }
+            if (text && text.indexOf('Disallowed character used') !== -1) {
+              alert('Use only lowercase letters, numbers, and underscore.');
+              return;
+            }
+            alert('Could not update username. Please try again.');
+          });
+        })
+        .catch(function() {
+          alert('Could not update username. Please try again.');
+        })
+        .finally(function() {
+          saveUsernameBtn.disabled = false;
+          saveUsernameBtn.textContent = originalText;
+        });
+    });
+  }
 
   function setTheme(theme) {
     body.className = theme === 'dark' ? 'theme-dark' : 'theme-light';
+  }
+
+  function getSupportedTimezoneIds() {
+    try {
+      if (typeof Intl !== 'undefined' && typeof Intl.supportedValuesOf === 'function') {
+        return Intl.supportedValuesOf('timeZone');
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    try {
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      return tz ? [tz] : [];
+    } catch (e2) {
+      /* ignore */
+    }
+    return [];
+  }
+
+  function getBrowserDefaultTimezone() {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function getBrowserDefaultTimezoneLabel() {
+    var browserTz = getBrowserDefaultTimezone();
+    if (browserTz) {
+      return 'Use browser default (' + browserTz + ')';
+    }
+    return 'Use browser default';
+  }
+
+  function getTimezoneRegion(timezoneId) {
+    if (!timezoneId) return '';
+    var slashIdx = timezoneId.indexOf('/');
+    if (slashIdx === -1) return 'Other';
+    return timezoneId.slice(0, slashIdx);
+  }
+
+  function getTimezoneRegions(ids) {
+    var map = {};
+    var regions = [];
+    var i;
+    for (i = 0; i < ids.length; i++) {
+      var region = getTimezoneRegion(ids[i]);
+      if (!region) continue;
+      if (!map[region]) {
+        map[region] = true;
+        regions.push(region);
+      }
+    }
+    regions.sort(function(a, b) {
+      return a.localeCompare(b);
+    });
+    return regions;
+  }
+
+  function populateTimezoneRegionButtons(regionButtonsEl, ids, activeRegion) {
+    regionButtonsEl.innerHTML = '';
+    var regions = getTimezoneRegions(ids);
+    var i;
+    for (i = 0; i < regions.length; i++) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'AccSettings-timezoneRegionBtn';
+      btn.textContent = regions[i];
+      btn.setAttribute('data-region', regions[i]);
+      btn.setAttribute('aria-pressed', regions[i] === activeRegion ? 'true' : 'false');
+      if (regions[i] === activeRegion) {
+        btn.classList.add('is-active');
+      }
+      regionButtonsEl.appendChild(btn);
+    }
+  }
+
+  function populateTimezoneSelect(selectEl, ids, current, selectedRegion) {
+    selectEl.innerHTML = '';
+    ids.sort(function(a, b) {
+      return a.localeCompare(b);
+    });
+    var blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = getBrowserDefaultTimezoneLabel();
+    selectEl.appendChild(blank);
+    var i;
+    for (i = 0; i < ids.length; i++) {
+      if (selectedRegion && getTimezoneRegion(ids[i]) !== selectedRegion) {
+        continue;
+      }
+      var opt = document.createElement('option');
+      opt.value = ids[i];
+      opt.textContent = ids[i];
+      selectEl.appendChild(opt);
+    }
+    if (current) {
+      var found = false;
+      for (i = 0; i < ids.length; i++) {
+        if (ids[i] === current) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        var extra = document.createElement('option');
+        extra.value = current;
+        extra.textContent = current;
+        selectEl.appendChild(extra);
+      }
+    }
+    selectEl.value = current || '';
+    if (selectEl.value !== current && current) {
+      selectEl.value = '';
+    }
+  }
+
+  function getCurrentTimezone() {
+    var timezoneWrap = document.getElementById('AccSettings-timezoneWrap');
+    if (!timezoneWrap) return '';
+    return (timezoneWrap.getAttribute('data-current-timezone') || '').trim();
+  }
+
+  function setCurrentTimezone(timezone) {
+    var timezoneWrap = document.getElementById('AccSettings-timezoneWrap');
+    var timezoneValue = document.getElementById('AccSettings-timezoneValue');
+    var clean = (timezone || '').trim();
+    var bodyEl = document.body;
+    var previousBodyTimezone = '';
+    if (bodyEl) {
+      previousBodyTimezone = (bodyEl.getAttribute('data-user-timezone') || '').trim();
+      bodyEl.setAttribute('data-user-timezone', clean);
+    }
+    if (timezoneWrap) {
+      timezoneWrap.setAttribute('data-current-timezone', clean);
+    }
+    if (timezoneValue) {
+      timezoneValue.textContent = clean || getBrowserDefaultTimezoneLabel();
+      if (clean) {
+        timezoneValue.classList.remove('AccSettings-timezoneValue--muted');
+      } else {
+        timezoneValue.classList.add('AccSettings-timezoneValue--muted');
+      }
+    }
+    if (previousBodyTimezone !== clean) {
+      window.dispatchEvent(new CustomEvent('user-timezone-changed', { detail: { timezone: clean } }));
+    }
   }
 
   function postPreferences(colorTheme, sendNotifications, workspaceInvites) {
@@ -43,8 +361,9 @@
     var token = csrf ? csrf.value : '';
     var params = new URLSearchParams();
     params.append('color_theme', colorTheme);
-    if (sendNotifications) params.append('send_notifications', 'on');
-    if (workspaceInvites) params.append('workspace_invites', 'on');
+    if (sendNotifications) params.append('can_send_notifications', 'on');
+    if (workspaceInvites) params.append('allows_workspace_invites', 'on');
+    params.append('timezone', getCurrentTimezone());
     return fetch(url, {
       method: 'POST',
       headers: {
@@ -69,7 +388,7 @@
     });
   }
 
-  /* Workspace invites toggle: POST all preferences with updated workspace_invites */
+  /* Workspace invites toggle: POST all preferences with updated allows_workspace_invites */
   if (workspaceInvitesToggle) {
     workspaceInvitesToggle.addEventListener('change', function() {
       var colorTheme = themeToggle ? (themeToggle.checked ? 'dark' : 'light') : 'dark';
@@ -91,7 +410,7 @@
     });
   }
 
-  /* Email notifications toggle: POST all preferences with updated send_notifications */
+  /* Email notifications toggle: POST all preferences with updated can_send_notifications */
   if (notificationsToggle) {
     var initialAllowed = notificationsToggle.getAttribute('data-initial-allowed');
     if (initialAllowed === 'true') {
@@ -125,7 +444,88 @@
     });
   }
 
-  /* Password button label: "Set up password" vs "Change password" from backend */
+  var timezonePopup = document.getElementById('timezone-popup');
+  var timezoneRegionButtons = document.getElementById('AccSettings-timezoneRegionButtons');
+  var timezonePopupSelect = document.getElementById('AccSettings-timezonePopupSelect');
+  var saveTimezoneBtn = document.getElementById('AccSettings-saveTimezoneBtn');
+  if (timezonePopup && timezoneRegionButtons && timezonePopupSelect && saveTimezoneBtn) {
+    var availableTimezoneIds = [];
+    var selectedTimezoneRegion = '';
+
+    function setActiveTimezoneRegion(region) {
+      selectedTimezoneRegion = region || '';
+      var buttons = timezoneRegionButtons.querySelectorAll('.AccSettings-timezoneRegionBtn');
+      var i;
+      for (i = 0; i < buttons.length; i++) {
+        var isActive = buttons[i].getAttribute('data-region') === selectedTimezoneRegion;
+        buttons[i].setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        if (isActive) {
+          buttons[i].classList.add('is-active');
+        } else {
+          buttons[i].classList.remove('is-active');
+        }
+      }
+    }
+
+    if (window.popupPrepare) {
+      window.popupPrepare['timezone-popup'] = function() {
+        availableTimezoneIds = getSupportedTimezoneIds();
+        selectedTimezoneRegion = '';
+        populateTimezoneRegionButtons(timezoneRegionButtons, availableTimezoneIds, selectedTimezoneRegion);
+        populateTimezoneSelect(
+          timezonePopupSelect,
+          availableTimezoneIds,
+          '',
+          selectedTimezoneRegion
+        );
+      };
+    }
+
+    timezoneRegionButtons.addEventListener('click', function(e) {
+      var btn = e.target.closest('.AccSettings-timezoneRegionBtn');
+      if (!btn) return;
+      setActiveTimezoneRegion(btn.getAttribute('data-region') || '');
+      populateTimezoneSelect(
+        timezonePopupSelect,
+        availableTimezoneIds,
+        '',
+        selectedTimezoneRegion
+      );
+    });
+
+    saveTimezoneBtn.addEventListener('click', function() {
+      var colorTheme = themeToggle ? (themeToggle.checked ? 'dark' : 'light') : 'dark';
+      var sendNotifs = notificationsToggle ? notificationsToggle.checked : notificationsAllowed;
+      var wsInvites = workspaceInvitesToggle ? workspaceInvitesToggle.checked : true;
+      var selectedTimezone = timezonePopupSelect.value || '';
+      saveTimezoneBtn.disabled = true;
+      var previousTimezone = getCurrentTimezone();
+      setCurrentTimezone(selectedTimezone);
+      postPreferences(colorTheme, sendNotifs, wsInvites)
+        .then(function(r) {
+          saveTimezoneBtn.disabled = false;
+          if (r.ok) {
+            if (window.closePopup) {
+              window.closePopup(timezonePopup);
+            }
+          } else {
+            setCurrentTimezone(previousTimezone);
+            alert('Could not update timezone. Please try again.');
+          }
+        })
+        .catch(function() {
+          saveTimezoneBtn.disabled = false;
+          setCurrentTimezone(previousTimezone);
+          alert('Could not update timezone. Please try again.');
+        });
+    });
+  }
+
+  if (!getCurrentTimezone()) {
+    setCurrentTimezone('');
+  }
+
+  /* Password button label: "Setup" vs "Change" from backend */
   if (passwordButton) {
     var checkPasswordUrl = passwordButton.getAttribute('data-check-password-url');
     if (checkPasswordUrl) {
@@ -143,17 +543,20 @@
         // Store on the button so click handler can branch
         passwordButton.dataset.hasPassword = String(!!data.is_password_present);
         if (data.is_password_present === false) {
-          passwordButton.textContent = 'Set up password';
+          passwordButton.textContent = 'Setup';
         } else {
-          passwordButton.textContent = 'Change password';
+          passwordButton.textContent = 'Change';
         }
         var disableBtn = document.getElementById('AccSettings-disablePasswordBtn');
+        var disableDotsMsg = document.getElementById('AccSettings-disablePasswordDots');
         var disableNoPwMsg = document.getElementById('AccSettings-disablePasswordNoPassword');
         if (data.is_password_present === true) {
           if (disableBtn) disableBtn.removeAttribute('hidden');
+          if (disableDotsMsg) disableDotsMsg.removeAttribute('hidden');
           if (disableNoPwMsg) disableNoPwMsg.setAttribute('hidden', '');
         } else {
           if (disableBtn) disableBtn.setAttribute('hidden', '');
+          if (disableDotsMsg) disableDotsMsg.setAttribute('hidden', '');
           if (disableNoPwMsg) disableNoPwMsg.removeAttribute('hidden');
         }
       }).catch(function() {
@@ -162,12 +565,12 @@
     }
   }
 
-  /* Gmail: send email with link to disable local password (POST send_disable_password_email) */
+  /* Send email with link to disable local password (POST send_disable_password_email) */
   var disablePasswordBtn = document.getElementById('AccSettings-disablePasswordBtn');
   if (disablePasswordBtn) {
     disablePasswordBtn.addEventListener('click', function() {
       var confirmed = window.confirm(
-        'Send a link to your email to disable your local password? When disabled, you will only be able to sign in with Google.'
+        'Send a link to your email to disable your local password? After you confirm via the link, you will not be able to sign in with email and password until you set a new one.'
       );
       if (!confirmed) return;
       var url = disablePasswordBtn.getAttribute('data-send-disable-password-url');
@@ -434,7 +837,7 @@
         if (msRemaining > 0) {
           var hoursRemaining = Math.ceil(msRemaining / (1000 * 60 * 60));
           var label = hoursRemaining === 1 ? '1 more hour' : hoursRemaining + ' more hours';
-          tempDisabledText.textContent = 'Notifications are temporarily disabled for ' + label + '.';
+          tempDisabledText.textContent = 'Notifications disabled for ' + label + '.';
         }
       }
     }

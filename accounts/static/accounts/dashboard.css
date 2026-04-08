@@ -116,6 +116,85 @@ body:has(.AccSettings) {
   gap: 12px;
 }
 
+.AccSettings-preferenceRow--timezone {
+  margin-top: 16px;
+}
+
+.AccSettings-timezoneDisplayWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.AccSettings-timezoneValue {
+  font-size: 14px;
+  color: var(--color);
+  max-width: min(100%, 280px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.AccSettings-timezoneValue--muted {
+  opacity: 0.75;
+}
+
+.AccSettings-timezonePopupSelect {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: var(--color);
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  background-color: var(--secondary-background);
+}
+
+.AccSettings-timezonePopupSelect:focus {
+  outline: none;
+  border-color: dodgerblue;
+}
+
+.AccSettings-timezoneRegionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.AccSettings-timezoneRegionBtn {
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  background: var(--secondary-background);
+  color: var(--color);
+  font-family: inherit;
+  font-size: 13px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.AccSettings-timezoneRegionBtn:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.AccSettings-timezoneRegionBtn.is-active {
+  border-color: dodgerblue;
+  background: rgba(30, 144, 255, 0.16);
+}
+
+/* Keep timezone dropdown from clipping/overflowing viewport in popup */
+#timezone-popup {
+  align-items: flex-start;
+  padding-top: 56px;
+}
+
+#timezone-popup .Popup-box {
+  max-height: calc(100vh - 80px);
+  overflow: visible;
+}
+
 .AccSettings-preferenceRow--notifications {
   margin-top: 16px;
 }
@@ -132,6 +211,19 @@ body:has(.AccSettings) {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid rgba(127, 127, 127, 0.2);
+}
+
+.AccSettings-tempDisabledRow .AccSettings-preferenceLabel {
+  width: 100%;
+}
+
+.AccSettings-tempDisabledActions {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
 }
 
 .AccSettings-tempDisabledText {
@@ -374,11 +466,29 @@ body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
   max-width: 42ch;
 }
 
+#AccSettings-disablePasswordDots {
+  font-size: 26px;
+  letter-spacing: 2px;
+  line-height: 1;
+  opacity: 0.9;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#AccSettings-disablePasswordNoPassword {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .AccSettings-accountTitleRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
+}
+
+.AccSettings-accountTitleRow--password {
+  justify-content: space-between;
 }
 
 .AccSettings-accountLabel {
@@ -448,6 +558,46 @@ a.AccSettings-accountAction--link {
 
 .AccSettings-accountValue--muted {
   opacity: 0.85;
+}
+
+.AccSettings-usernameForm {
+  margin-top: 6px;
+}
+
+.AccSettings-usernameInputWrap {
+  width: 100%;
+  max-width: 360px;
+}
+
+.AccSettings-usernameInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 8px;
+  font-family: inherit;
+  color: var(--color);
+  background: var(--secondary-background);
+}
+
+.AccSettings-usernameInput:focus {
+  outline: none;
+  border-color: dodgerblue;
+}
+
+.AccSettings-usernameActions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.AccSettings-usernameHint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--color);
+  opacity: 0.78;
 }
 
 /* --- Mobile tweaks: avoid horizontal scroll & tighten UI --- */
@@ -549,5 +699,65 @@ a.AccSettings-accountAction--link {
   .AccSettings-notificationChooser .switch--notifications input:checked + .slider:before,
   .AccSettings-workspaceInvitesChooser .switch--notifications input:checked + .slider:before {
     transform: translateX(1.26em);
+  }
+}
+
+@media (max-width: 500px) {
+  .AccSettings-preferenceRow--timezone {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 10px;
+    row-gap: 6px;
+    align-items: center;
+    justify-content: initial;
+  }
+
+  #AccSettings-timezoneLabel {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #AccSettings-timezoneWrap {
+    display: contents;
+  }
+
+  #AccSettings-editTimezoneBtn {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+    margin-left: 0;
+  }
+
+  #AccSettings-timezoneValue {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-width: 100%;
+  }
+
+  .AccSettings-accountTitleRow:has(#AccSettings-editUsernameBtn) {
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 8px;
+    row-gap: 6px;
+    align-items: center;
+    justify-content: start;
+  }
+
+  .AccSettings-accountTitleRow:has(#AccSettings-editUsernameBtn) .AccSettings-accountLabel {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  #AccSettings-editUsernameBtn {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .AccSettings-accountTitleRow:has(#AccSettings-editUsernameBtn) [data-popup="email-popup"] {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
   }
 }

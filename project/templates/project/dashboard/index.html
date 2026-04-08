@@ -11,7 +11,7 @@
 {% include 'task/popup/add_task.html' %}
 {% include 'task/popup/edit_task.html' %}
 
-<div class="Dashboard{% if project.groups.all %} Dashboard--hasGroups{% endif %}" data-dashboard-path="{{ request.resolver_match.kwargs.project_id|default:'' }}" data-current-user="{{ request.user.email }}" data-workspace-owner="{{ project.workspace.owner.user.email }}" data-can-edit-task-deadline="{% if project.workspace.owner.user == request.user %}true{% else %}{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.role.can_edit_task_deadline|yesno:'true,false' }}{% endif %}{% endfor %}{% endif %}">
+<div class="Dashboard{% if project.groups.all %} Dashboard--hasGroups{% endif %}" data-dashboard-path="{{ request.resolver_match.kwargs.project_id|default:'' }}" data-current-user-id="{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.id }}{% endif %}{% endfor %}" data-current-username="{{ request.user.username }}" data-workspace-owner-id="{{ project.workspace.owner.id }}" data-can-edit-task-deadline="{% if project.workspace.owner.user == request.user %}true{% else %}{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.role.can_edit_task_deadline|yesno:'true,false' }}{% endif %}{% endfor %}{% endif %}">
   <header class="Dashboard-header">
   </header>
 
@@ -119,7 +119,7 @@
 {% endblock %}
 
 {% block js %}
-{% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="comments-{{ task.id }}" type="application/json">[{% for c in task.comments.all %}{"id":"{{ c.id }}","content":"{{ c.content|escapejs }}","added_by":"{{ c.added_by.email|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+{% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="comments-{{ task.id }}" type="application/json">[{% for c in task.comments.all %}{"id":"{{ c.id }}","content":"{{ c.content|escapejs }}","added_by":"{{ c.added_by.user.username|escapejs }}","added_by_id":"{{ c.added_by.id }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
 {% endfor %}{% endfor %}
 {% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="reminders-{{ task.id }}" type="application/json">[{% for r in task.taskreminder_set.all %}{% if r.workspace_user.user == request.user %}{"id":"{{ r.id }}","send_at":"{{ r.send_at.isoformat }}","delete_url":"{% url 'task:delete_reminder' r.id %}"},{% endif %}{% endfor %}]</script>
 {% endfor %}{% endfor %}

@@ -128,7 +128,7 @@ class EditNameForm(forms.ModelForm):
 
 
 class AddUsersForm(forms.ModelForm):
-    email = forms.EmailField(max_length=254)
+    username = forms.CharField(max_length=150)
 
     class Meta:
         model = WorkspaceUser
@@ -142,15 +142,15 @@ class AddUsersForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        email = cleaned_data.get('email')
-        user = get_user_model().objects.filter(email__iexact=email).first() # Raise validation error instead of get_obj_or_404 (hides whether email is registered or not, read comments below for more info)
+        username = cleaned_data.get('username').lower()
+        user = get_user_model().objects.filter(username=username).first() # Don't raise 404-obj-not-found, ensures that users cant check whether a username has been registered to an account (Read VALIDATION_ERROR_MESSAGE for more info)
 
-        VALIDATION_ERROR_MESSAGE = 'Given email is not registered to an account, or does not accept workspace invites.' # Ensures that users cant check whether an email has been registered to an account
+        VALIDATION_ERROR_MESSAGE = 'Given username is not registered to an account, or does not accept workspace invites.' # Ensures that users cant check whether a username has been registered to an account
         if not user:
             raise forms.ValidationError(VALIDATION_ERROR_MESSAGE)
 
         user_preferences = get_user_preferences(user)
-        if not user_preferences.workspace_invites:
+        if not user_preferences.allows_workspace_invites:
             raise forms.ValidationError(VALIDATION_ERROR_MESSAGE)
 
         is_user_already_in_workspace = WorkspaceUser.objects.filter(workspace=self.workspace, user=user).exists()

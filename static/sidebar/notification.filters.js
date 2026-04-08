@@ -8,6 +8,101 @@
   let calMonth = new Date().getMonth();
   let rerenderCalendar = null;
 
+  const ymdFormatterCache = new Map();
+
+  function getYmdFormatter(tz) {
+    if (!ymdFormatterCache.has(tz)) {
+      ymdFormatterCache.set(
+        tz,
+        new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" })
+      );
+    }
+    return ymdFormatterCache.get(tz);
+  }
+
+  function ymdInTz(ms, tz) {
+    return getYmdFormatter(tz).format(new Date(ms));
+  }
+
+  /**
+   * Start of calendar day (y-m-d) in tz, as UTC ms (first instant of that local date).
+   */
+  function startOfDayInTz(year, month, day, tz) {
+    const target = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    let lo = Date.UTC(year, month - 1, day - 3, 12, 0, 0);
+    let hi = Date.UTC(year, month - 1, day + 3, 12, 0, 0);
+    let guard = 0;
+    while (lo < hi - 1 && guard < 100) {
+      guard++;
+      const mid = Math.floor((lo + hi) / 2);
+      const ymd = ymdInTz(mid, tz);
+      if (ymd >= target) hi = mid;
+      else lo = mid;
+    }
+    return hi;
+  }
+
+  function weekdayInTz(ms, tz) {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short" }).formatToParts(new Date(ms));
+    const w = parts.find((p) => p.type === "weekday");
+    const map = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    return w && map[w.value] != null ? map[w.value] : 0;
+  }
+
+  function getDaysInMonthGregorian(year, month0) {
+    return new Date(Date.UTC(year, month0 + 1, 0)).getUTCDate();
+  }
+
+  function addOneGregorianDay(ymd) {
+    const [y, m, d] = ymd.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + 1);
+    return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+  }
+
+  function getEffectiveTz() {
+    if (typeof api.getEffectiveNotificationTimezone === "function") {
+      return api.getEffectiveNotificationTimezone();
+    }
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (_) {
+      return "UTC";
+    }
+  }
+
+  /**
+   * UTC offset for `timeZone` at the given instant (DST-aware).
+   * Returns signed minutes east of UTC (e.g. Sydney summer ≈ +660) and a UTC±HH:MM label.
+   */
+  function getUtcOffsetInfo(timeZone, atDate) {
+    const d = atDate instanceof Date ? atDate : new Date();
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: timeZone,
+        timeZoneName: "longOffset"
+      }).formatToParts(d);
+      const raw = parts.find((p) => p.type === "timeZoneName");
+      const gmt = raw && raw.value ? raw.value : "";
+      const m = gmt.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/i);
+      if (!m) {
+        return { minutes: 0, label: "UTC+00:00" };
+      }
+      const sign = m[1] === "-" ? -1 : 1;
+      const hours = parseInt(m[2], 10);
+      const mins = m[3] ? parseInt(m[3], 10) : 0;
+      const totalMinutes = sign * (hours * 60 + mins);
+      const abs = Math.abs(totalMinutes);
+      const h = Math.floor(abs / 60);
+      const mi = abs % 60;
+      const signStr = totalMinutes >= 0 ? "+" : "-";
+      const label = `UTC${signStr}${String(h).padStart(2, "0")}:${String(mi).padStart(2, "0")}`;
+      return { minutes: totalMinutes, label };
+    } catch (_) {
+      return { minutes: 0, label: "UTC+00:00" };
+    }
+  }
+
   const renderDateTags = (container) => {
     if (!container) return;
     container.innerHTML = "";
@@ -28,8 +123,11 @@
     if (readCb) readCb.checked = !!f.read;
     pendingDates = Array.isArray(f.dates) ? [...f.dates] : [];
     renderDateTags(popup.querySelector("#Base-notificationFilterDateTags"));
-    calYear = new Date().getFullYear();
-    calMonth = new Date().getMonth();
+    const tz = getEffectiveTz();
+    const todayStr = ymdInTz(Date.now(), tz);
+    const [py, pm] = todayStr.split("-").map(Number);
+    calYear = py;
+    calMonth = pm - 1;
     if (rerenderCalendar) rerenderCalendar();
   };
 
@@ -59,11 +157,10 @@
     const getDatesInRange = (a, b) => {
       const [start, end] = a <= b ? [a, b] : [b, a];
       const dates = [];
-      const cur = new Date(`${start}T00:00:00`);
-      const last = new Date(`${end}T00:00:00`);
-      while (cur <= last) {
-        dates.push(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, "0")}-${String(cur.getDate()).padStart(2, "0")}`);
-        cur.setDate(cur.getDate() + 1);
+      let cur = start;
+      while (cur <= end) {
+        dates.push(cur);
+        cur = addOneGregorianDay(cur);
       }
       return dates;
     };
@@ -78,14 +175,17 @@
 
     const renderCalendar = () => {
       if (!calendarEl) return;
+      const tz = getEffectiveTz();
       const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-      const firstDay = new Date(calYear, calMonth, 1).getDay();
-      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      const firstMs = startOfDayInTz(calYear, calMonth + 1, 1, tz);
+      const firstDay = weekdayInTz(firstMs, tz);
+      const daysInMonth = getDaysInMonthGregorian(calYear, calMonth);
+      const todayStr = ymdInTz(Date.now(), tz);
       let html = `<div class="Base-notifCalHeader"><button type="button" class="Base-notifCalNav" data-dir="-1">&#8249;</button><span class="Base-notifCalMonthYear">${MONTHS[calMonth]} ${calYear}</span><button type="button" class="Base-notifCalNav" data-dir="1">&#8250;</button></div><div class="Base-notifCalGrid">`;
-      DAYS.forEach((d) => { html += `<span class="Base-notifCalDayName">${d}</span>`; });
+      DAYS.forEach((d) => {
+        html += `<span class="Base-notifCalDayName">${d}</span>`;
+      });
       for (let i = 0; i < firstDay; i++) html += "<span></span>";
       for (let d = 1; d <= daysInMonth; d++) {
         const ds = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
@@ -101,8 +201,14 @@
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           calMonth += parseInt(btn.dataset.dir, 10);
-          if (calMonth > 11) { calMonth = 0; calYear += 1; }
-          if (calMonth < 0) { calMonth = 11; calYear -= 1; }
+          if (calMonth > 11) {
+            calMonth = 0;
+            calYear += 1;
+          }
+          if (calMonth < 0) {
+            calMonth = 11;
+            calYear -= 1;
+          }
           renderCalendar();
         });
       });
@@ -244,6 +350,15 @@
   bindFilterPopover();
   window.addEventListener("popup-opened", (e) => {
     if (e.detail && e.detail.id === FILTER_POPUP_ID) {
+      const tz = getEffectiveTz();
+      const utcOff = getUtcOffsetInfo(tz);
+      console.log(
+        "Notification filter — timezone:",
+        tz,
+        "UTC offset:",
+        utcOff.label,
+        `(${utcOff.minutes >= 0 ? "+" : ""}${utcOff.minutes} min from UTC)`
+      );
       syncFilterPopoverFromStorage();
       bindFilterPopover();
     }

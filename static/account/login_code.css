@@ -1,0 +1,169 @@
+/* ==========================================================================
+   Login by email code: request + confirm. Load after account/base.css.
+   ========================================================================== */
+
+.Base-content:has(.Account-card--loginCode) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.Account-card--loginCode {
+  max-width: 450px;
+}
+
+.Account-card--loginCode .Account-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10.4px;
+  margin-bottom: 16px;
+}
+
+.Account-card--loginCode .Account-title-row .Account-title {
+  margin-bottom: 0;
+}
+
+.Account-card--loginCode .Account-icon--compact {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0;
+  border-radius: 10px;
+}
+
+.Account-card--loginCode .Account-icon--compact svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Keep “Back” above the form so clicks aren’t lost to overlapping hit targets */
+.Account-card--loginCode .Account-back {
+  position: relative;
+  z-index: 1;
+}
+
+button.Account-back {
+  appearance: none;
+  cursor: pointer;
+  font-family: inherit;
+  width: auto;
+  text-align: left;
+}
+
+.Account-codeRecipient {
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.Account-input--code {
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+.Account-codeGroupWrap {
+  display: grid;
+  grid-template-columns: minmax(0, 88px) auto minmax(0, 88px) auto minmax(0, 88px) auto minmax(0, 88px);
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.Account-input--codeSegment {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  text-align: center;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.Account-codeDash {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 16px;
+  line-height: 1;
+  user-select: none;
+}
+
+.theme-light .Account-codeDash {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.Account-codeGroupWrap--error .Account-input--codeSegment {
+  border-color: #ef4444;
+}
+
+.Account-input--codeSingle {
+  display: none;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+  .Account-codeGroupWrap {
+    display: none;
+  }
+
+  .Account-input--codeSingle {
+    display: block;
+  }
+}
+
+@media (max-width: 560px) {
+  .Account-codeGroupWrap {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .Account-codeDash {
+    display: none;
+  }
+}
+
+.Account-hiddenForm {
+  display: none;
+}
+
+.Account-code-secondaryBtn {
+  appearance: none;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10.4px 16px;
+  font-size: 15.2px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.Account-code-secondaryBtn:hover {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.theme-dark .Account-code-secondaryBtn {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.theme-dark .Account-code-secondaryBtn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}

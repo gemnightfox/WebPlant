@@ -71,7 +71,7 @@
                 }
 
                 // Sync per-field errors
-                ['email', 'password1', 'password2'].forEach(function (name) {
+                ['username', 'email', 'password1', 'password2'].forEach(function (name) {
                     var input = form.querySelector('[name="' + name + '"]');
                     if (!input) return;
                     var newInput = doc.querySelector('[name="' + name + '"]');

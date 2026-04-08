@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+{# Email sign-in code request (allauth). URL: /account/login/code/ #}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'account/base.css' %}">
+    <link rel="stylesheet" href="{% static 'account/login_code.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="Account-card Account-card--loginCode">
+    <a href="{% url 'account_login' %}{% if redirect_field_value %}?{{ redirect_field_name }}={{ redirect_field_value|urlencode }}{% endif %}" class="Account-back">← Back to log in</a>
+    <div class="Account-title-row">
+        <div class="Account-icon Account-icon--compact" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+            </svg>
+        </div>
+        <h1 class="Account-title">Sign in with email</h1>
+    </div>
+
+    <p class="Account-text Account-text--muted">
+        We'll email you a one-time sign-in code.
+    </p>
+
+    {% if form.non_field_errors %}
+        <ul class="Account-errors" role="alert">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form class="Account-form" method="post" action="{{ request_login_code_url }}" autocomplete="off">
+        {% csrf_token %}
+        {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+        {% endif %}
+
+        {% if 'email' in form.fields %}
+        <div class="Account-field">
+            <label class="Account-label" for="{{ form.email.id_for_label }}">Email</label>
+            <input
+                type="email"
+                name="email"
+                id="{{ form.email.id_for_label }}"
+                class="Account-input{% if form.email.errors %} Account-input--error{% endif %}"
+                value="{{ form.email.value|default:'' }}"
+                {% if form.email.field.required %}required{% endif %}
+                autocomplete="email"
+                {% if not form.errors %}autofocus{% endif %}
+                placeholder="you@example.com"
+            >
+            {% if form.email.errors %}
+                <span class="Account-field-error">{{ form.email.errors.0 }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="Account-submit">Send sign-in code</button>
+    </form>
+</div>
+{% endblock %}

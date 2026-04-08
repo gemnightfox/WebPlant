@@ -36,13 +36,70 @@
     return div.innerHTML;
   };
 
+  const getEffectiveNotificationTimezone = () => {
+    try {
+      const raw = document.body && document.body.getAttribute("data-user-timezone");
+      if (raw && typeof raw === "string" && raw.trim()) return raw.trim();
+    } catch (_) {}
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (_) {
+      return "UTC";
+    }
+  };
+
+  /*
+   * Date and read/unread filtering: the API returns paginated rows without applying filters; we fetch
+   * every page, dedupe, filter by status and (optional) calendar days in the account timezone, sort by
+   * sent_at, then paginate in the overlay.
+   */
+  const SERVER_PAGE_SIZE = 100;
+
+  const ymdFormatterCache = new Map();
+  const getYmdFormatter = (tz) => {
+    if (!ymdFormatterCache.has(tz)) {
+      ymdFormatterCache.set(
+        tz,
+        new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" })
+      );
+    }
+    return ymdFormatterCache.get(tz);
+  };
+
+  const ymdInTz = (ms, tz) => getYmdFormatter(tz).format(new Date(ms));
+
+  const sentAtIsoToLocalYmd = (iso, tz) => {
+    if (!iso) return "";
+    const t = new Date(iso).getTime();
+    if (Number.isNaN(t)) return "";
+    return ymdInTz(t, tz);
+  };
+
+  /** Matches sidebar status toggles (read / unread). */
+  const notificationMatchesStatusFilter = (n, f) => {
+    const isRead = !!n.read_status;
+    if (f.unread && f.read) return true;
+    if (f.unread && !f.read) return !isRead;
+    if (!f.unread && f.read) return isRead;
+    return true;
+  };
+
+  const fetchNotificationsPageJson = async (pageNumber, f) => {
+    const params = new URLSearchParams({ notifications_page: String(pageNumber) });
+    if (f.unread) params.set("unread", "1");
+    if (f.read) params.set("read", "1");
+    const fetchOpts = { method: "POST", headers: { Accept: "application/json", "X-CSRFToken": getCSRFToken() } };
+    const res = await fetch(`/notification/get-notifications/?${params.toString()}`, fetchOpts);
+    if (!res.ok) throw new Error("get-notifications failed");
+    return res.json();
+  };
+
   const formatSentAt = (iso) => {
     if (!iso) return "";
     try {
       const d = new Date(iso);
-      const day = d.getDate();
-      const month = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ")[d.getMonth()];
-      return `${day} ${month} ${d.getFullYear()}`;
+      const tz = getEffectiveNotificationTimezone();
+      return new Intl.DateTimeFormat(undefined, { timeZone: tz, day: "numeric", month: "short", year: "numeric" }).format(d);
     } catch (_) {
       return typeof iso === "string" ? iso : "";
     }
@@ -134,7 +191,7 @@
 
     const rawSenderEmail = n.sender_email != null ? n.sender_email : n["sender__email"];
     const senderLabel = rawSenderEmail != null && rawSenderEmail !== ""
-      ? String(rawSenderEmail)
+      ? String(rawSenderEmail).split("@")[0]
       : n.sender_id != null ? String(n.sender_id) : "[DELETED USER]";
 
     const meta = document.createElement("div");
@@ -282,23 +339,43 @@
     try {
       const pageNumber = typeof page === "number" && page > 0 ? page : 1;
       const f = getFilters();
-      const params = new URLSearchParams({ notifications_page: String(pageNumber) });
-      if (f.unread) params.set("unread", "1");
-      if (f.read) params.set("read", "1");
-      const fetchOpts = { method: "POST", headers: { Accept: "application/json", "X-CSRFToken": getCSRFToken() } };
-      if (Array.isArray(f.dates) && f.dates.length > 0) {
-        const body = new FormData();
-        body.append("notification_dates", JSON.stringify(f.dates));
-        fetchOpts.body = body;
-      }
-      const res = await fetch(`/notification/get-notifications/?${params.toString()}`, fetchOpts);
-      if (!res.ok) throw new Error("get-notifications failed");
-      const data = await res.json();
-      const list = Array.isArray(data.notifications) ? data.notifications : [];
       const expandedIds = getExpandedIds();
+      const hasLocalDates = Array.isArray(f.dates) && f.dates.length > 0;
+      const selectedLocal = hasLocalDates ? new Set(f.dates) : null;
+      const tz = hasLocalDates ? getEffectiveNotificationTimezone() : "";
+
+      let merged = [];
+      let serverLastPage = 1;
+      for (let p = 1; p <= serverLastPage; p++) {
+        const data = await fetchNotificationsPageJson(p, f);
+        const chunk = Array.isArray(data.notifications) ? data.notifications : [];
+        merged = merged.concat(chunk);
+        serverLastPage = typeof data.last_page === "number" && data.last_page > 0 ? data.last_page : 1;
+      }
+
+      const byId = new Map();
+      merged.forEach((n) => {
+        if (n && n.id != null) byId.set(String(n.id), n);
+      });
+
+      let filtered = Array.from(byId.values()).filter((n) => notificationMatchesStatusFilter(n, f));
+      if (selectedLocal) {
+        filtered = filtered.filter((n) => selectedLocal.has(sentAtIsoToLocalYmd(n.sent_at, tz)));
+      }
+      filtered.sort((a, b) => {
+        const ta = new Date(a.sent_at).getTime();
+        const tb = new Date(b.sent_at).getTime();
+        return tb - ta;
+      });
+
+      const total = filtered.length;
+      lastPage = Math.max(1, Math.ceil(total / SERVER_PAGE_SIZE) || 1);
+      const effectivePage = Math.min(pageNumber, lastPage);
+      currentPage = effectivePage;
+      const start = (effectivePage - 1) * SERVER_PAGE_SIZE;
+      const list = filtered.slice(start, start + SERVER_PAGE_SIZE);
+
       bodyEl.innerHTML = "";
-      currentPage = pageNumber;
-      lastPage = typeof data.last_page === "number" && data.last_page > 0 ? data.last_page : 1;
       if (list.length === 0) {
         renderEmptyState();
       } else {
@@ -366,6 +443,10 @@
   fetchUnreadCountFromServer();
   setInterval(fetchUnreadCountFromServer, 30_000);
   if (overlay.classList.contains("is-open")) loadNotificationsIntoOverlay();
+  window.addEventListener("user-timezone-changed", () => {
+    if (!overlay.classList.contains("is-open")) return;
+    loadNotificationsIntoOverlay(currentPage);
+  });
 
   window.BaseNotification = {
     overlay,
@@ -385,5 +466,6 @@
     hasUnread,
     hasRead,
     resetDeleteConfirmButtons,
+    getEffectiveNotificationTimezone,
   };
 })();

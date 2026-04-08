@@ -85,7 +85,14 @@ body.Base-body--feedback {
   justify-content: flex-end;
 }
 
+.Feedback-actions--success {
+  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .Feedback-submit {
+  display: inline-block;
   padding: 8px 18px;
   border-radius: 8px;
   font-size: 14px;
@@ -95,6 +102,7 @@ body.Base-body--feedback {
   background: rgba(59, 130, 246, 0.18);
   color: var(--color);
   transition: background-color 0.12s ease-out, transform 0.05s ease-out;
+  text-decoration: none;
 }
 
 .Feedback-submit:hover {
@@ -113,6 +121,21 @@ body.Base-body--feedback {
 
 .Feedback-submit:active {
   transform: translateY(0);
+}
+
+.Feedback-submit--secondary {
+  border-color: rgba(127, 127, 127, 0.35);
+  background: var(--secondary-background);
+}
+
+.Feedback-submit--secondary:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.Feedback-successText {
+  margin: 0 0 16px;
+  color: var(--color);
+  opacity: 0.9;
 }
 
 @media (max-width: 640px) {

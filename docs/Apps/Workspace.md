@@ -85,7 +85,7 @@ One-to-one with `Workspace`. Created via `get_workspace_preference(workspace)`.
 
 **Creating a workspace** — automatically creates default `Admin` and `Editor` roles, creates a `WorkspaceUser` for the creator with the Admin role, and sets the creator as owner.
 
-**Inviting users by email** — the invite hides whether the email is registered (security feature). If the invited user's `workspace_invites` preference is `False`, the invite is silently skipped. Role assignment requires `can_assign_roles_to_workspace_users`; otherwise `default_role` is used.
+**Inviting users by email** — the invite hides whether the email is registered (security feature). If the invited user's `allows_workspace_invites` preference is `False`, the invite is silently skipped. Role assignment requires `can_assign_roles_to_workspace_users`; otherwise `default_role` is used.
 
 **Joining via invite code** — validates the optional password, then creates or reactivates a `WorkspaceUser` with `default_role`.
 

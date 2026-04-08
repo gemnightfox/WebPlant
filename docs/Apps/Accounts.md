@@ -29,8 +29,8 @@ One-to-one with `CustomUser`. Created on first access via `get_preferences(user)
 | `id` | UUIDField | Primary key |
 | `user` | OneToOne → CustomUser | CASCADE |
 | `color_theme` | CharField | `'light'` or `'dark'` (default: `'dark'`) |
-| `send_notifications` | BooleanField | Default: `True` |
-| `workspace_invites` | BooleanField | Default: `True` — controls whether other users can invite this user |
+| `can_send_notifications` | BooleanField | Default: `True` |
+| `allows_workspace_invites` | BooleanField | Default: `True` — controls whether other users can invite this user |
 
 
 

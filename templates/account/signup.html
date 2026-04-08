@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{# Signup: email + password. Uses account/signup.css. #}
+{# Signup: username + email + password. Uses account/signup.css. #}
 {# Kept under project templates/ (DIRS): see login.html comment. #}
 
 {% block css %}
@@ -42,6 +42,23 @@
             >
             {% if form.email.errors %}
                 <span class="Account-field-error">{{ form.email.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="Account-field">
+            <label class="Account-label" for="id_username">Username</label>
+            <input
+                type="text"
+                name="username"
+                id="id_username"
+                class="Account-input{% if form.username.errors %} Account-input--error{% endif %}"
+                value="{{ form.username.value|default:'' }}"
+                maxlength="150"
+                required
+                autocomplete="off"
+            >
+            {% if form.username.errors %}
+                <span class="Account-field-error">{{ form.username.errors.0 }}</span>
             {% endif %}
         </div>
 

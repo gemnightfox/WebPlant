@@ -22,7 +22,7 @@
     {% block css %}{% endblock %}
 </head>
 
-<body class="theme-{{ user_preferences.color_theme | default:'dark' }} {% block body_extra_class %}{% endblock %}">
+<body class="theme-{{ user_preferences.color_theme | default:'dark' }} {% block body_extra_class %}{% endblock %}"{% if user.is_authenticated %} data-user-timezone="{{ user_preferences.timezone|default:'' }}"{% endif %}>
     {% if user.is_authenticated %}
         {% include 'sidebar/index.html' %}
         {% include 'sidebar/notification.html' %}

@@ -2,14 +2,16 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
-from .forms import PreferenceForm
+from .forms import PreferenceForm, EditUsernameForm
 from base_utils import CustomTokenGenerator, reusable_form_submission
 from notification.utils import send_email
 from django.contrib.messages import get_messages
+from django.contrib.sessions.models import Session
 from notification.models import NotificationDisabledDuration
 from django.http import JsonResponse, Http404
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.db import transaction
 from workspace.models import Workspace
 from .utils import transfer_workspace_ownership_to_successor, get_user_preferences
 
@@ -40,8 +42,6 @@ def check_password_present(request): # Accounts which used Google login may not 
 def send_disable_password_email(request):
     if not request.user.has_usable_password():
         raise Http404('User already does not have a password')
-    if not request.user.email.lower().endswith('@gmail.com'):
-        raise Http404('Email has to end with @gmail.com')
 
     token_generator = CustomTokenGenerator(purpose='disable-password')
     token = token_generator.make_token(request.user)
@@ -67,9 +67,7 @@ def disable_password(request, user_id, token):
 
     if not request.user.has_usable_password():
         raise Http404('User already does not have a password')
-    if not user.email.lower().endswith('@gmail.com'):
-        raise Http404('Email must end with a @gmail.com')
-    
+
     if request.method == 'POST':
         user.set_unusable_password()
         user.save()
@@ -125,6 +123,27 @@ def delete_account(request, user_id, token):
 def set_preferences(request):
     preferences = get_user_preferences(request.user)
     return reusable_form_submission(request, PreferenceForm, instance=preferences)
+
+
+
+@login_required
+@require_POST
+def logout_all_devices(request): # Note: This wouldn't scale well. Best to improve it in the future.
+    with transaction.atomic():
+        for session in Session.objects.all():
+            user_id = session.get_decoded().get('_auth_user_id')
+            if str(request.user.id) == str(user_id):
+                session.delete()
+    return JsonResponse({'status': 'success'})
+
+
+
+@login_required
+@require_POST
+def edit_username(request):
+    return reusable_form_submission(request, EditUsernameForm, instance=request.user)
+
+
 
 
 

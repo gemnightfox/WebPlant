@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load socialaccount %}
-{# Login: email/password + optional Google. Uses account/login.css. #}
+{# Login: password, optional email OTP (allauth login-by-code), Google. Uses account/login.css. #}
 {# Kept under project templates/ (DIRS): allauth.account precedes "accounts" in INSTALLED_APPS, so app overrides would lose to allauth defaults. #}
 
 {% block css %}
@@ -33,15 +33,19 @@
         {% endif %}
 
         <div class="Account-field">
-            <label class="Account-label" for="id_login">Email</label>
+            <label class="Account-label" for="id_login">Username / Email</label>
             <input
-                type="email"
+                type="text"
                 name="login"
                 id="id_login"
                 class="Account-input{% if form.login.errors %} Account-input--error{% endif %}"
                 value="{{ form.login.value|default:'' }}"
                 required
-                autocomplete="off"
+                autocomplete="username"
+                autocapitalize="none"
+                autocorrect="off"
+                spellcheck="false"
+                maxlength="254"
                 autofocus
             >
             {% if form.login.errors %}
@@ -72,6 +76,8 @@
         <button type="submit" id="login-submit" class="Account-submit">Log in</button>
     </form>
 
+    <hr class="Account-loginRule" role="presentation" aria-hidden="true">
+
     <form method="post" action="{% provider_login_url 'google' %}">
         {% csrf_token %}
         <button type="submit" class="Account-google-btn">
@@ -86,6 +92,10 @@
             <span class="Account-google-btnLabel">Continue with Google</span>
         </button>
     </form>
+
+    {% if LOGIN_BY_CODE_ENABLED %}
+    <a href="{{ request_login_code_url }}" class="Account-code-btn">Login via email</a>
+    {% endif %}
 
     <div class="Account-footer">
         <span class="Account-footer-text">No account?</span>

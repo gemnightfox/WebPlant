@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_extra_class %}Base-body--feedback{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'feedback/index.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="Feedback">
+  <section class="Feedback-card" aria-labelledby="feedback-success-heading">
+    <h2 id="feedback-success-heading" class="Feedback-cardTitle">Feedback submitted</h2>
+    <p class="Feedback-successText">Thank you for your feedback.</p>
+
+    <div class="Feedback-actions Feedback-actions--success">
+      <a href="{% url 'feedback:dashboard' %}" class="Feedback-submit">Submit another feedback</a>
+      <a href="{% url 'accounts:dashboard' %}" class="Feedback-submit Feedback-submit--secondary">Back to account</a>
+    </div>
+  </section>
+</div>
+{% endblock %}
