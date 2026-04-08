@@ -65,7 +65,7 @@ def disable_password(request, user_id, token):
     if not is_token_valid: # IMPORTANT STEP (verifying account deletion token)
         raise Http404('Token is not valid')
 
-    if not request.user.has_usable_password():
+    if not user.has_usable_password():
         raise Http404('User already does not have a password')
 
     if request.method == 'POST':
