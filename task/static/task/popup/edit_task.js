@@ -115,6 +115,15 @@
     return me && (me === String(addedById || '') || me === getWorkspaceOwnerId());
   }
 
+  /** True when Enter should submit the task name (PC-style); false → Enter inserts a newline (typical touch / on-screen keyboard). */
+  function isPcTaskNameEnterSubmitBehavior() {
+    try {
+      if (window.matchMedia && window.matchMedia("(pointer: fine)").matches) return true;
+      if (window.matchMedia && window.matchMedia("(any-pointer: fine)").matches) return true;
+    } catch (e) {}
+    return false;
+  }
+
   // ── Calendar state ──────────────────────────────────────────────────────────
   var calendarYear  = new Date().getFullYear();
   var calendarMonth = new Date().getMonth();
@@ -144,6 +153,12 @@
     } catch (e2) {
       return "UTC";
     }
+  }
+
+  function syncEditTaskSettingsTimezoneLabel() {
+    var el = document.getElementById("edit-task-settings-timezone");
+    if (!el) return;
+    el.textContent = "Timezone: " + getEffectiveTaskTz();
   }
 
   var ymdFormatterCache = {};
@@ -1046,6 +1061,7 @@
       panelToggle.setAttribute("aria-expanded", "false");
       panelToggle.classList.remove("is-open");
     }
+    syncEditTaskSettingsTimezoneLabel();
 
     // Reminder
     populateReminderFromCard(card);
@@ -1268,15 +1284,18 @@
       });
     }
 
-    // Press Escape in textarea → cancel; Enter → save; Shift+Enter → newline
+    // Press Escape in textarea → cancel.
+    // PC-ish pointer: Enter → save; Shift+Enter → newline.
+    // Touch-primary: Enter → newline (do not submit); use Save button to submit.
     var nameInput = document.getElementById("id_edit_task_name");
     if (nameInput) {
       nameInput.addEventListener("keydown", function (e) {
         if (e.key === "Escape") { e.preventDefault(); resetEditState(); }
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          document.getElementById("edit-task-form").requestSubmit();
-        }
+        if (e.key !== "Enter") return;
+        if (!isPcTaskNameEnterSubmitBehavior()) return;
+        if (e.shiftKey) return;
+        e.preventDefault();
+        document.getElementById("edit-task-form").requestSubmit();
       });
     }
 
@@ -1629,6 +1648,9 @@
     }
     window.addEventListener("pagehide", clearPersistIfEditTaskPopupClosedAtLeave);
     window.addEventListener("beforeunload", clearPersistIfEditTaskPopupClosedAtLeave);
+
+    window.addEventListener("user-timezone-changed", syncEditTaskSettingsTimezoneLabel);
+    syncEditTaskSettingsTimezoneLabel();
 
     tryRestoreEditTaskPopup(prepare);
   }

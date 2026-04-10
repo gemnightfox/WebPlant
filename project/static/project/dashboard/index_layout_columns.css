@@ -49,9 +49,13 @@
   font-size: 14px; color: var(--color); padding: 12px 14px; border-radius: 8px;
   background: var(--secondary-background, rgba(255, 255, 255, 0.03)); border: 1px solid rgba(127, 127, 127, 0.15);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  word-break: break-word; display: flex; align-items: flex-start; gap: 8px; flex-shrink: 0; position: relative; overflow: visible;
+  word-break: break-word; display: flex; align-items: stretch; gap: 8px; flex-shrink: 0; position: relative; overflow: visible;
 }
 .Dashboard-task.Kanban-card:hover { border-color: rgba(127, 127, 127, 0.28); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); }
+.Dashboard-task.Kanban-card > .Dashboard-menuWrapper {
+  align-self: center;
+  flex-shrink: 0;
+}
 .Dashboard-newGroupPlaceholder {
   width: 280px; min-width: 280px; max-width: 280px; flex-shrink: 0; min-height: 160px; max-height: calc(100vh - 100px);
   border: 2px dashed rgba(127, 127, 127, 0.4); border-radius: 12px; background: rgba(127, 127, 127, 0.03);

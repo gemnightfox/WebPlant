@@ -49,18 +49,32 @@ body {
 .Base-content {
   flex: 1;
   min-width: 0; /* allow shrinking when scrollbar appears so sidebar keeps 280px */
-  min-height: 100vh;
+  /* body uses padding-top: safe-area; min-height 100vh here overflowed that inner area */
+  min-height: calc(100vh - env(safe-area-inset-top, 0));
   padding: 24px;
+}
+
+@supports (height: 100dvh) {
+  .Base-content {
+    min-height: calc(100dvh - env(safe-area-inset-top, 0));
+  }
 }
 
 /* --- Task dashboard: lock main to viewport so only board scrolls --- */
 .Base-body--dashboard .Base-content:has(.Dashboard) {
-  height: 100vh;
-  max-height: 100vh;
+  height: calc(100vh - env(safe-area-inset-top, 0));
+  max-height: calc(100vh - env(safe-area-inset-top, 0));
   overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: 0;
+}
+
+@supports (height: 100dvh) {
+  .Base-body--dashboard .Base-content:has(.Dashboard) {
+    height: calc(100dvh - env(safe-area-inset-top, 0));
+    max-height: calc(100dvh - env(safe-area-inset-top, 0));
+  }
 }
 
 .Base-body--dashboard .Base-content:has(.Dashboard) > * {
