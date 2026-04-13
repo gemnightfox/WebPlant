@@ -1,8 +1,8 @@
 from .utils import get_task
 from group.utils import get_group
 from django.http import JsonResponse
-from .forms import CreateNewForm, EditForm, AddCommentForm, EditCommentForm, AddReminderForm
-from .models import TaskComment, TaskReminder
+from .forms import CreateNewForm, EditForm, AddAttachmentForm, AddCommentForm, EditCommentForm, AddReminderForm
+from .models import TaskAttachment, TaskComment, TaskReminder
 from django.shortcuts import get_object_or_404
 from workspace.utils import get_workspace_user
 from workspace_role.utils import verify_workspace_role
@@ -59,6 +59,28 @@ def duplicate(request, task_id, position):
     task.name = new_name
     task.position = new_position
     task.save()
+    return JsonResponse({'status': 'success'})
+
+
+
+@login_required
+@require_POST
+def add_attachment(request, task_id):
+    task = get_task(request, task_id)
+    my_workspace_user = get_workspace_user(request.user, workspace=task.group.project.workspace)
+    verify_workspace_role(my_workspace_user, 'can_edit_task_attachments')
+    return reusable_form_submission(request, AddAttachmentForm, task=task)
+
+
+
+@login_required
+@require_POST
+def delete_attachment(request, task_attachment_id):
+    task_attachment = get_object_or_404(TaskAttachment, id=task_attachment_id)
+    task = get_task(request, task_attachment.task.id)
+    my_workspace_user = get_workspace_user(request.user, workspace=task.group.project.workspace)
+    verify_workspace_role(my_workspace_user, 'can_edit_task_attachments')
+    task_attachment.delete()
     return JsonResponse({'status': 'success'})
 
 

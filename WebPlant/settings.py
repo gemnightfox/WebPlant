@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
 
     'allauth',
     'allauth.account',
@@ -48,6 +47,11 @@ INSTALLED_APPS = [
     # 'django_ratelimit' added below
     'anymail',
     'django_celery_beat',
+    'cloudinary_storage',
+
+    'django.contrib.staticfiles', # Must be below cloudinary storage
+
+    'cloudinary',
 
     'home',
     'feedback',
@@ -227,10 +231,21 @@ LOGIN_URL = '/account/login/'
 LOGIN_REDIRECT_URL = '/account/'
 LOGOUT_REDIRECT_URL = '/account/login/'
 
+CLOUDINARY_URL = get_env('CLOUDINARY_URL')
+
+STORAGES = {
+    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
 
 
 

@@ -22,6 +22,7 @@ class WorkspaceRole(models.Model):
     can_edit_groups = models.BooleanField()
     can_edit_tasks = models.BooleanField()
 
+    can_edit_task_attachments = models.BooleanField()
     can_add_task_comments = models.BooleanField()
     can_edit_task_deadline = models.BooleanField()
 
@@ -32,7 +33,6 @@ class WorkspaceRole(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['workspace', 'name'], name='unique_workspace_role'),
         ]
-
 
 
 

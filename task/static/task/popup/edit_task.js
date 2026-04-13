@@ -12,6 +12,7 @@
 
   var currentTaskId = null;
   var currentGroupId = null;
+  var attachmentUploadInProgress = false;
 
   var EDIT_TASK_POPUP_STORAGE_KEY = "webplant_edit_task_popup";
 
@@ -443,6 +444,11 @@
     return !!(dash && dash.getAttribute("data-can-edit-task-deadline") === "true");
   }
 
+  function canEditTaskAttachments() {
+    var dash = document.querySelector(".Dashboard[data-dashboard-path]");
+    return !!(dash && dash.getAttribute("data-can-edit-task-attachments") === "true");
+  }
+
   function applyEditTaskDeadlinePermission() {
     var can = canEditTaskDeadline();
     var addBtn = document.getElementById("edit-task-add-deadline-btn");
@@ -759,6 +765,240 @@
 
   // ── Comments ─────────────────────────────────────────────────────────────────
 
+  function showAttachmentError() {
+    var el = document.querySelector('[data-role="edit-task-attachment-error"]');
+    if (el) el.removeAttribute("hidden");
+  }
+
+  function hideAttachmentError() {
+    var el = document.querySelector('[data-role="edit-task-attachment-error"]');
+    if (el) el.setAttribute("hidden", "");
+  }
+
+  function getTaskAttachments(taskId) {
+    var scriptEl = document.getElementById("attachments-" + taskId);
+    if (!scriptEl) return [];
+    try { return JSON.parse(scriptEl.textContent) || []; } catch (e) { return []; }
+  }
+
+  function updateTaskAttachments(taskId, attachments) {
+    var scriptEl = document.getElementById("attachments-" + taskId);
+    if (scriptEl) scriptEl.textContent = JSON.stringify(attachments);
+  }
+
+  function renderAttachments(taskId) {
+    var list = document.getElementById("edit-task-attachments-list");
+    if (!list) return;
+    var canEdit = canEditTaskAttachments();
+    var addBtn = document.getElementById("edit-task-add-attachment-btn");
+    if (addBtn) {
+      if (canEdit) addBtn.removeAttribute("hidden");
+      else addBtn.setAttribute("hidden", "");
+    }
+    list.innerHTML = "";
+
+    var attachments = getTaskAttachments(taskId);
+    attachments.forEach(function (attachment) {
+      var li = document.createElement("li");
+      li.className = "TaskAttachment";
+
+      var link = document.createElement("a");
+      link.className = "TaskAttachment-link";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      var rawAttachmentName = attachment.name || "Attachment";
+      link.textContent = rawAttachmentName.replace(/^media\//i, "");
+      if (attachment.url) link.href = attachment.url;
+
+      li.appendChild(link);
+
+      if (canEdit) {
+        var removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "Popup-deadlineRemoveBtn";
+        removeBtn.setAttribute("aria-label", "Remove attachment");
+        removeBtn.innerHTML = "&times;";
+        removeBtn.addEventListener("click", function () {
+          if (!confirm("Remove this attachment?")) return;
+          var formData = new FormData();
+          formData.append("csrfmiddlewaretoken", getCsrfToken());
+          fetch(attachment.delete_url, {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": getCsrfToken(),
+            },
+            credentials: "same-origin",
+            body: formData,
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data && data.status === "success") {
+                var all = getTaskAttachments(taskId).filter(function (x) {
+                  return String(x.id) !== String(attachment.id);
+                });
+                updateTaskAttachments(taskId, all);
+                renderAttachments(taskId);
+              } else {
+                showAttachmentError();
+              }
+            })
+            .catch(showAttachmentError);
+        });
+        li.appendChild(removeBtn);
+      }
+
+      list.appendChild(li);
+    });
+    setAttachmentUploadState(attachmentUploadInProgress);
+  }
+
+  function setAttachmentUploadState(isUploading) {
+    attachmentUploadInProgress = !!isUploading;
+    var addBtn = document.getElementById("edit-task-add-attachment-btn");
+    if (!addBtn) return;
+    if (!addBtn.dataset.defaultHtml) addBtn.dataset.defaultHtml = addBtn.innerHTML;
+    if (attachmentUploadInProgress) {
+      addBtn.classList.add("is-uploading");
+      addBtn.setAttribute("disabled", "");
+      addBtn.setAttribute("aria-busy", "true");
+      addBtn.textContent = "Uploading...";
+    } else {
+      addBtn.classList.remove("is-uploading");
+      addBtn.removeAttribute("disabled");
+      addBtn.removeAttribute("aria-busy");
+      addBtn.innerHTML = addBtn.dataset.defaultHtml || "Add file";
+    }
+  }
+
+  function setAttachmentUploadProgress(percent) {
+    var progressWrap = document.getElementById("edit-task-attachment-progress");
+    var progressFill = document.getElementById("edit-task-attachment-progress-fill");
+    var progressText = document.getElementById("edit-task-attachment-progress-text");
+    var progressBar = progressWrap ? progressWrap.querySelector(".TaskAttachments-progressBar") : null;
+    if (!progressWrap || !progressFill || !progressText) return;
+    var safePercent = Math.max(0, Math.min(100, Math.round(Number(percent) || 0)));
+    if (attachmentUploadInProgress) progressWrap.removeAttribute("hidden");
+    else progressWrap.setAttribute("hidden", "");
+    progressFill.style.width = safePercent + "%";
+    progressText.textContent = "Uploading... " + safePercent + "%";
+    if (progressBar) progressBar.setAttribute("aria-valuenow", String(safePercent));
+  }
+
+  function uploadAttachmentRequest(taskId, formData, onProgress) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/task/attachment/add/" + taskId + "/", true);
+      xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+      xhr.setRequestHeader("X-CSRFToken", getCsrfToken());
+
+      xhr.upload.onprogress = function (e) {
+        if (!e.lengthComputable || typeof onProgress !== "function") return;
+        onProgress((e.loaded / e.total) * 100);
+      };
+
+      xhr.onload = function () {
+        if (xhr.status < 200 || xhr.status >= 300) {
+          reject(new Error("Upload failed with HTTP " + xhr.status));
+          return;
+        }
+        try {
+          resolve(JSON.parse(xhr.responseText || "{}"));
+        } catch (e) {
+          reject(new Error("Upload response was not valid JSON."));
+        }
+      };
+      xhr.onerror = function () {
+        reject(new Error("Network error while uploading attachment."));
+      };
+      xhr.onabort = function () {
+        reject(new Error("Upload request was aborted."));
+      };
+
+      xhr.send(formData);
+    });
+  }
+
+  var ATTACHMENT_MAX_SIZE = 100 * 1024 * 1024; // 100 MB
+
+  function uploadAttachmentFile(file) {
+    if (!file) {
+      console.warn("[edit-task][attachments] Upload skipped: no file selected.");
+      return;
+    }
+    if (!currentTaskId) {
+      console.warn("[edit-task][attachments] Upload skipped: missing currentTaskId.");
+      return;
+    }
+    if (!canEditTaskAttachments()) {
+      console.warn("[edit-task][attachments] Upload skipped: attachment edit permission denied.");
+      return;
+    }
+    if (attachmentUploadInProgress) {
+      console.warn("[edit-task][attachments] Upload skipped: another upload is already in progress.");
+      return;
+    }
+    hideAttachmentError();
+    if (file.size > ATTACHMENT_MAX_SIZE) {
+      var sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      console.warn("[edit-task][attachments] Upload skipped: file too large (" + sizeMB + " MB).");
+      showAttachmentError();
+      alert("File is too large (" + sizeMB + " MB). Maximum size is 100 MB.");
+      return;
+    }
+
+    console.log("[edit-task][attachments] Upload starting:", {
+      taskId: currentTaskId,
+      name: file.name,
+      size: file.size,
+      type: file.type || "unknown",
+    });
+    setAttachmentUploadState(true);
+    setAttachmentUploadProgress(0);
+    var formData = new FormData();
+    formData.append("file", file);
+    formData.append("csrfmiddlewaretoken", getCsrfToken());
+    uploadAttachmentRequest(currentTaskId, formData, function (percent) {
+      setAttachmentUploadProgress(percent);
+    })
+      .then(function (data) {
+        if (data && data.status === "success" && data.new_object_id != null) {
+          console.log("[edit-task][attachments] Upload success:", data);
+          setAttachmentUploadProgress(100);
+          var all = getTaskAttachments(currentTaskId);
+          all.push({
+            id: String(data.new_object_id),
+            name: file.name,
+            url: "",
+            delete_url: "/task/attachment/delete/" + String(data.new_object_id) + "/",
+          });
+          updateTaskAttachments(currentTaskId, all);
+          renderAttachments(currentTaskId);
+        } else {
+          console.warn("[edit-task][attachments] Upload failed response:", data);
+          showAttachmentError();
+          alert("Upload failed. Please try again.");
+        }
+      })
+      .catch(function (err) {
+        console.error("[edit-task][attachments] Upload request error:", err);
+        showAttachmentError();
+        alert("Upload failed. Please try again.");
+      })
+      .finally(function () {
+        setAttachmentUploadState(false);
+        setAttachmentUploadProgress(0);
+      });
+  }
+
+  function promptAndUploadAttachment() {
+    if (!canEditTaskAttachments() || attachmentUploadInProgress) return;
+    var pickerInput = document.getElementById("edit-task-attachment-file-input");
+    if (!pickerInput) return;
+    pickerInput.value = "";
+    pickerInput.click();
+  }
+
   function showCommentError() {
     var el = document.querySelector('[data-role="edit-task-comment-error"]');
     if (el) el.removeAttribute('hidden');
@@ -1047,10 +1287,21 @@
     if (commentInput) commentInput.value = "";
     hideCommentError();
     renderComments(currentTaskId);
+    renderAttachments(currentTaskId);
     var commentsBody = document.getElementById("edit-task-comments-body");
     var commentsToggle = document.getElementById("edit-task-comments-toggle");
     if (commentsBody) commentsBody.setAttribute("hidden", "");
     if (commentsToggle) { commentsToggle.setAttribute("aria-expanded", "false"); commentsToggle.classList.remove("is-open"); }
+    var attachmentsBody = document.getElementById("edit-task-attachments-body");
+    var attachmentsToggle = document.getElementById("edit-task-attachments-toggle");
+    if (attachmentsBody) attachmentsBody.removeAttribute("hidden");
+    if (attachmentsToggle) {
+      attachmentsToggle.setAttribute("aria-expanded", "true");
+      attachmentsToggle.classList.add("is-open");
+    }
+    hideAttachmentError();
+    var attachmentInput = document.getElementById("edit-task-attachment-input");
+    if (attachmentInput) attachmentInput.value = "";
 
     var panelBody = document.getElementById("edit-task-panel-body");
     var panelToggle = document.getElementById("edit-task-panel-toggle");
@@ -1444,6 +1695,32 @@
           commentsToggle.classList.remove("is-open");
         }
       });
+    }
+
+    var attachmentsToggle = document.getElementById("edit-task-attachments-toggle");
+    var attachmentsBody = document.getElementById("edit-task-attachments-body");
+    if (attachmentsToggle && attachmentsBody) {
+      attachmentsToggle.addEventListener("click", function () {
+        if (attachmentsBody.hasAttribute("hidden")) {
+          attachmentsBody.removeAttribute("hidden");
+          attachmentsToggle.setAttribute("aria-expanded", "true");
+          attachmentsToggle.classList.add("is-open");
+        }
+        promptAndUploadAttachment();
+      });
+      var attachFileInput = document.getElementById("edit-task-attachment-file-input");
+      if (attachFileInput) {
+        attachFileInput.addEventListener("change", function () {
+          if (!attachFileInput.files || !attachFileInput.files[0]) return;
+          console.log("[edit-task][attachments] File selected:", {
+            name: attachFileInput.files[0].name,
+            size: attachFileInput.files[0].size,
+            type: attachFileInput.files[0].type || "unknown",
+          });
+          uploadAttachmentFile(attachFileInput.files[0]);
+          attachFileInput.value = "";
+        });
+      }
     }
 
     var panelToggle = document.getElementById("edit-task-panel-toggle");

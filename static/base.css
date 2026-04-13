@@ -41,9 +41,15 @@ body {
   color: var(--color);
   background: var(--background);
   min-height: 100vh;
-  min-width: 100vw;
+  width: 100%;
   display: flex;
   padding-top: env(safe-area-inset-top, 0);
+}
+
+@supports (height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
 }
 
 .Base-content {
@@ -165,6 +171,7 @@ body:has(.Base-sidebar)::before {
 @media (max-width: 900px) {
   body:has(.Base-sidebar:not(.is-collapsed)):not(:has(html.sidebar-collapsed)) {
     height: 100vh;
+    height: 100dvh;
     overflow-x: hidden;
     overflow-y: hidden;
   }

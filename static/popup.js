@@ -8,11 +8,28 @@
  */
 (function () {
   if (!window.popupPrepare) window.popupPrepare = {};
+  const popupReturnFocus = new WeakMap();
+
+  function canFocusElement(el) {
+    return !!(
+      el &&
+      typeof el.focus === "function" &&
+      !el.hasAttribute("disabled") &&
+      el.getAttribute("aria-hidden") !== "true" &&
+      !el.hasAttribute("hidden")
+    );
+  }
 
   /* --- Open/close popup --- */
-  function openPopup(id) {
+  function openPopup(id, trigger) {
     const el = document.getElementById(id);
     if (!el || !el.classList.contains("Popup")) return;
+    const active = document.activeElement;
+    if (trigger && canFocusElement(trigger)) {
+      popupReturnFocus.set(el, trigger);
+    } else if (active && !el.contains(active) && canFocusElement(active)) {
+      popupReturnFocus.set(el, active);
+    }
 
     const form = el.querySelector(".Popup-form");
     if (form) {
@@ -43,6 +60,16 @@
 
   function closePopup(el) {
     if (!el || !el.classList.contains("Popup")) return;
+    const active = document.activeElement;
+    if (active && el.contains(active) && typeof active.blur === "function") {
+      try { active.blur(); } catch (_) {}
+    }
+    const returnTarget =
+      popupReturnFocus.get(el) ||
+      document.querySelector('[data-popup="' + el.id + '"]');
+    if (canFocusElement(returnTarget)) {
+      try { returnTarget.focus(); } catch (_) {}
+    }
     el.setAttribute("hidden", "");
     el.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
@@ -77,7 +104,7 @@
     const prepare = window.popupPrepare && window.popupPrepare[id];
     if (typeof prepare === "function") prepare(trigger);
 
-    openPopup(id);
+    openPopup(id, trigger);
 
     const popupEl = document.getElementById(id);
     if (popupEl) {

@@ -37,6 +37,7 @@ class CreateNewForm(forms.ModelForm):
                     can_edit_projects=True,
                     can_edit_groups=True,
                     can_edit_tasks=True,
+                    can_edit_task_attachments=True,
                     can_add_task_comments=True,
                     can_edit_task_deadline=True,
                 )
@@ -54,6 +55,7 @@ class CreateNewForm(forms.ModelForm):
                     can_edit_projects=True,
                     can_edit_groups=True,
                     can_edit_tasks=True,
+                    can_edit_task_attachments=True,
                     can_add_task_comments=True,
                     can_edit_task_deadline=True,
                 )
@@ -71,6 +73,7 @@ class CreateNewForm(forms.ModelForm):
                     can_edit_projects=False,
                     can_edit_groups=False,
                     can_edit_tasks=False,
+                    can_edit_task_attachments=False,
                     can_add_task_comments=False,
                     can_edit_task_deadline=False,
                 )

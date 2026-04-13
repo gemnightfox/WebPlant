@@ -5,7 +5,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 # POST is required (@require_POST is used in views)
 def reusable_form_submission(request, form, return_new_object=False, **kwargs):
-    form_instance = form(request.POST, **kwargs)
+    form_instance = form(request.POST, request.FILES, **kwargs)
     if not form_instance.is_valid():
         raise Exception(f'Error encountered during form submission. Error: {form_instance.errors}')
     
@@ -24,9 +24,6 @@ class CustomTokenGenerator(PasswordResetTokenGenerator):
 
     def _make_hash_value(self, user, timestamp):
         return f'{self.purpose}___{timestamp}__{user.id}__{user.email}'
-
-
-
 
 
 

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Task, TaskComment, TaskReminder
+from .models import Task, TaskAttachment, TaskComment, TaskReminder
 from workspace_role.utils import verify_workspace_role
 
 
@@ -39,6 +39,33 @@ class EditForm(forms.ModelForm):
         if old_deadline != new_deadline:
             verify_workspace_role(self.my_workspace_user, 'can_edit_task_deadline')
         return cleaned_data
+
+
+
+class AddAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = TaskAttachment
+        fields = ['file']
+    
+    def __init__(self, *args, task, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.task = task
+
+    def clean(self):
+        cleaned_data = super().clean()
+        file = cleaned_data['file']
+        MAXIMUM_FILE_SIZE = 1024 * 1024 * 100 # 100MB
+        if file.size > MAXIMUM_FILE_SIZE:
+            raise forms.ValidationError('File size can not be greater than 100MB.')
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.task = self.task
+
+        if commit:
+            instance.save()
+        return instance
 
 
 

@@ -8,3 +8,9 @@
   justify-content: center;
   min-height: 100vh;
 }
+
+@supports (height: 100dvh) {
+  .Base-content:has(.Account-card--verificationSent) {
+    min-height: 100dvh;
+  }
+}

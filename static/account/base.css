@@ -183,6 +183,14 @@
   min-height: 100vh;
 }
 
+@supports (height: 100dvh) {
+  .Base-content:has(.Account-card--login),
+  .Base-content:has(.Account-card--signup),
+  .Base-content:has(.Account-card--passwordSet) {
+    min-height: 100dvh;
+  }
+}
+
 /* --- Shared for email confirm, password reset, verification sent --- */
 .Account-text {
   font-size: 15.2px;

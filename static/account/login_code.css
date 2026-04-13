@@ -9,6 +9,12 @@
   min-height: 100vh;
 }
 
+@supports (height: 100dvh) {
+  .Base-content:has(.Account-card--loginCode) {
+    min-height: 100dvh;
+  }
+}
+
 .Account-card--loginCode {
   max-width: 450px;
 }

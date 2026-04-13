@@ -26,6 +26,14 @@ class Task(models.Model):
 
 
 
+class TaskAttachment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to='task/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+
 class TaskComment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     added_by = models.ForeignKey(WorkspaceUser, null=True, on_delete=models.SET_NULL)
@@ -39,9 +47,6 @@ class TaskReminder(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     workspace_user = models.ForeignKey('workspace.WorkspaceUser', on_delete=models.CASCADE)
     send_at = models.DateTimeField()
-
-
-
 
 
 

@@ -142,6 +142,22 @@
           </div>
           <button type="button" class="Popup-submit" id="edit-task-set-reminder-btn">Set Reminder</button>
         </div>
+        <hr class="Popup-panelDivider">
+        <button type="button" class="Popup-panelRow" id="edit-task-attachments-toggle" aria-expanded="false">
+          <span class="Popup-panelLabel">Attachments</span>
+          <span class="Popup-panelAdd">+</span>
+        </button>
+        <div class="TaskAttachments-body" id="edit-task-attachments-body" hidden>
+          <ul class="TaskAttachments" id="edit-task-attachments-list"></ul>
+          <input type="file" id="edit-task-attachment-file-input" class="TaskAttachments-hiddenInput" aria-hidden="true" tabindex="-1">
+          <div class="TaskAttachments-progress" id="edit-task-attachment-progress" hidden aria-live="polite">
+            <div class="TaskAttachments-progressBar" role="progressbar" aria-label="Attachment upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="TaskAttachments-progressFill" id="edit-task-attachment-progress-fill"></div>
+            </div>
+            <small class="TaskAttachments-progressText" id="edit-task-attachment-progress-text">Uploading... 0%</small>
+          </div>
+          <small class="Popup-error" data-role="edit-task-attachment-error" hidden>Something went wrong. Please try again.</small>
+        </div>
       </div>
     </div>
   </div>
