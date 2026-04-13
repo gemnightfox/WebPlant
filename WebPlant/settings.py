@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     'accounts', # Avoid 'account' due to conflicts with Allauth
     'notification',
     'workspace',
-    'workspace_role',
     'project',
     'group',
     'task',

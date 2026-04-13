@@ -3,6 +3,7 @@ from .views import create_new, transfer_ownership, set_preference, change_defaul
 from .views import check_invites, check_invites_count, accept_invite, reject_invite
 from .views import settings, edit_name, add_users, assign_role_to_user, remove_user
 from .views import add_invite_code, edit_invite_code_password, delete_invite_code, join_using_invite_code
+from .views import create_role, edit_role, delete_role, transfer_role
 
 app_name = 'workspace'
 
@@ -27,8 +28,12 @@ urlpatterns = [
     path('add-invite-code/<uuid:workspace_id>/', add_invite_code, name='add_invite_code'),
     path('edit-invite-code-password/<uuid:workspace_id>/<uuid:workspace_invite_code_id>/', edit_invite_code_password, name='edit_invite_code_password'),
     path('delete-invite-code/<uuid:workspace_id>/<uuid:workspace_invite_code_id>/', delete_invite_code, name='delete_invite_code'),
-]
 
+    path('role/create/<uuid:workspace_id>/', create_role, name='create_role'),
+    path('role/edit/<uuid:workspace_id>/<uuid:workspace_role_id>/', edit_role, name='edit_role'),
+    path('role/delete/<uuid:workspace_id>/<uuid:workspace_role_id>/', delete_role, name='delete_role'),
+    path('role/transfer/<uuid:workspace_id>/<uuid:old_workspace_role_id>/<uuid:new_workspace_role_id>/', transfer_role, name='transfer_role'),
+]
 
 
 

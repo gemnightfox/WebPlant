@@ -5,7 +5,7 @@
 {% block popup_title %}New role{% endblock %}
 {% block popup_content %}
   <div class="Popup-formWrap">
-    <form method="post" class="Popup-form" id="create-workspace-role-form" autocomplete="off" data-url="{% url 'workspace_role:create' workspace.id %}">
+    <form method="post" class="Popup-form" id="create-workspace-role-form" autocomplete="off" data-url="{% url 'workspace:create_role' workspace.id %}">
       {% csrf_token %}
       <div class="Popup-field">
         <label for="id_role_name">Role name</label>

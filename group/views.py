@@ -3,8 +3,7 @@ from task.models import Task
 from .forms import CreateNewForm, EditForm
 from django.http import JsonResponse
 from .utils import get_group
-from workspace.utils import get_workspace_user
-from workspace_role.utils import verify_workspace_role
+from workspace.utils import get_workspace_user, verify_workspace_role
 from django.views.decorators.http import require_POST
 from base_utils import reusable_form_submission
 from django.contrib.auth.decorators import login_required

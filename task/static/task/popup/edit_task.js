@@ -349,6 +349,7 @@
       daySelected > 0
         ? year + "-" + pad2(month0 + 1) + "-" + pad2(daySelected)
         : "";
+    var allowPastSelection = opts.allowPastSelection !== false;
     var navAttr = opts.navAttr;
     var dateAttr = opts.dateAttr;
     var html =
@@ -379,7 +380,7 @@
         '<button type="button" class="' +
         cls +
         '"' +
-        (ds < todayStr ? " disabled" : "") +
+        (!allowPastSelection && ds < todayStr ? " disabled" : "") +
         " " +
         dateAttr +
         '="' +
@@ -419,6 +420,7 @@
       daySelected: calendarDay,
       navAttr: "data-cal-dir",
       dateAttr: "data-cal-date",
+      allowPastSelection: true,
     });
   }
 
@@ -434,6 +436,7 @@
       daySelected: reminderDay,
       navAttr: "data-reminder-cal-dir",
       dateAttr: "data-reminder-cal-date",
+      allowPastSelection: false,
     });
   }
 

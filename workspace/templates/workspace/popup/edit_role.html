@@ -6,7 +6,7 @@
 {% block popup_content %}
   <div class="WsSettings-editRolePanel WsSettings-editRolePanel--inPopup">
     {% for role in workspace.roles.all %}
-      <form class="WsSettings-editRoleForm" method="post" data-role-id="{{ role.id }}" data-url="{% url 'workspace_role:edit' workspace.id role.id %}" hidden>
+      <form class="WsSettings-editRoleForm" method="post" data-role-id="{{ role.id }}" data-url="{% url 'workspace:edit_role' workspace.id role.id %}" hidden>
         {% csrf_token %}
         <div class="WsSettings-field">
           <label for="ws-edit-role-name-{{ role.id }}">Role name</label>

@@ -2,8 +2,7 @@ from .utils import get_project
 from .forms import CreateNewForm, EditNameForm
 from django.views.decorators.http import require_POST
 from base_utils import reusable_form_submission
-from workspace.utils import get_workspace, get_workspace_user
-from workspace_role.utils import verify_workspace_role
+from workspace.utils import get_workspace, get_workspace_user, verify_workspace_role
 from .models import Project
 from group.models import Group
 from task.models import Task

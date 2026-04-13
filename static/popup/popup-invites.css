@@ -1,0 +1,85 @@
+/* --- Pending invites list --- */
+.Popup-invitesWrap {
+  min-height: 60px;
+}
+
+.Popup-invitesLoading,
+.Popup-invitesEmpty {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color);
+  opacity: 0.85;
+}
+
+.Popup-invitesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.Popup-invitesItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--background);
+  border: 1px solid rgba(127, 127, 127, 0.2);
+  border-radius: 8px;
+}
+
+.Popup-invitesName {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  word-break: break-word;
+}
+
+.Popup-invitesActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.Popup-invitesBtn {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.Popup-invitesBtn--accept {
+  background: dodgerblue;
+  color: #fff;
+}
+
+.Popup-invitesBtn--accept:hover {
+  background: #1a7de8;
+}
+
+.Popup-invitesBtn--reject {
+  background: rgba(127, 127, 127, 0.2);
+  color: var(--color);
+}
+
+.Popup-invitesBtn--reject:hover {
+  background: rgba(127, 127, 127, 0.35);
+}
+
+.Popup-invitesBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

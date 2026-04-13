@@ -4,7 +4,7 @@
 {% block popup_title_id_h2 %}transfer-role-popup-title{% endblock %}
 {% block popup_title %}Transfer members{% endblock %}
 {% block popup_content %}
-  <form id="ws-transfer-role-form" method="post" data-url-base="/workspace-role/transfer/{{ workspace.id }}/">
+  <form id="ws-transfer-role-form" method="post" data-url-base="/workspace/role/transfer/{{ workspace.id }}/">
     {% csrf_token %}
     <p class="WsSettings-transferRoleInfo">Move all members of <strong id="ws-transfer-role-from-name"></strong> to another role.</p>
     <div class="WsSettings-transferRow">

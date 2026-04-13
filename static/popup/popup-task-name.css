@@ -1,0 +1,96 @@
+/* --- Task name click-to-edit --- */
+.Popup-title:empty {
+  display: none;
+}
+
+.TaskNameDisplay {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: break-word;
+  white-space: pre-wrap;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 6px 8px;
+  transition: background 0.12s;
+  outline: none;
+}
+
+.TaskNameDisplay:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.theme-light .TaskNameDisplay:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.TaskNameDisplay:focus-visible {
+  box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.5);
+}
+
+.TaskNameEditWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.TaskNameEditWrap[hidden] {
+  display: none;
+}
+
+.TaskNameDisplay[hidden] {
+  display: none;
+}
+
+.TaskNameEdit-input {
+  width: 100%;
+  resize: none;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.5;
+  border: none;
+  border-bottom: 2px solid rgba(127, 127, 127, 0.25);
+  border-radius: 0;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+  margin-bottom: 3px;
+  transition: border-color 0.15s;
+}
+
+.TaskNameEdit-input:focus {
+  outline: none;
+  border-bottom-color: dodgerblue;
+  box-shadow: none;
+}
+
+.TaskNameEdit-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.TaskNameEdit-error {
+  flex: 1;
+  text-align: left;
+}
+
+.Popup-cancelBtn {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(127, 127, 127, 0.4);
+  background: transparent;
+  color: var(--color);
+}
+
+.Popup-cancelBtn:hover {
+  background: rgba(127, 127, 127, 0.12);
+}

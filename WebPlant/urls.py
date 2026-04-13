@@ -16,7 +16,6 @@ urlpatterns = [
     path('account/', include('allauth.urls')),
     path('notification/', include('notification.urls')),
     path('workspace/', include('workspace.urls')),
-    path('workspace-role/', include('workspace_role.urls')),
     path('project/', include('project.urls')),
     path('group/', include('group.urls')),
     path('task/', include('task.urls')),

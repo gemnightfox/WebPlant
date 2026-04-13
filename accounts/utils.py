@@ -1,7 +1,6 @@
 from .models import UserPreference
 from django.db import models
-from workspace.models import WorkspaceUser
-from workspace_role.models import WorkspaceRole
+from workspace.models import WorkspaceUser, WorkspaceRole
 
 
 

@@ -1,6 +1,6 @@
 from django import forms
 from .models import Task, TaskAttachment, TaskComment, TaskReminder
-from workspace_role.utils import verify_workspace_role
+from workspace.utils import verify_workspace_role
 
 
 

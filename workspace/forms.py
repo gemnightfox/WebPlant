@@ -1,6 +1,5 @@
 from django import forms
-from workspace_role.models import WorkspaceRole
-from .models import WorkspaceInviteCode, WorkspacePreference, WorkspaceUser, Workspace
+from .models import WorkspaceInviteCode, WorkspacePreference, WorkspaceUser, Workspace, WorkspaceRole
 from django.db import transaction
 from .utils import generate_workspace_invite_code
 from notification.utils import send_email
@@ -217,6 +216,33 @@ class EditInviteCodePasswordForm(forms.ModelForm):
     class Meta:
         model = WorkspaceInviteCode
         fields = ['password']
+
+
+
+class CreateRoleForm(forms.ModelForm):
+    class Meta:
+        model = WorkspaceRole
+        exclude = ['id', 'workspace'] # Note: EXCLUDE used
+
+    def __init__(self, *args, workspace, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.workspace = workspace
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.workspace = self.workspace
+
+        if commit:
+            instance.save()
+        return instance
+
+
+
+class EditRoleForm(forms.ModelForm):
+    class Meta:
+        model = WorkspaceRole
+        exclude = ['id', 'workspace'] # Note: EXCLUDE used
+
 
 
 

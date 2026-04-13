@@ -80,7 +80,7 @@
             <button
               type="button"
               class="WsSettings-roleCardBtn WsSettings-roleCardBtn--delete WsSettings-deleteRoleBtn"
-              data-delete-url="{% url 'workspace_role:delete' workspace.id role.id %}"
+              data-delete-url="{% url 'workspace:delete_role' workspace.id role.id %}"
               data-role-id="{{ role.id }}"
               data-role-name="{{ role.name }}"
               data-member-count="{{ role.workspaceuser_set.count }}"
@@ -99,8 +99,8 @@
     {% endfor %}
   </div>
 
-  {% include 'workspace_role/popup/edit_role.html' %}
-  {% include 'workspace_role/popup/transfer_role.html' %}
-  {% include 'workspace_role/popup/delete_role.html' %}
+  {% include 'workspace/popup/edit_role.html' %}
+  {% include 'workspace/popup/transfer_role.html' %}
+  {% include 'workspace/popup/delete_role.html' %}
 </section>
-<script src="{% static 'workspace_role/roles.js' %}"></script>
+<script src="{% static 'workspace/settings/roles.js' %}"></script>

@@ -4,8 +4,7 @@ from django.http import JsonResponse
 from .forms import CreateNewForm, EditForm, AddAttachmentForm, AddCommentForm, EditCommentForm, AddReminderForm
 from .models import TaskAttachment, TaskComment, TaskReminder
 from django.shortcuts import get_object_or_404
-from workspace.utils import get_workspace_user
-from workspace_role.utils import verify_workspace_role
+from workspace.utils import get_workspace_user, verify_workspace_role
 from django.views.decorators.http import require_POST
 from base_utils import reusable_form_submission
 from django.contrib.auth.decorators import login_required
