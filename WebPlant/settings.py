@@ -233,11 +233,10 @@ LOGOUT_REDIRECT_URL = '/account/login/'
 CLOUDINARY_URL = get_env('CLOUDINARY_URL')
 if CLOUDINARY_URL:
     CLOUDINARY_URL += '?secure=True' # Enforces HTTPS
-    STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
 
 STORAGES = {
     'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},
-    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    'staticfiles': {'BACKEND': 'cloudinary_storage.storage.StaticHashedCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},
 }
 
 MEDIA_URL = '/media/'
