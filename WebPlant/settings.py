@@ -3,6 +3,7 @@ import os
 import sentry_sdk
 from dotenv import load_dotenv
 import dj_database_url
+import cloudinary
 from django.core.management.utils import get_random_secret_key
 
 load_dotenv()
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
 
     'allauth',
     'allauth.account',
@@ -47,10 +49,6 @@ INSTALLED_APPS = [
     # 'django_ratelimit' added below
     'anymail',
     'django_celery_beat',
-    'cloudinary_storage',
-
-    'django.contrib.staticfiles', # Must be below cloudinary storage
-
     'cloudinary',
 
     'home',
@@ -232,12 +230,16 @@ LOGOUT_REDIRECT_URL = '/account/login/'
 
 CLOUDINARY_URL = get_env('CLOUDINARY_URL')
 if CLOUDINARY_URL:
-    CLOUDINARY_STORAGE = {'CLOUDINARY_URL': CLOUDINARY_URL}
+    cloudinary.config(
+        cloudinary_url=CLOUDINARY_URL,
+        secure=True,
+    )
 
 STORAGES = {
-    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},
+    'default': {'BACKEND': 'cloudinary.storage.MediaCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
 }
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -245,8 +247,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-
 
 
 
