@@ -1,5 +1,6 @@
 from pathlib import Path
 import sentry_sdk
+import os
 from dotenv import load_dotenv
 import dj_database_url
 import cloudinary
@@ -7,7 +8,7 @@ from base_utils import custom_getenv
 from django.core.management.utils import get_random_secret_key
 
 load_dotenv()
-DEBUG = custom_getenv('DJANGO_DEBUG') == 'True'
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True' # Can't use custom_getenv (throws out error if DJANGO_DEBUG is missing)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
