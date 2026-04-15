@@ -1,46 +1,58 @@
 # Development Guide
 
-## Project Layout (Backend)
+## Backend Layout
 
-- `WebPlant/`: Django project package (settings, root URLs, ASGI/WSGI, Celery app)
-- App directories: `accounts/`, `workspace/`, `workspace_role/`, `project/`, `group/`, `task/`, `notification/`, `feedback/`, `home/`
+- `WebPlant/`: project package (`settings.py`, `urls.py`, `celery.py`, ASGI/WSGI)
+- Domain apps: `accounts/`, `workspace/`, `project/`, `group/`, `task/`, `notification/`, `feedback/`, `home/`
 - Shared utilities: `base_utils.py`
+- Templates/static: `templates/`, `static/`
 - Entry point: `manage.py`
 
 ## Local Setup
 
-1. Create and activate virtual environment.
+1. Create and activate a virtual environment.
 2. Install dependencies:
    - `pip install -r requirements.txt`
-3. Configure environment variables (see `configuration.md`).
-4. Apply migrations:
+3. Add environment variables (see `configuration.md`).
+4. Run migrations:
    - `python manage.py migrate`
-5. Create superuser:
+5. Create an admin user:
    - `python manage.py createsuperuser`
-6. Run server:
+6. Start development server:
    - `python manage.py runserver`
 
-## Common Commands
+## Day-to-Day Commands
 
-- Make migrations: `python manage.py makemigrations`
+- Create migrations: `python manage.py makemigrations`
 - Apply migrations: `python manage.py migrate`
-- Django shell: `python manage.py shell`
-- Run tests: `python manage.py test`
+- Run full test suite: `python manage.py test`
+- Start Django shell: `python manage.py shell`
+- Collect static files (deployment prep): `python manage.py collectstatic`
 
-## Celery (Optional)
+## Optional Celery Processes
 
-If `REDIS_URL` is configured, run background processes in separate terminals:
+If `REDIS_URL` is configured, run in separate terminals:
 
 - Worker: `celery -A WebPlant worker -l info`
-- Beat scheduler: `celery -A WebPlant beat -l info`
+- Beat: `celery -A WebPlant beat -l info`
 
-Scheduled task configured in settings:
+Scheduled task:
 
-- `task.tasks.send_task_alert` (checks due task reminders and sends emails)
+- `task.tasks.send_task_alert` (runs every 5 minutes, sends due reminder notifications)
 
-## Backend Development Notes
+Without `REDIS_URL`, Celery tasks run eagerly in-process, which keeps local setup lightweight.
 
-- Authorization is workspace-centric (`WorkspaceUser` + `WorkspaceRole`).
-- Permission checks are centralized in utility functions rather than class-based policy objects.
-- Many mutating handlers are form-based and use `reusable_form_submission(...)`.
-- Frontend behavior rules are documented separately in `../FRONTEND_INSTRUCTIONS.md`.
+## Development Conventions
+
+- Workspace permissions are enforced through `WorkspaceUser` membership + `WorkspaceRole` booleans.
+- Mutating endpoints commonly use forms and `reusable_form_submission(...)` for validation/save patterns.
+- Ownership and membership checks happen before domain-level edits.
+- Notification delivery should respect user preference toggles and temporary disable durations.
+
+## Troubleshooting Tips
+
+- If production mode fails at startup, verify all required environment variables are set.
+- If reminders are not firing, confirm `REDIS_URL`, Celery worker, and Celery beat are all running.
+- If uploads fail, verify `CLOUDINARY_URL` or local media write permissions.
+
+Frontend-specific constraints are documented in `../FRONTEND_INSTRUCTIONS.md`.

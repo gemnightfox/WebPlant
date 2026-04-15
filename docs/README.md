@@ -1,22 +1,27 @@
 # Documentation Index
 
-This folder documents the backend architecture and operational behavior of WebPlant at a high level.
+This folder contains backend-focused documentation for WebPlant.  
+Use it as a practical reference while developing, deploying, or reviewing backend behavior.
 
-## Suggested Reading Order
+## Read First
 
-1. `architecture.md` - system structure, app responsibilities, and runtime flow
-2. `domain-model.md` - core entities and relationships
-3. `configuration.md` - environment variables and runtime configuration
-4. `development.md` - local development workflows and commands
+1. `architecture.md` - project structure, runtime responsibilities, and request lifecycle
+2. `domain-model.md` - key models, relationships, and behavioral invariants
+3. `configuration.md` - environment variables and debug/production differences
+4. `development.md` - local setup, common commands, and day-to-day workflow
 
-## Audience Guide
+## Quick Navigation
 
-- New to the project: start with `architecture.md`
-- Building backend features: read `architecture.md` + `domain-model.md`
-- Setting up environments: use `configuration.md`
-- Day-to-day coding: keep `development.md` as a reference
+- **Onboarding to the codebase**
+  - Start with `architecture.md`, then read `domain-model.md`
+- **Adding backend features**
+  - Keep `architecture.md` and `domain-model.md` open together
+- **Environment setup and deployment checks**
+  - Use `configuration.md`
+- **Daily implementation and testing**
+  - Use `development.md`
 
-## Scope Notes
+## Scope
 
-- These docs focus on backend Python/Django behavior.
-- Frontend-specific constraints live in `../FRONTEND_INSTRUCTIONS.md`.
+- These docs focus on backend Django behavior and operational concerns.
+- Frontend contribution constraints live in `../FRONTEND_INSTRUCTIONS.md`.

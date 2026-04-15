@@ -1,46 +1,50 @@
 # WebPlant
 
-WebPlant is a collaborative work management application built with Django. Users organize work in a hierarchy of workspaces, projects, groups, and tasks, with role-based permissions, notifications, and scheduled reminder emails.
+WebPlant is a Django-based collaboration app for organizing team work inside shared workspaces.  
+Each workspace contains projects, projects contain groups, and groups contain tasks with comments, files, reminders, and notifications.
 
-## What It Includes
+## Key Features
 
-- Multi-user workspaces with invite and membership workflows
-- Workspace-scoped role permissions for project/task actions
-- Project -> Group -> Task hierarchy with comments, attachments, and reminders
-- Notification system with email delivery controls and temporary mute windows
-- Optional Redis-backed background processing through Celery
+- Workspace membership model with invite flows and activation state
+- Workspace-scoped roles with granular permission booleans
+- Nested work structure: Workspace -> Project -> Group -> Task
+- Task collaboration: comments, attachments, completion status, due reminders
+- Notification pipeline for in-app records and outbound email
+- Optional Redis + Celery execution for asynchronous scheduled reminders
 
-## Backend Stack (High Level)
+## Tech Stack
 
-- Django 6 with a custom user model
-- PostgreSQL or SQLite (via `DATABASE_URL`)
-- django-allauth for authentication (including Google sign-in)
-- Celery + django-celery-beat for scheduled background jobs
-- Cloudinary for media storage and WhiteNoise for static files
+- Python + Django 6
+- Custom auth user model (`accounts.CustomUser`)
+- `django-allauth` (email/password + Google social login support)
+- PostgreSQL or SQLite (through `DATABASE_URL`)
+- Celery + `django-celery-beat` for reminder scheduling
+- Cloudinary storage for media files (or local filesystem fallback)
+- WhiteNoise for static asset serving
+- Sentry SDK for runtime error/performance reporting
 
 ## Quick Start
 
-1. Create and activate a Python virtual environment.
+1. Create and activate a virtual environment.
 2. Install dependencies:
    - `pip install -r requirements.txt`
-3. Set environment variables (see `docs/configuration.md`).
-4. Run migrations:
+3. Configure environment variables:
+   - see `docs/configuration.md`
+4. Run database migrations:
    - `python manage.py migrate`
-5. Create an admin account:
+5. Create an admin user:
    - `python manage.py createsuperuser`
-6. Start the development server:
+6. Start the web server:
    - `python manage.py runserver`
 
-If `REDIS_URL` is configured, you can also run Celery worker and beat processes (see `docs/development.md`).
+If `REDIS_URL` is set, start Celery worker/beat processes too (commands in `docs/development.md`).
 
 ## Documentation
 
-Backend-focused docs:
+- `docs/README.md`: documentation entry point and reading map
+- `docs/architecture.md`: runtime architecture and request/permission flow
+- `docs/domain-model.md`: model relationships and domain invariants
+- `docs/configuration.md`: required/optional environment variables and behavior
+- `docs/development.md`: local setup, commands, and development workflow
 
-- `docs/README.md`
-- `docs/architecture.md`
-- `docs/domain-model.md`
-- `docs/configuration.md`
-- `docs/development.md`
-
-Frontend contribution constraints are documented in `FRONTEND_INSTRUCTIONS.md`.
+Frontend-specific implementation constraints are documented in `FRONTEND_INSTRUCTIONS.md`.

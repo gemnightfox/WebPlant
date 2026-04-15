@@ -1,48 +1,67 @@
 # Domain Model
 
-## Core Concepts
+## Core Entities
 
-WebPlant models collaboration around workspaces and nested work items.
+WebPlant models collaboration through workspace-scoped membership and nested work objects.
 
-- A `CustomUser` represents an account.
-- A `Workspace` is the top-level collaboration boundary.
-- A `WorkspaceUser` links user membership to a workspace and role.
-- A `WorkspaceRole` defines permission booleans used for authorization.
-- A `Project` belongs to one workspace.
-- A `Group` belongs to one project and controls ordering with `position`.
-- A `Task` belongs to one group and also uses `position` ordering.
+- `CustomUser`: account identity (email-first auth, lowercase username normalization)
+- `UserPreference`: per-user UI/notification settings and timezone
+- `Workspace`: top-level collaboration boundary
+- `WorkspaceUser`: membership join model (user + workspace + role + active status)
+- `WorkspaceRole`: workspace-local permission booleans
+- `WorkspacePreference`: workspace feature toggles (for example custom role behavior)
+- `WorkspaceInviteCode`: invitation token (optional plaintext password)
+- `Project`: belongs to one workspace
+- `Group`: belongs to one project, ordered by `position`
+- `Task`: belongs to one group, ordered by `position`, optional deadline/completion state
+- `TaskComment`, `TaskAttachment`, `TaskReminder`: task collaboration artifacts
+- `Notification` and `NotificationDisabledDuration`: in-app communication and mute windows
+- `Feedback`: user-submitted feedback content
 
 ## Relationship Overview
 
 ```mermaid
 flowchart TD
-    CustomUser[CustomUser] --> WorkspaceUser[WorkspaceUser]
-    Workspace[Workspace] --> WorkspaceUser
-    WorkspaceUser --> WorkspaceRole[WorkspaceRole]
-    Workspace --> Project[Project]
-    Project --> Group[Group]
-    Group --> Task[Task]
-    Task --> TaskAttachment[TaskAttachment]
-    Task --> TaskComment[TaskComment]
-    Task --> TaskReminder[TaskReminder]
-    CustomUser --> Notification[NotificationReceiverOrSender]
+    User[CustomUser] --> UserPref[UserPreference]
+    Workspace --> WorkspaceUser
+    User --> WorkspaceUser
+    WorkspaceUser --> WorkspaceRole
+    Workspace --> WorkspacePref[WorkspacePreference]
+    Workspace --> InviteCode[WorkspaceInviteCode]
+    Workspace --> Project
+    Project --> Group
+    Group --> Task
+    Task --> TaskAttachment
+    Task --> TaskComment
+    Task --> TaskReminder
+    User --> Notification
+    User --> NotificationMute[NotificationDisabledDuration]
+    User --> Feedback
 ```
 
-## Collaboration and Access Model
+## Access and Authorization Model
 
-- Membership is represented by `WorkspaceUser`, not just by direct user references.
-- `Workspace.owner` points to a `WorkspaceUser`, making ownership workspace-scoped.
-- Role permissions are evaluated against booleans on `WorkspaceRole`.
-- Permissions are enforced in backend utility functions, with owner bypass support.
+- Access is membership-driven (`WorkspaceUser`) instead of direct foreign keys to `CustomUser`.
+- Membership uniqueness is enforced per `(workspace, user)`.
+- Ownership is workspace-scoped via `Workspace.owner -> WorkspaceUser`.
+- Roles are workspace-scoped and unique by `(workspace, role_name)`.
+- Permission checks evaluate booleans on `WorkspaceRole`, with owner-aware behavior in permission utilities.
 
-## Task and Communication Model
+## Ordering and Hierarchy Invariants
 
-- `TaskComment.added_by` references `WorkspaceUser`, preserving workspace context.
-- `TaskAttachment` uses Django file storage (Cloudinary-backed in this project).
-- `TaskReminder` drives scheduled reminder emails via Celery.
-- `Notification` stores in-app notification history independent of email delivery success.
+- Group order is unique per project via `(project, position)`.
+- Task order is unique per group via `(group, position)`.
+- Deleting parent entities cascades through nested children for project/group/task structures.
 
-## Notes Worth Knowing
+## Communication and Reminder Invariants
 
-- Group/task ordering is position-based (`FloatField`) with uniqueness per parent.
-- `WorkspaceInviteCode.password` is stored unhashed; treat it as sensitive and temporary.
+- `TaskComment.added_by` references `WorkspaceUser` so audit context stays workspace-specific.
+- `TaskReminder` links both a task and a target workspace member (`workspace_user`).
+- Notification muting uses one active duration row per user (`OneToOneField`).
+- Email delivery and in-app notification persistence are related but not identical operations.
+
+## Security and Data Notes
+
+- `WorkspaceInviteCode.password` is stored unhashed; treat as sensitive temporary data.
+- `CustomUser` enforces case-insensitive email uniqueness.
+- IDs are UUID primary keys across core domain models.

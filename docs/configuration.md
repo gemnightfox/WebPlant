@@ -2,46 +2,70 @@
 
 ## Runtime Modes
 
-- `DJANGO_DEBUG=True`: development behavior (console email backend, permissive env defaults)
-- `DJANGO_DEBUG=False`: production behavior (strict env requirements, security settings enabled)
+- `DJANGO_DEBUG=True`
+  - permissive local-development defaults
+  - console email backend
+  - missing env vars can fall back to defaults
+- `DJANGO_DEBUG=False`
+  - strict env loading (`custom_getenv` raises when values are missing)
+  - production security headers/settings are enabled
+  - online email backend is used
 
-The settings helper `get_env(...)` enforces required variables when debug is off.
+## Environment Variables
 
-## Core Environment Variables
+### Core
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `DJANGO_DEBUG` | Yes | Toggle debug/production behavior |
-| `DJANGO_SECRET_KEY` | Production: yes | Django secret key |
-| `ALLOWED_HOSTS` | Production: yes | Comma-separated allowed hosts |
-| `DATABASE_URL` | Recommended | Database DSN (SQLite fallback in debug) |
-| `URL_SECRET` | Optional | Adds secret suffix to admin/test error routes |
+| `DJANGO_DEBUG` | Yes | Enables debug or production behavior |
+| `DJANGO_SECRET_KEY` | Production: yes | Django signing/encryption key |
+| `ALLOWED_HOSTS` | Production: yes | Comma-separated host list |
+| `DATABASE_URL` | Recommended | Database DSN (debug fallback: `sqlite:///db.sqlite3`) |
+| `URL_SECRET` | Optional | Suffixes admin/error-test URLs for obscurity |
+| `SENTRY_DSN` | Recommended | Sentry telemetry destination |
+
+### Infrastructure and Async
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
 | `REDIS_URL` | Optional | Enables Redis cache + Celery broker/backend + ratelimit app |
-| `DEFAULT_FROM_EMAIL` | Recommended | Sender address for outbound email |
-| `RESEND_API_KEY` | Production: yes | Email provider key via Anymail |
-| `GOOGLE_CLIENT_ID` | If Google auth used | OAuth client ID |
-| `GOOGLE_SECRET` | If Google auth used | OAuth client secret |
-| `CLOUDINARY_URL` | Production: yes | Cloudinary API URL |
-| `SENTRY_DSN` | Recommended | Sentry error reporting DSN |
+| `CLOUDINARY_URL` | Optional (production-recommended) | Enables Cloudinary media storage backend |
+
+### Email and Auth
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DEFAULT_FROM_EMAIL` | Recommended | Sender used for outbound email |
+| `RESEND_API_KEY` | Production: yes | API key for Anymail Resend backend |
+| `GOOGLE_CLIENT_ID` | If Google login enabled | OAuth client ID |
+| `GOOGLE_SECRET` | If Google login enabled | OAuth client secret |
 
 ## Redis and Celery Behavior
 
-When `REDIS_URL` is set:
+When `REDIS_URL` is configured:
 
-- Redis cache backend is configured.
-- `django_ratelimit` is added to installed apps.
-- Celery broker and result backend use Redis.
+- default cache backend uses `django_redis`
+- `django_ratelimit` is added to `INSTALLED_APPS`
+- `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` use Redis
+- Celery worker and beat should run as separate processes
 
-When `REDIS_URL` is not set:
+When `REDIS_URL` is not configured:
 
-- Celery runs in eager mode (`CELERY_TASK_ALWAYS_EAGER=True`), useful for local development.
+- tasks run eagerly in-process (`CELERY_TASK_ALWAYS_EAGER=True`)
+- async behavior is still testable locally without external infrastructure
 
-## Email and Auth Notes
+## Email Backend Behavior
 
-- Debug uses console email backend.
-- Production uses `anymail.backends.resend.EmailBackend`.
-- `django-allauth` is enabled for account flows and Google social auth.
+- Debug mode: `django.core.mail.backends.console.EmailBackend`
+- Production mode: `anymail.backends.resend.EmailBackend`
+- Email delivery depends on user/workspace notification preferences and mute windows
 
-## Security Defaults in Production
+## Production Security Defaults
 
-With `DJANGO_DEBUG=False`, settings enable SSL redirect, secure cookies, HSTS, and related hardening options.
+With `DJANGO_DEBUG=False`, settings enable:
+
+- HTTPS redirect (`SECURE_SSL_REDIRECT`)
+- secure session and CSRF cookies
+- HSTS with preload/subdomain support
+- secure proxy SSL header
+- clickjacking/content-type hardening
