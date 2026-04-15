@@ -1,34 +1,21 @@
 from pathlib import Path
-import os
 import sentry_sdk
 from dotenv import load_dotenv
 import dj_database_url
 import cloudinary
+from base_utils import custom_getenv
 from django.core.management.utils import get_random_secret_key
 
 load_dotenv()
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
-
-
-
-def get_env(env_var: str, default=None):
-    if DEBUG:
-        return os.getenv(env_var, default)
-    else:
-        result = os.getenv(env_var)
-        if not result:
-            raise EnvironmentError(f'{env_var} was not found within the given environment variables.')
-        return result
-
-
+DEBUG = custom_getenv('DJANGO_DEBUG') == 'True'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Note: If no environment variable is given, the key is randomized every restart
 # User is logged out every time + a message saying: 'Session data corrupted'
-SECRET_KEY = get_env('DJANGO_SECRET_KEY', get_random_secret_key())
+SECRET_KEY = custom_getenv('DJANGO_SECRET_KEY', get_random_secret_key())
 
-ALLOWED_HOSTS = get_env('ALLOWED_HOSTS', '').split(',') # Env variable 'ALLOWED_HOSTS' format: 'example1.com,example2.com'
+ALLOWED_HOSTS = custom_getenv('ALLOWED_HOSTS', '').split(',') # Env variable 'ALLOWED_HOSTS' format: 'example1.com,example2.com'
 if DEBUG:
     ALLOWED_HOSTS += ['127.0.0.1', 'localhost']
 
@@ -62,7 +49,7 @@ INSTALLED_APPS = [
     'task',
 ]
 
-REDIS_URL = get_env('REDIS_URL')
+REDIS_URL = custom_getenv('REDIS_URL')
 if REDIS_URL:
     INSTALLED_APPS += ['django_ratelimit'] # Error thrown out without a valid REDIS_URL (no dummy cache allowed either)
 
@@ -135,7 +122,7 @@ WSGI_APPLICATION = 'WebPlant.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=get_env('DATABASE_URL', 'sqlite:///db.sqlite3'),
+        default=custom_getenv('DATABASE_URL', 'sqlite:///db.sqlite3'),
         conn_max_age=600,
         conn_health_checks=True,
         ssl_require=not DEBUG,
@@ -153,9 +140,9 @@ else:
     EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend' # Actual emails are sent online
 
 ANYMAIL = {
-    'RESEND_API_KEY': get_env('RESEND_API_KEY'),
+    'RESEND_API_KEY': custom_getenv('RESEND_API_KEY'),
 }
-DEFAULT_FROM_EMAIL = get_env('DEFAULT_FROM_EMAIL', default='email@example.com')
+DEFAULT_FROM_EMAIL = custom_getenv('DEFAULT_FROM_EMAIL', default='email@example.com')
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -200,8 +187,8 @@ ACCOUNT_ADAPTER = 'accounts.adapters.CustomAllauthAccountAdapter'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': get_env('GOOGLE_CLIENT_ID'),
-            'secret': get_env('GOOGLE_SECRET'),
+            'client_id': custom_getenv('GOOGLE_CLIENT_ID'),
+            'secret': custom_getenv('GOOGLE_SECRET'),
         }
     }
 }
@@ -215,7 +202,7 @@ USE_I18N = True
 USE_TZ = True
 
 sentry_sdk.init(
-    dsn=get_env('SENTRY_DSN'),
+    dsn=custom_getenv('SENTRY_DSN'),
     traces_sample_rate=1,
     profiles_sample_rate=1,
     send_default_pii=True,
@@ -229,12 +216,17 @@ LOGIN_URL = '/account/login/'
 LOGIN_REDIRECT_URL = '/account/'
 LOGOUT_REDIRECT_URL = '/account/login/'
 
-CLOUDINARY_URL = get_env('CLOUDINARY_URL')
+CLOUDINARY_URL = custom_getenv('CLOUDINARY_URL')
 if CLOUDINARY_URL:
     cloudinary.config(
         cloudinary_url=CLOUDINARY_URL,
         secure=True,
     )
+    CLOUDINARY_STORAGE = {
+        'PREFIX': 'WebPlant',
+        'RESOURCE_TYPE': 'raw',
+        'TYPE': 'private',
+    }
 
 STORAGES = {
     'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},

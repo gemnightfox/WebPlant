@@ -3,10 +3,12 @@ from group.utils import get_group
 from django.http import JsonResponse
 from .forms import CreateNewForm, EditForm, AddAttachmentForm, AddCommentForm, EditCommentForm, AddReminderForm
 from .models import TaskAttachment, TaskComment, TaskReminder
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from workspace.utils import get_workspace_user, verify_workspace_role
 from django.views.decorators.http import require_POST
 from base_utils import reusable_form_submission
+import cloudinary
+import time
 from django.contrib.auth.decorators import login_required
 
 
@@ -76,11 +78,27 @@ def add_attachment(request, task_id):
 @require_POST
 def delete_attachment(request, task_attachment_id):
     task_attachment = get_object_or_404(TaskAttachment, id=task_attachment_id)
-    task = get_task(request, task_attachment.task.id)
+    task = get_task(request, task_attachment.task.id) # Used for verification as well
     my_workspace_user = get_workspace_user(request.user, workspace=task.group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_task_attachments')
     task_attachment.delete()
     return JsonResponse({'status': 'success'})
+
+
+
+@login_required
+@require_POST
+def attachment_media(request, task_attachment_id):
+    task_attachment = get_object_or_404(TaskAttachment, id=task_attachment_id)
+    get_task(request, task_attachment.task.id) # Used for verification purposes (user is inside workspace)
+
+    file_name = task_attachment.file.name
+    url = cloudinary.utils.private_download_url(
+        file_name,
+        format=file_name.split('.')[-1], # This returns 'png', 'exe', etc...
+        expires_at=int(time.time()) + 3600, # 1 hour
+    )
+    return redirect(url)
 
 
 

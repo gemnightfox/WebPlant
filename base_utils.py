@@ -1,5 +1,18 @@
 from django.http import JsonResponse
+import os
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+
+
+def custom_getenv(env_var: str, default=None):
+    DEBUG = os.getenv('DJANGO_DEBUG') == 'True'
+    if DEBUG:
+        return os.getenv(env_var, default)
+    else:
+        result = os.getenv(env_var)
+        if not result:
+            raise EnvironmentError(f'{env_var} was not found within the given environment variables.')
+        return result
 
 
 

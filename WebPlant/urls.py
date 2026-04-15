@@ -1,11 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include
-from .settings import get_env
+from base_utils import custom_getenv
+from django.conf import settings
+from django.conf.urls.static import static
 
 def trigger_error(request):
     return 1/0
 
-URL_SECRET = get_env('URL_SECRET') # Prevents users visiting a private URL (eg. /admin/ becomes /admin/shhhh-secret-value/)
+URL_SECRET = custom_getenv('URL_SECRET') # Prevents users visiting a private URL (eg. /admin/ becomes /admin/shhhh-secret-value/)
 
 urlpatterns = [
     path(f'admin/{URL_SECRET}/' if URL_SECRET else 'admin/', admin.site.urls),
@@ -21,6 +23,10 @@ urlpatterns = [
     path('task/', include('task.urls')),
 ]
 
+
+
+if settings.DEBUG and settings.CLOUDINARY_URL:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 
