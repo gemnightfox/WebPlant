@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'anymail',
     'django_celery_beat',
     'cloudinary',
+    'cloudinary_storage',
 
     'home',
     'feedback',
@@ -236,7 +237,7 @@ if CLOUDINARY_URL:
     )
 
 STORAGES = {
-    'default': {'BACKEND': 'cloudinary.storage.MediaCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},
+    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
 }
 
@@ -246,7 +247,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 
 
 
