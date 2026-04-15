@@ -306,8 +306,8 @@ body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
   font-size: 17px;
   position: relative;
   display: inline-block;
-  width: 3.5em;
-  height: 2em;
+  width: 56px;
+  height: 32px;
 }
 
 .AccSettings-notificationChooser .switch--notifications input,
@@ -341,11 +341,11 @@ body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
 .AccSettings-workspaceInvitesChooser .switch--notifications .slider:before {
   position: absolute;
   content: "";
-  height: 1.4em;
-  width: 1.4em;
+  height: 22.4px;
+  width: 22.4px;
   border-radius: 20px;
-  left: 0.27em;
-  bottom: 0.25em;
+  left: 4.32px;
+  bottom: 4px;
   background-color: #fff;
   box-shadow: none;
   transition: 0.4s;
@@ -364,7 +364,7 @@ body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
 
 .AccSettings-notificationChooser .switch--notifications input:checked + .slider:before,
 .AccSettings-workspaceInvitesChooser .switch--notifications input:checked + .slider:before {
-  transform: translateX(1.4em);
+  transform: translateX(22.4px);
   background-color: #fff;
   box-shadow: none;
 }
@@ -374,8 +374,8 @@ body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
   font-size: 17px;
   position: relative;
   display: inline-block;
-  width: 3.5em;
-  height: 2em;
+  width: 56px;
+  height: 32px;
 }
 
 /* Hide default HTML checkbox */
@@ -402,8 +402,8 @@ body.theme-light #temp-disable-popup #AccSettings-tempDisableDuration {
 .slider:before {
   position: absolute;
   content: "";
-  height: 1.4em;
-  width: 1.4em;
+  height: 22.4px;
+  width: 22.4px;
   border-radius: 50%;
   left: 10%;
   bottom: 15%;
@@ -665,15 +665,15 @@ a.AccSettings-accountAction--link {
   .AccSettings-notificationChooser .switch--notifications,
   .AccSettings-workspaceInvitesChooser .switch--notifications {
     font-size: 15px;
-    width: 3em;
-    height: 1.7em;
+    width: 48px;
+    height: 27.2px;
   }
 
   .slider:before,
   .AccSettings-notificationChooser .switch--notifications .slider:before,
   .AccSettings-workspaceInvitesChooser .switch--notifications .slider:before {
-    height: 1.2em;
-    width: 1.2em;
+    height: 19.2px;
+    width: 19.2px;
   }
 
 }
@@ -695,10 +695,10 @@ a.AccSettings-accountAction--link {
   }
 
   /* Recalculate checked translate so circle doesn't touch the right edge:
-     translateX = switch-width(3em) - circle(1.2em) - left-gap(0.27em) - right-gap(0.27em) = 1.26em */
+     translateX = switch-width(48px) - circle(19.2px) - left-gap(4.32px) - right-gap(4.32px) = 20.16px */
   .AccSettings-notificationChooser .switch--notifications input:checked + .slider:before,
   .AccSettings-workspaceInvitesChooser .switch--notifications input:checked + .slider:before {
-    transform: translateX(1.26em);
+    transform: translateX(20.16px);
   }
 }
 

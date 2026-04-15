@@ -64,7 +64,7 @@ button.Account-back {
 
 .Account-input--code {
   font-size: 18px;
-  letter-spacing: 0.12em;
+  letter-spacing: 1.92px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -82,7 +82,7 @@ button.Account-back {
   padding: 9px 10px;
   text-align: center;
   font-size: 16px;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.32px;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
@@ -105,7 +105,7 @@ button.Account-back {
 .Account-input--codeSingle {
   display: none;
   font-size: 16px;
-  letter-spacing: 0.08em;
+  letter-spacing: 1.28px;
   font-variant-numeric: tabular-nums;
   text-transform: uppercase;
 }

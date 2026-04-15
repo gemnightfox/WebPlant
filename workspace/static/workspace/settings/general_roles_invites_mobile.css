@@ -34,7 +34,7 @@
 
 .WsSettings-inviteCodeCard { flex-direction: column; align-items: stretch; gap: 0; }
 .WsSettings-inviteCodeCardRow { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-.WsSettings-inviteCode { font-family: 'Courier New', Courier, monospace; font-size: 14.4px; letter-spacing: 0.06em; font-weight: 600; }
+.WsSettings-inviteCode { font-family: 'Courier New', Courier, monospace; font-size: 14.4px; letter-spacing: 0.96px; font-weight: 600; }
 .WsSettings-showPwBtn {
   background: rgba(127, 127, 127, 0.14); border: 1px solid rgba(127, 127, 127, 0.28);
   padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500;
@@ -48,7 +48,7 @@
 .WsSettings-showPwBtn.is-showing .WsSettings-showPwIcon--open { display: none; }
 .WsSettings-pwRevealValue {
   font-family: 'Courier New', Courier, monospace; font-size: 16px; font-weight: 600;
-  letter-spacing: 0.06em; color: var(--color); margin: 0; word-break: break-all;
+  letter-spacing: 0.96px; color: var(--color); margin: 0; word-break: break-all;
 }
 .WsSettings-pwRevealInline {
   margin-top: 8px; padding: 10px 12px; background: rgba(30, 144, 255, 0.08);

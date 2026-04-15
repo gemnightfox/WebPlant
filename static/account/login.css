@@ -20,7 +20,7 @@
   line-height: 1.35;
   color: var(--color);
   opacity: 0.72;
-  min-height: 1.35em;
+  min-height: 21.6px;
 }
 
 .Account-checkbox-label {
