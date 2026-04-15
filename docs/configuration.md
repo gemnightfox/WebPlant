@@ -17,7 +17,7 @@
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `DJANGO_DEBUG` | Yes | Enables debug or production behavior |
+| `DJANGO_DEBUG` | Only in DEBUG, do NOT use in production | Enables debug or production behavior |
 | `DJANGO_SECRET_KEY` | Production: yes | Django signing/encryption key |
 | `ALLOWED_HOSTS` | Production: yes | Comma-separated host list |
 | `DATABASE_URL` | Recommended | Database DSN (debug fallback: `sqlite:///db.sqlite3`) |

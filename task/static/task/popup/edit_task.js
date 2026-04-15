@@ -503,15 +503,7 @@
       var minute = hmp ? parseInt(hmp[2], 10) : 59;
       var ms = localDateTimeToUtcMs(y, mo, da, hour, minute, tz);
       if (isNaN(ms)) ms = startOfDayInTz(y, mo, da, tz);
-      displayText.textContent = new Intl.DateTimeFormat(undefined, {
-        timeZone: tz,
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      }).format(new Date(ms));
+      displayText.textContent = formatTaskPopupDateTime(ms, tz);
       displayRow.removeAttribute("hidden");
     } else {
       displayRow.setAttribute("hidden", "");
@@ -632,20 +624,45 @@
     if (editTaskForm) editTaskForm.requestSubmit();
   }
 
+  function getYearInTz(ms, tz) {
+    var parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      year: "numeric",
+    }).formatToParts(new Date(ms));
+    var yearPart = parts.find(function (p) {
+      return p.type === "year";
+    });
+    return yearPart ? parseInt(yearPart.value, 10) : NaN;
+  }
+
+  function formatTaskPopupDateTime(ms, tz) {
+    if (isNaN(ms)) return "";
+    var isCurrentYear = getYearInTz(ms, tz) === getYearInTz(Date.now(), tz);
+    var dateOptions = {
+      timeZone: tz,
+      day: "numeric",
+      month: "short",
+    };
+    if (!isCurrentYear) dateOptions.year = "numeric";
+    var dateFormatter = new Intl.DateTimeFormat("en-GB", dateOptions);
+    var timeText = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+      .format(new Date(ms))
+      .replace(/\s+/g, "")
+      .toLowerCase();
+    return dateFormatter.format(new Date(ms)) + ", " + timeText;
+  }
+
   function formatReminderDisplay(isoStr) {
     if (!isoStr) return "";
     var ms = new Date(isoStr).getTime();
     if (isNaN(ms)) return isoStr;
     var tz = getEffectiveTaskTz();
-    return new Intl.DateTimeFormat(undefined, {
-      timeZone: tz,
-      day: "numeric",
-      month: "short",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }).format(new Date(ms));
+    return formatTaskPopupDateTime(ms, tz);
   }
 
   function setReminderTimeValue(timeStr) {
@@ -922,6 +939,26 @@
     });
   }
 
+  function getAttachmentUrlFromUploadResponse(data, file) {
+    if (data && typeof data.url === "string" && data.url) return data.url;
+    if (data && typeof data.file_url === "string" && data.file_url) return data.file_url;
+    if (data && typeof data.attachment_url === "string" && data.attachment_url) return data.attachment_url;
+    if (
+      data &&
+      data.attachment &&
+      typeof data.attachment.url === "string" &&
+      data.attachment.url
+    ) {
+      return data.attachment.url;
+    }
+    try {
+      if (file && typeof URL !== "undefined" && typeof URL.createObjectURL === "function") {
+        return URL.createObjectURL(file);
+      }
+    } catch (e) {}
+    return "";
+  }
+
   var ATTACHMENT_MAX_SIZE = 100 * 1024 * 1024; // 100 MB
 
   function uploadAttachmentFile(file) {
@@ -969,10 +1006,11 @@
           console.log("[edit-task][attachments] Upload success:", data);
           setAttachmentUploadProgress(100);
           var all = getTaskAttachments(currentTaskId);
+          var attachmentUrl = getAttachmentUrlFromUploadResponse(data, file);
           all.push({
             id: String(data.new_object_id),
             name: file.name,
-            url: "",
+            url: attachmentUrl,
             delete_url: "/task/attachment/delete/" + String(data.new_object_id) + "/",
           });
           updateTaskAttachments(currentTaskId, all);

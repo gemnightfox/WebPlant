@@ -25,7 +25,7 @@ urlpatterns = [
 
 
 
-if settings.DEBUG and settings.CLOUDINARY_URL:
+if not settings.CLOUDINARY_URL:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
