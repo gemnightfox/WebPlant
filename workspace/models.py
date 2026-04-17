@@ -1,6 +1,9 @@
 from django.db import models
 from django.conf import settings
 import uuid
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 
 
 
@@ -86,6 +89,31 @@ class WorkspaceRole(models.Model):
             models.UniqueConstraint(fields=['workspace', 'name'], name='unique_workspace_role'),
         ]
 
+
+
+# Stores the whole history for all projects/groups/tasks in the specified workspace
+class WorkspaceLog(models.Model):
+    class ChangeTypeChoices(models.TextChoices):
+        CREATE = 'create', 'Create'
+        EDIT = 'edit', 'Edit'
+        DELETE = 'delete', 'Delete'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE)
+    workspace_user = models.ForeignKey('workspace.WorkspaceUser', on_delete=models.SET_NULL, null=True)
+    change_type = models.CharField(max_length=10, choices=ChangeTypeChoices.choices)
+    changes = models.JSONField(default=dict)
+
+    # References to either Project/Group/Task app models
+    content_type = models.ForeignKey(ContentType, on_delete=models.DO_NOTHING, limit_choices_to={'app_label__in': ['project', 'group', 'task']})
+    object_id =  models.UUIDField(null=True) # This is not the PK of WorkspaceLog model (PK of referenced obj)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.workspace_user and self.workspace != self.workspace_user.workspace:
+            raise ValidationError('Workspace and workspace_user.workspace must be the same during creation')
+        super().save(*args, **kwargs)
 
 
 

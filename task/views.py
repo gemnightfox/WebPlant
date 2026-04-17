@@ -19,7 +19,7 @@ def create_new(request, group_id):
     group = get_group(request, group_id)
     my_workspace_user = get_workspace_user(request.user, workspace=group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
-    return reusable_form_submission(request, CreateNewForm, group=group)
+    return reusable_form_submission(request, CreateNewForm, group=group, my_workspace_user=my_workspace_user)
 
 
 
@@ -39,7 +39,7 @@ def delete(request, task_id):
     task = get_task(request, task_id)
     my_workspace_user = get_workspace_user(request.user, workspace=task.group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
-    task.delete()
+    task.delete(workspace_user=my_workspace_user)
     return JsonResponse({'status': 'success'})
 
 
@@ -59,7 +59,7 @@ def duplicate(request, task_id, position):
     task.id = None
     task.name = new_name
     task.position = new_position
-    task.save()
+    task.save(workspace_user=my_workspace_user)
     return JsonResponse({'status': 'success'})
 
 
@@ -166,6 +166,7 @@ def delete_reminder(request, task_reminder_id):
 
     task_reminder.delete()
     return JsonResponse({'status': 'success'})
+
 
 
 

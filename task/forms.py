@@ -9,16 +9,17 @@ class CreateNewForm(forms.ModelForm):
         model = Task
         fields = ['name', 'position']
     
-    def __init__(self, *args, group, **kwargs):
+    def __init__(self, *args, group, my_workspace_user, **kwargs):
         super().__init__(*args, **kwargs)
         self.group = group
+        self.my_workspace_user = my_workspace_user
     
     def save(self, commit=True):
         instance = super().save(commit=False)
         instance.group = self.group
 
         if commit:
-            instance.save()
+            instance.save(workspace_user=self.my_workspace_user)
         return instance
 
 
@@ -39,6 +40,12 @@ class EditForm(forms.ModelForm):
         if old_deadline != new_deadline:
             verify_workspace_role(self.my_workspace_user, 'can_edit_task_deadline')
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save(workspace_user=self.my_workspace_user)
+        return instance
 
 
 

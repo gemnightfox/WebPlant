@@ -16,7 +16,7 @@ def create_new(request, project_id):
     project = get_project(request, project_id)
     my_workspace_user = get_workspace_user(request.user, workspace=project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_groups')
-    return reusable_form_submission(request, CreateNewForm, project=project)
+    return reusable_form_submission(request, CreateNewForm, project=project, my_workspace_user=my_workspace_user)
 
 
 
@@ -26,7 +26,7 @@ def edit(request, group_id):
     group = get_group(request, group_id)
     my_workspace_user = get_workspace_user(request.user, workspace=group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_groups')
-    return reusable_form_submission(request, EditForm, instance=group)
+    return reusable_form_submission(request, EditForm, instance=group, my_workspace_user=my_workspace_user)
 
 
 
@@ -36,7 +36,7 @@ def delete(request, group_id):
     group = get_group(request, group_id)
     my_workspace_user = get_workspace_user(request.user, workspace=group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_groups')
-    group.delete()
+    group.delete(workspace_user=my_workspace_user)
     return JsonResponse({'status': 'success'})
 
 
@@ -58,12 +58,12 @@ def duplicate(request, group_id, position):
     group.id = None
     group.name = new_name
     group.position = new_position
-    group.save()
+    group.save(workspace_user=my_workspace_user)
 
     for task in tasks:
         task.id = None
         task.group = group
-        task.save()
+        task.save(workspace_user=my_workspace_user)
     return JsonResponse({'status': 'success'})
 
 

@@ -49,7 +49,8 @@ class CustomUser(AbstractUser):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(Lower('email'), name='unique_email_ci')
+            models.UniqueConstraint(Lower('email'), name='unique_email_ci'),
+            models.UniqueConstraint(Lower('username'), name='unique_username_ci'),
         ]
 
     def save(self, *args, **kwargs):
