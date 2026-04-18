@@ -4,6 +4,7 @@ import uuid
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 
@@ -103,7 +104,7 @@ class WorkspaceLog(models.Model):
     workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE)
     workspace_user = models.ForeignKey('workspace.WorkspaceUser', on_delete=models.SET_NULL, null=True)
     change_type = models.CharField(max_length=10, choices=ChangeTypeChoices.choices)
-    changes = models.JSONField(default=dict)
+    changes = models.JSONField(default=dict, encoder=DjangoJSONEncoder)
 
     # References to either Project/Group/Task app models
     content_type = models.ForeignKey(ContentType, on_delete=models.DO_NOTHING, limit_choices_to={'app_label__in': ['project', 'group', 'task']})

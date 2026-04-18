@@ -1,8 +1,8 @@
-from .utils import get_task
+from .utils import get_task, duplicate_task_only
 from group.utils import get_group
 from django.http import JsonResponse
 from .forms import CreateNewForm, EditForm, AddAttachmentForm, AddCommentForm, EditCommentForm, AddReminderForm
-from .models import TaskAttachment, TaskComment, TaskReminder
+from .models import Task, TaskAttachment, TaskComment, TaskReminder
 from django.shortcuts import get_object_or_404, redirect
 from workspace.utils import get_workspace_user, verify_workspace_role
 from django.views.decorators.http import require_POST
@@ -51,15 +51,9 @@ def duplicate(request, task_id, position):
     my_workspace_user = get_workspace_user(request.user, workspace=task.group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
 
-    name_max_length = task._meta.get_field('name').max_length
-    new_name = f'(copy) {task.name}'
-    new_name = new_name[:name_max_length] # Ensures max_length is not exceeded
+    task = Task.objects.prefetch_related('attachments').get(id=task.id) # Sole purpose is to avoid N+1 queries (found inside task.utils.duplicate_task_only task attachments for loop)
     new_position = float(position)
-
-    task.id = None
-    task.name = new_name
-    task.position = new_position
-    task.save(workspace_user=my_workspace_user)
+    duplicate_task_only(task, my_workspace_user=my_workspace_user, position_changed_to=new_position, is_name_changed=True)
     return JsonResponse({'status': 'success'})
 
 

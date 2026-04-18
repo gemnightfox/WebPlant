@@ -1,8 +1,10 @@
 from project.utils import get_project
 from task.models import Task
+from task.utils import duplicate_task_only
 from .forms import CreateNewForm, EditForm
 from django.http import JsonResponse
-from .utils import get_group
+from .utils import get_group, duplicate_group_only
+from django.db import transaction
 from workspace.utils import get_workspace_user, verify_workspace_role
 from django.views.decorators.http import require_POST
 from base_utils import reusable_form_submission
@@ -49,21 +51,14 @@ def duplicate(request, group_id, position):
     verify_workspace_role(my_workspace_user, 'can_edit_groups')
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
 
-    name_max_length = group._meta.get_field('name').max_length
-    new_name = f'(copy) {group.name}'
-    new_name = new_name[:name_max_length] # Ensures max_length is not exceeded
-    new_position = float(position)
+    new_group_position = float(position)
+    with transaction.atomic():
+        tasks = Task.objects.prefetch_related('tasks__attachments').filter(group=group)
+        new_group = duplicate_group_only(group, my_workspace_user=my_workspace_user, position_changed_to=new_group_position, is_name_changed=True)
 
-    tasks = Task.objects.filter(group=group)
-    group.id = None
-    group.name = new_name
-    group.position = new_position
-    group.save(workspace_user=my_workspace_user)
+        for task in tasks:
+            duplicate_task_only(task, my_workspace_user=my_workspace_user, group_changed_to=new_group)
 
-    for task in tasks:
-        task.id = None
-        task.group = group
-        task.save(workspace_user=my_workspace_user)
     return JsonResponse({'status': 'success'})
 
 

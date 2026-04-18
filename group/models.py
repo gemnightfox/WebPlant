@@ -23,12 +23,12 @@ class Group(models.Model):
         ]
 
     def save(self, workspace_user=None, *args, **kwargs): # Avoid setting workspace_user=None during .save()
-        if self._state.adding:
-            old_object = None
-        else:
-            old_object = get_object_or_404(Group, id=self.id)
-
         with transaction.atomic():
+            if self._state.adding:
+                old_object = None
+            else:
+                old_object = get_object_or_404(Group, id=self.id)
+
             save_changes_to_model_logs(new_object=self, workspace_user=workspace_user, old_object=old_object, IGNORED_FIELDS=['position'])
             super().save(*args, **kwargs)
 
@@ -36,7 +36,7 @@ class Group(models.Model):
         with transaction.atomic():
             if workspace_user:
                 changes = model_to_dict(self)
-                changes['id'] = self.id
+                changes['id'] = str(self.id)
                 WorkspaceLog.objects.create(
                     workspace=workspace_user.workspace,
                     workspace_user=workspace_user,
@@ -48,6 +48,7 @@ class Group(models.Model):
             workspace_logs = WorkspaceLog.objects.filter(content_object=self)
             workspace_logs.update(object_id=None) # Deletes reference to object, while keeping reference to model (content_type)
             super().delete(*args, **kwargs)
+
 
 
 

@@ -11,4 +11,19 @@ def get_project(request, project_id):
 
 
 
+def duplicate_project_only(project, my_workspace_user, is_name_changed=False): # Doesn't bring over groups/tasks inside (done by other functions)
+    project.id = None
+
+    if is_name_changed:
+        name_max_length = project._meta.get_field('name').max_length
+        new_name = f'(copy) {project.name}'
+        new_name = new_name[:name_max_length] # Ensures max_length is not exceeded
+        project.name = new_name
+
+    project.save(workspace_user=my_workspace_user)
+    return project
+
+
+
+
 

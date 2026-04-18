@@ -1,6 +1,9 @@
 from django.http import JsonResponse
 import os
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+import uuid
+from django.forms.models import model_to_dict
+from django.db.models import Model
 
 
 
@@ -37,6 +40,8 @@ class CustomTokenGenerator(PasswordResetTokenGenerator):
 
     def _make_hash_value(self, user, timestamp):
         return f'{self.purpose}___{timestamp}__{user.id}__{user.email}'
+
+
 
 
 

@@ -83,3 +83,10 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Keep the pending-invites close button pinned and clickable above invite rows. */
+#pending-invites-popup .Popup-close--invites {
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+}

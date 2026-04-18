@@ -1,9 +1,12 @@
-from .utils import get_project
+from .utils import get_project, duplicate_project_only
+from group.utils import duplicate_group_only
+from task.utils import duplicate_task_only
 from .forms import CreateNewForm, EditNameForm
 from django.views.decorators.http import require_POST
 from base_utils import reusable_form_submission
 from workspace.utils import get_workspace, get_workspace_user, verify_workspace_role
 from .models import Project
+from django.db import transaction
 from group.models import Group
 from task.models import Task
 from django.http import JsonResponse
@@ -60,25 +63,17 @@ def duplicate(request, project_id):
     verify_workspace_role(my_workspace_user, 'can_edit_groups')
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
 
-    groups = Group.objects.filter(project=project)
-    name_max_length = project._meta.get_field('name').max_length
-    new_name = f'(copy) {project.name}'
-    new_name = new_name[:name_max_length] # Ensures max_length is not exceeded
+    groups = Group.objects.prefetch_related('tasks__attachments').filter(project=project)
+    with transaction.atomic():
+        new_project = duplicate_project_only(project, my_workspace_user=my_workspace_user, is_name_changed=True)
 
-    project.id = None
-    project.name = new_name
-    project.save(workspace_user=my_workspace_user)
+        for group in groups:
+            new_group = duplicate_group_only(group, my_workspace_user=my_workspace_user, project_changed_to=new_project)
 
-    for group in groups:
-        tasks = Task.objects.filter(group=group)
-        group.id = None
-        group.project = project
-        group.save(workspace_user=my_workspace_user)
-        
-        for task in tasks:
-            task.id = None
-            task.group = group
-            task.save(workspace_user=my_workspace_user)
+            for task in group.tasks.all():
+                duplicate_task_only(task, my_workspace_user=my_workspace_user, group_changed_to=new_group)
+
     return JsonResponse({'status': 'success'})
+
 
 

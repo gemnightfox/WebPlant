@@ -98,7 +98,7 @@ def save_changes_to_model_logs(new_object, workspace_user, old_object=None, IGNO
 
     if new_object._state.adding:
         changes = model_to_dict(new_object)
-        changes['id'] = new_object.id
+        changes['id'] = str(new_object.id)
         WorkspaceLog.objects.create(
             workspace=workspace_user.workspace,
             workspace_user=workspace_user,
@@ -109,7 +109,7 @@ def save_changes_to_model_logs(new_object, workspace_user, old_object=None, IGNO
 
     else:
         changes = get_fields_being_edited(new_object=new_object, old_object=old_object) # Returns a dictionary
-        changes['id'] = new_object.id
+        changes['id'] = str(new_object.id)
         if IGNORED_FIELDS:
             for field in IGNORED_FIELDS:
                 changes.pop(field, None)
