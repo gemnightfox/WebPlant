@@ -21,6 +21,10 @@ body.Base-body--feedback {
   padding: 20px 20px 18px 20px;
 }
 
+.Feedback-card--success {
+  text-align: center;
+}
+
 .Feedback-cardTitle {
   font-size: 18.4px;
   font-weight: 600;
@@ -136,6 +140,47 @@ body.Base-body--feedback {
   margin: 0 0 16px;
   color: var(--color);
   opacity: 0.9;
+}
+
+.Feedback-successIcon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 10px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.16);
+  border: 1px solid rgba(22, 163, 74, 0.35);
+}
+
+.Feedback-successIcon svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+}
+
+.Feedback-successBadge {
+  display: inline-block;
+  margin: 0 0 8px 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #15803d;
+  background: rgba(22, 163, 74, 0.16);
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.theme-light .Feedback-successIcon {
+  background: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.28);
+}
+
+.theme-light .Feedback-successBadge {
+  background: rgba(22, 163, 74, 0.12);
 }
 
 @media (max-width: 640px) {

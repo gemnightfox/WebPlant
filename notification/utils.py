@@ -2,6 +2,7 @@ from django_ratelimit.core import is_ratelimited
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
+from django.conf import settings
 from django.urls import reverse
 from .models import Notification, NotificationDisabledDuration
 from django.http import Http404
@@ -12,9 +13,9 @@ from base_utils import CustomTokenGenerator
 
 
 
-def can_send_notifications(user):
+def can_receive_notifications(user):
     user_preferences = get_user_preferences(user)
-    if not user_preferences.can_send_notifications:
+    if not user_preferences.can_receive_notifications:
         return False # Immediately stop checks (already confirmed that user does not allow emails)
 
     try:
@@ -24,13 +25,15 @@ def can_send_notifications(user):
 
     if disabled_duration.ends_at < timezone.now():
         disabled_duration.delete() # Deletes object if ends_at is expired (in the past)
-        return False
+        return True
     else:
-        return True # Means that the disabled duration is still active
+        return False # Means that the disabled duration is still active
 
 
 
-def send_email(receiver, sender, content, save_to_db=True): # Don't save to DB for things that requires email verification (eg. account deletion) -> If not, users can access the link given (token used) in sidebar notifications popup, and skip email verification
+# Don't save to DB for things that requires email verification (eg. account deletion) -> If not, users can access the link given (token used) in sidebar notifications popup, and skip email verification
+# Note: request might be given as None (request=None) for non-views (eg. CRON jobs)
+def send_email(request, receiver, sender, content, save_to_db=True):
     if save_to_db:
         Notification.objects.create(
             receiver=receiver,
@@ -39,7 +42,7 @@ def send_email(receiver, sender, content, save_to_db=True): # Don't save to DB f
             )
 
     is_short_limited = is_ratelimited(
-        request=None,
+        request=None, # request not needed here + might not be present
         group='send_email',
         key=lambda _, __: receiver.email,
         rate='10/10m',
@@ -54,11 +57,11 @@ def send_email(receiver, sender, content, save_to_db=True): # Don't save to DB f
         increment=True,
     )
 
-    if can_send_notifications(receiver) and not is_short_limited and not is_long_limited:
+    if can_receive_notifications(receiver) and not is_short_limited and not is_long_limited:
         if receiver == sender:
-            message = content + generate_temporary_disable_notifications_link(receiver)
+            message = content + generate_temporary_disable_notifications_link(request, receiver)
         else:
-            message = f'From: {sender.username}\n' + content + generate_temporary_disable_notifications_link(receiver)
+            message = f'From: {sender.username}\n' + content + generate_temporary_disable_notifications_link(request, receiver)
         send_mail(
             subject='WebPlant',
             message=message,
@@ -69,15 +72,20 @@ def send_email(receiver, sender, content, save_to_db=True): # Don't save to DB f
 
 
 
-def generate_temporary_disable_notifications_link(receiver):
+def generate_temporary_disable_notifications_link(request, receiver):
     token_generator = CustomTokenGenerator(purpose='disable-notifications')
     token = token_generator.make_token(receiver)
-    path = reverse('notification:temp_disable', kwargs={
+    link = reverse('notification:temp_disable', kwargs={
         'user_id': receiver.id,
         'token': token,
     })
-    DOMAIN_NAME = 'webplant.org'
-    link = f'{DOMAIN_NAME}{path}' # Can't use request.build_absolute_uri cause "request" is not always available (eg. celery task)
+
+    if request:
+        link = request.build_absolute_uri(link)
+    else:
+        scheme = 'http' if settings.DEBUG else 'https'
+        link = f'{scheme}://{settings.MAIN_DOMAIN_NAME}{link}'
+
     return f'\n\n\nClick the link below if you would like to temporarily disable notifications:\n{link}'
 
 
@@ -87,7 +95,7 @@ def get_temp_disabled_duration(request):
 
     try:
         duration = int(duration)
-    except ValueError:
+    except:
         raise Http404('Duration given is not an integer')
 
     if not 1 <= duration <= 100:

@@ -22,6 +22,9 @@
     if (wsInput && wsInput.value) {
       try { localStorage.setItem("base_open_workspace", wsInput.value); } catch (_) {}
     }
+    if (window.WebPlantSidebarProjectSync && typeof window.WebPlantSidebarProjectSync.notifyProjectListChanged === "function") {
+      window.WebPlantSidebarProjectSync.notifyProjectListChanged("create");
+    }
   }
 
   function init() {

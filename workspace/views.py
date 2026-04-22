@@ -7,7 +7,7 @@ from notification.utils import send_email
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from .utils import get_workspace, get_workspace_user, get_workspace_preference, verify_workspace_role, get_workspace_role, get_lowest_level_workspace_role
+from .utils import get_workspace_or_404, get_workspace_user_or_404, get_workspace_preference, verify_workspace_role, get_workspace_role, get_lowest_level_workspace_role
 from base_utils import reusable_form_submission
 
 
@@ -22,8 +22,8 @@ def create_new(request):
 @login_required
 @require_POST
 def transfer_ownership(request, workspace_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     if my_workspace_user != workspace.owner:
         raise Http404('Current user is not the owner of the specified workspace.')
     return reusable_form_submission(request, TransferOwnershipForm, instance=workspace, my_workspace_user=my_workspace_user)
@@ -33,8 +33,8 @@ def transfer_ownership(request, workspace_id):
 @login_required
 @require_POST
 def set_preference(request, workspace_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     workspace_preference = get_workspace_preference(workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_preference')
     return reusable_form_submission(request, SetPreferenceForm, instance=workspace_preference)
@@ -44,8 +44,8 @@ def set_preference(request, workspace_id):
 @login_required
 @require_POST
 def change_default_role(request, workspace_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_assign_roles_to_workspace_users')
     return reusable_form_submission(request, ChangeDefaultRoleForm, instance=workspace)
 
@@ -92,22 +92,13 @@ def reject_invite(request, workspace_id):
 
 @login_required
 def settings(request, workspace_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
-
-    all_workspace_users = WorkspaceUser.objects.filter(workspace=workspace)
-    all_workspace_roles = WorkspaceRole.objects.filter(workspace=workspace)
-
-    workspace_preference = get_workspace_preference(workspace)
+    workspace = Workspace.objects.prefetch_related('workspace_user', 'invite_codes', 'preferences', 'roles').get(id=workspace_id)
+    get_workspace_or_404(my_user=request.user, workspace_id=workspace.id) # Verification purposes
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
 
     return render(request, 'workspace/settings/index.html', {
         'workspace': workspace,
         'my_workspace_user': my_workspace_user,
-
-        'all_workspace_users': all_workspace_users,
-        'all_workspace_roles': all_workspace_roles,
-
-        'workspace_preference': workspace_preference,
         })
 
 
@@ -115,8 +106,8 @@ def settings(request, workspace_id):
 @login_required
 @require_POST
 def edit_name(request, workspace_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_name')
     return reusable_form_submission(request, EditNameForm, instance=workspace)
 
@@ -125,23 +116,23 @@ def edit_name(request, workspace_id):
 @login_required
 @require_POST
 def add_users(request, workspace_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_add_workspace_users')
     can_assign_roles_to_workspace_users = my_workspace_user.role.can_assign_roles_to_workspace_users
-    return reusable_form_submission(request, AddUsersForm, workspace=workspace, my_user=request.user, can_assign_roles_to_workspace_users=can_assign_roles_to_workspace_users)
+    return reusable_form_submission(request, AddUsersForm, form_request=request, workspace=workspace, my_user=request.user, can_assign_roles_to_workspace_users=can_assign_roles_to_workspace_users)
 
 
 
 @login_required
 @require_POST
 def assign_role_to_user(request, workspace_id, user_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_assign_roles_to_workspace_users')
 
     user = get_object_or_404(get_user_model(), id=user_id)
-    workspace_user = get_workspace_user(user, workspace, allow_false_is_active=True)
+    workspace_user = get_workspace_user_or_404(user, workspace, allow_false_is_active=True)
 
     return reusable_form_submission(request, AssignRoleToUserForm, instance=workspace_user)
 
@@ -150,17 +141,17 @@ def assign_role_to_user(request, workspace_id, user_id):
 @login_required
 @require_POST
 def remove_user(request, workspace_id, user_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
 
     user = get_object_or_404(get_user_model(), id=user_id)
-    workspace_user = get_workspace_user(user, workspace, allow_false_is_active=True)
+    workspace_user = get_workspace_user_or_404(user, workspace, allow_false_is_active=True)
 
     # Can safely delete the workspace if there is only ONE user inside
     if WorkspaceUser.objects.filter(workspace=workspace, is_active=True).count() == 1:
         workspace.delete()
         content = f'You have left workspace: {workspace.name}'
-        send_email(receiver=user, sender=request.user, content=content)
+        send_email(request, receiver=user, sender=request.user, content=content)
         return JsonResponse({'status': 'success'})
 
     elif workspace_user == workspace.owner:
@@ -177,7 +168,7 @@ def remove_user(request, workspace_id, user_id):
         else:
             content = f'You have been removed from the workspace: {workspace.name}'
 
-        send_email(receiver=user, sender=request.user, content=content)
+        send_email(request, receiver=user, sender=request.user, content=content)
     return JsonResponse({'status': 'success'})
 
 
@@ -216,8 +207,8 @@ def join_using_invite_code(request):
 @login_required
 @require_POST
 def add_invite_code(request, workspace_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_invite_codes')
     return reusable_form_submission(request, AddInviteCodeForm, workspace=workspace)
 
@@ -226,8 +217,8 @@ def add_invite_code(request, workspace_id):
 @login_required
 @require_POST
 def edit_invite_code_password(request, workspace_id, workspace_invite_code_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_invite_codes')
     workspace_invite_code = WorkspaceInviteCode(id=workspace_invite_code_id, workspace=workspace)
     return reusable_form_submission(request, EditInviteCodePasswordForm, instance=workspace_invite_code)
@@ -237,8 +228,8 @@ def edit_invite_code_password(request, workspace_id, workspace_invite_code_id):
 @login_required
 @require_POST
 def delete_invite_code(request, workspace_id, workspace_invite_code_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_invite_codes')
     workspace_invite_code = WorkspaceInviteCode(id=workspace_invite_code_id, workspace=workspace)
     workspace_invite_code.delete()
@@ -249,8 +240,8 @@ def delete_invite_code(request, workspace_id, workspace_invite_code_id):
 @login_required
 @require_POST
 def create_role(request, workspace_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_roles')
     return reusable_form_submission(request, CreateRoleForm, workspace=workspace)
 
@@ -259,8 +250,8 @@ def create_role(request, workspace_id):
 @login_required
 @require_POST
 def edit_role(request, workspace_id, workspace_role_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_roles')
     
     workspace_role = get_workspace_role(workspace, workspace_role_id)
@@ -271,8 +262,8 @@ def edit_role(request, workspace_id, workspace_role_id):
 @login_required
 @require_POST
 def delete_role(request, workspace_id, workspace_role_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_roles')
     
     workspace_role = get_workspace_role(workspace, workspace_role_id)
@@ -292,8 +283,8 @@ def delete_role(request, workspace_id, workspace_role_id):
 @login_required
 @require_POST
 def transfer_role(request, workspace_id, old_workspace_role_id, new_workspace_role_id):
-    workspace = get_workspace(request, workspace_id)
-    my_workspace_user = get_workspace_user(request.user, workspace)
+    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
+    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_assign_roles_to_workspace_users')
     
     old_workspace_role = get_workspace_role(workspace, old_workspace_role_id)

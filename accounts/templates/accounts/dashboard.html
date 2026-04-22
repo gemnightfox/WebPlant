@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="AccSettings" data-notification-alert-allowed="{{ user_preferences.can_send_notifications|yesno:'true,false' }}" data-set-preferences-url="{% url 'accounts:set_preferences' %}">
+<div class="AccSettings" data-notification-alert-allowed="{{ user_preferences.can_receive_notifications|yesno:'true,false' }}" data-set-preferences-url="{% url 'accounts:set_preferences' %}">
   <header class="AccSettings-header">
     <span class="AccSettings-email" title="{{ user.email }}">{{ user.email }}</span>
     <div class="AccSettings-headerActions">
@@ -67,8 +67,8 @@
               <input
                 type="checkbox"
                 class="AccSettings-notificationsToggle"
-                data-initial-allowed="{{ user_preferences.can_send_notifications|yesno:'true,false' }}"
-                {% if user_preferences.can_send_notifications %}checked{% endif %}
+                data-initial-allowed="{{ user_preferences.can_receive_notifications|yesno:'true,false' }}"
+                {% if user_preferences.can_receive_notifications %}checked{% endif %}
               >
               <span class="slider"></span>
             </label>

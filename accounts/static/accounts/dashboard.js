@@ -354,14 +354,14 @@
     }
   }
 
-  function postPreferences(colorTheme, sendNotifications, workspaceInvites) {
+  function postPreferences(colorTheme, receiveNotifications, workspaceInvites) {
     var url = settingsRoot ? settingsRoot.getAttribute('data-set-preferences-url') : '';
     if (!url) return Promise.reject('No URL');
     var csrf = document.querySelector('[name=csrfmiddlewaretoken]');
     var token = csrf ? csrf.value : '';
     var params = new URLSearchParams();
     params.append('color_theme', colorTheme);
-    if (sendNotifications) params.append('can_send_notifications', 'on');
+    if (receiveNotifications) params.append('can_receive_notifications', 'on');
     if (workspaceInvites) params.append('allows_workspace_invites', 'on');
     params.append('timezone', getCurrentTimezone());
     return fetch(url, {
@@ -380,9 +380,9 @@
   if (themeToggle) {
     themeToggle.addEventListener('change', function() {
       var colorTheme = this.checked ? 'dark' : 'light';
-      var sendNotifs = notificationsToggle ? notificationsToggle.checked : notificationsAllowed;
+      var receiveNotifs = notificationsToggle ? notificationsToggle.checked : notificationsAllowed;
       var wsInvites = workspaceInvitesToggle ? workspaceInvitesToggle.checked : true;
-      postPreferences(colorTheme, sendNotifs, wsInvites).then(function(r) {
+      postPreferences(colorTheme, receiveNotifs, wsInvites).then(function(r) {
         if (r.ok) setTheme(colorTheme);
       });
     });
@@ -392,11 +392,11 @@
   if (workspaceInvitesToggle) {
     workspaceInvitesToggle.addEventListener('change', function() {
       var colorTheme = themeToggle ? (themeToggle.checked ? 'dark' : 'light') : 'dark';
-      var sendNotifs = notificationsToggle ? notificationsToggle.checked : notificationsAllowed;
+      var receiveNotifs = notificationsToggle ? notificationsToggle.checked : notificationsAllowed;
       var wsInvites = this.checked;
       var current = this;
       current.disabled = true;
-      postPreferences(colorTheme, sendNotifs, wsInvites).then(function(r) {
+      postPreferences(colorTheme, receiveNotifs, wsInvites).then(function(r) {
         current.disabled = false;
         if (!r.ok) {
           current.checked = !current.checked;
@@ -410,7 +410,7 @@
     });
   }
 
-  /* Email notifications toggle: POST all preferences with updated can_send_notifications */
+  /* Email notifications toggle: POST all preferences with updated can_receive_notifications */
   if (notificationsToggle) {
     var initialAllowed = notificationsToggle.getAttribute('data-initial-allowed');
     if (initialAllowed === 'true') {
@@ -421,11 +421,11 @@
 
     notificationsToggle.addEventListener('change', function() {
       var colorTheme = themeToggle ? (themeToggle.checked ? 'dark' : 'light') : 'dark';
-      var sendNotifs = this.checked;
+      var receiveNotifs = this.checked;
       var wsInvites = workspaceInvitesToggle ? workspaceInvitesToggle.checked : true;
       var current = this;
       current.disabled = true;
-      postPreferences(colorTheme, sendNotifs, wsInvites).then(function(r) {
+      postPreferences(colorTheme, receiveNotifs, wsInvites).then(function(r) {
         current.disabled = false;
         if (r.ok) {
           notificationsAllowed = current.checked;
@@ -495,13 +495,13 @@
 
     saveTimezoneBtn.addEventListener('click', function() {
       var colorTheme = themeToggle ? (themeToggle.checked ? 'dark' : 'light') : 'dark';
-      var sendNotifs = notificationsToggle ? notificationsToggle.checked : notificationsAllowed;
+      var receiveNotifs = notificationsToggle ? notificationsToggle.checked : notificationsAllowed;
       var wsInvites = workspaceInvitesToggle ? workspaceInvitesToggle.checked : true;
       var selectedTimezone = timezonePopupSelect.value || '';
       saveTimezoneBtn.disabled = true;
       var previousTimezone = getCurrentTimezone();
       setCurrentTimezone(selectedTimezone);
-      postPreferences(colorTheme, sendNotifs, wsInvites)
+      postPreferences(colorTheme, receiveNotifs, wsInvites)
         .then(function(r) {
           saveTimezoneBtn.disabled = false;
           if (r.ok) {

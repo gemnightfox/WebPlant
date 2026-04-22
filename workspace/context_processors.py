@@ -7,7 +7,7 @@ def workspaces(request):
         return {}
 
     workspaces = Workspace.objects.filter(users=request.user, workspace_user__is_active=True)
-    workspaces = workspaces.prefetch_related('projects', 'workspace_user') # Prevents N+1 problem
+    workspaces = workspaces.prefetch_related('projects') # Prevents N+1 problem
     return {'workspaces': workspaces}
 
 

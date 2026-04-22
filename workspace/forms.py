@@ -39,6 +39,7 @@ class CreateNewForm(forms.ModelForm):
                     can_edit_task_attachments=True,
                     can_add_task_comments=True,
                     can_edit_task_deadline=True,
+                    can_assign_tasks_to_users=True,
                 )
 
                 editor_role = WorkspaceRole.objects.create(
@@ -57,6 +58,7 @@ class CreateNewForm(forms.ModelForm):
                     can_edit_task_attachments=True,
                     can_add_task_comments=True,
                     can_edit_task_deadline=True,
+                    can_assign_tasks_to_users=True,
                 )
 
                 WorkspaceRole.objects.create(
@@ -75,6 +77,7 @@ class CreateNewForm(forms.ModelForm):
                     can_edit_task_attachments=False,
                     can_add_task_comments=False,
                     can_edit_task_deadline=False,
+                    can_assign_tasks_to_users=False,
                 )
 
                 # Creates a WorkspaceUser object for request.user (current user)
@@ -136,8 +139,9 @@ class AddUsersForm(forms.ModelForm):
         model = WorkspaceUser
         fields = ['role']
 
-    def __init__(self, *args, workspace, my_user, can_assign_roles_to_workspace_users, **kwargs):
+    def __init__(self, *args, form_request, workspace, my_user, can_assign_roles_to_workspace_users, **kwargs):
         super().__init__(*args, **kwargs)
+        self.form_request = form_request
         self.workspace = workspace
         self.my_user = my_user
         self.can_assign_roles_to_workspace_users = can_assign_roles_to_workspace_users
@@ -175,7 +179,7 @@ class AddUsersForm(forms.ModelForm):
                     user=self.user, # Defined in clean()
                     role=role,
                 )
-                send_email(receiver=self.user, sender=self.my_user, content=f'You have been invited to workspace: {self.workspace.name}')
+                send_email(self.form_request, receiver=self.user, sender=self.my_user, content=f'You have been invited to workspace: {self.workspace.name}')
                 return new_object
 
 

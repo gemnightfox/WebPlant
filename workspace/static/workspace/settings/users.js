@@ -45,11 +45,22 @@
     errorEl.removeAttribute('hidden');
   }
 
+  function showAddUserValidationError(errorEl, message) {
+    if (!errorEl) return;
+    errorEl.textContent = message;
+    errorEl.removeAttribute('hidden');
+  }
+
+  function hasInvalidUsernameChars(username) {
+    return /[@.]/.test(username || '');
+  }
+
   var form = document.getElementById('ws-add-user-form');
   if (form) {
     var inviteRow = document.getElementById('ws-invite-row');
     var inviteToggleBtn = document.getElementById('ws-show-invite-row');
-    var usernameInput = document.getElementById('id_add_user_username');
+    var usernameInput = document.getElementById('id_add_user_username')
+      || form.querySelector('input[name="username"]');
 
     if (inviteToggleBtn && inviteRow) {
       inviteToggleBtn.addEventListener('click', function() {
@@ -79,12 +90,27 @@
       e.preventDefault();
       var url = form.getAttribute('data-url-base');
       var errorEl = form.querySelector('[data-role="add-user-error"]');
-      var username = usernameInput ? usernameInput.value : '';
+      var formData = new FormData(form);
+      var rawUsername = formData.get('username');
+      var username = typeof rawUsername === 'string' ? rawUsername.trim() : '';
       if (errorEl) errorEl.setAttribute('hidden', '');
+
+      if (hasInvalidUsernameChars(username)) {
+        e.stopImmediatePropagation();
+        showAddUserValidationError(
+          errorEl,
+          'Invite using username only. Usernames cannot contain @ or .'
+        );
+        return;
+      }
+
+      formData.set('username', username);
+      if (usernameInput) usernameInput.value = username;
+
       fetch(url, {
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken },
-        body: new FormData(form)
+        body: formData
       }).then(function(r) {
         if (!r.ok) {
           showAddUserError(errorEl, username);

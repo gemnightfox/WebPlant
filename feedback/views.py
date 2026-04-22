@@ -10,7 +10,7 @@ def dashboard(request):
         form = FeedbackForm(request.POST, current_user=request.user)
         if form.is_valid():
             form.save()
-            return redirect('feedback:dashboard')
+            return redirect('feedback:success')
     else:
         form = FeedbackForm(current_user=request.user)
     return render(request, 'feedback/index.html', {'form': form})
@@ -19,6 +19,6 @@ def dashboard(request):
 
 @login_required
 def success(request):
-    return render(request, '') # TO BE CHANGED
+    return render(request, 'feedback/success.html')
 
 

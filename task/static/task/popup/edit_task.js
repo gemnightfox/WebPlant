@@ -452,6 +452,16 @@
     return !!(dash && dash.getAttribute("data-can-edit-task-attachments") === "true");
   }
 
+  function canAssignTasksToUsers() {
+    var dash = document.querySelector(".Dashboard[data-dashboard-path]");
+    return !!(dash && dash.getAttribute("data-can-assign-tasks-to-users") === "true");
+  }
+
+  function canAddTaskComments() {
+    var dash = document.querySelector(".Dashboard[data-dashboard-path]");
+    return !!(dash && dash.getAttribute("data-can-add-task-comments") === "true");
+  }
+
   function applyEditTaskDeadlinePermission() {
     var can = canEditTaskDeadline();
     var addBtn = document.getElementById("edit-task-add-deadline-btn");
@@ -780,6 +790,221 @@
     if (picker) picker.setAttribute("hidden", "");
   }
 
+  function showAssigneeError() {
+    var el = document.querySelector('[data-role="edit-task-assignee-error"]');
+    if (el) el.removeAttribute("hidden");
+  }
+
+  function hideAssigneeError() {
+    var el = document.querySelector('[data-role="edit-task-assignee-error"]');
+    if (el) el.setAttribute("hidden", "");
+  }
+
+  function getTaskAssignments(taskId) {
+    var scriptEl = document.getElementById("assignments-" + taskId);
+    if (!scriptEl) return [];
+    try {
+      return JSON.parse(scriptEl.textContent) || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function updateTaskAssignments(taskId, assignments) {
+    var scriptEl = document.getElementById("assignments-" + taskId);
+    if (scriptEl) scriptEl.textContent = JSON.stringify(assignments);
+  }
+
+  function getWorkspaceUsers() {
+    var scriptEl = document.getElementById("workspace-users-data");
+    if (!scriptEl) return [];
+    try {
+      var users = JSON.parse(scriptEl.textContent) || [];
+      return users.filter(function (u) { return !!u && u.is_active !== false; });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function getAddAssigneeUrl() {
+    var card = getCurrentCard();
+    return card ? (card.getAttribute("data-task-add-assigned-url") || "") : "";
+  }
+
+  function syncDashboardAssigneeBadge(taskId) {
+    var card = document.querySelector('.Dashboard-task[data-task-id="' + taskId + '"]');
+    if (!card) return;
+    var body = card.querySelector(".Dashboard-taskBody");
+    if (!body) return;
+    var count = getTaskAssignments(taskId).length;
+    var countEl = card.querySelector(".Dashboard-assigneeCount");
+    var assigneeSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>';
+    if (count <= 0) {
+      if (countEl) countEl.remove();
+      return;
+    }
+    if (!countEl) {
+      countEl = document.createElement("span");
+      countEl.className = "Dashboard-assigneeCount";
+      body.appendChild(countEl);
+    }
+    countEl.innerHTML = assigneeSvg + " " + count;
+  }
+
+  function applyAssigneePermission() {
+    var canAssign = canAssignTasksToUsers();
+    var toggleBtn = document.getElementById("edit-task-assignees-toggle");
+    var addRow = document.querySelector("#edit-task-assignees-body .TaskAssignees-addRow");
+    var select = document.getElementById("edit-task-assignee-select");
+    var addBtn = document.getElementById("edit-task-add-assignee-btn");
+    if (toggleBtn) {
+      if (canAssign) {
+        toggleBtn.classList.remove("Popup-panelRow--noAccess");
+        toggleBtn.removeAttribute("aria-disabled");
+      } else {
+        toggleBtn.classList.add("Popup-panelRow--noAccess");
+        toggleBtn.setAttribute("aria-disabled", "true");
+      }
+    }
+    if (addRow) {
+      if (canAssign) addRow.removeAttribute("hidden");
+      else addRow.setAttribute("hidden", "");
+    }
+    if (select) select.disabled = !canAssign;
+    if (addBtn) addBtn.disabled = !canAssign || addBtn.disabled;
+  }
+
+  function renderAssignees(taskId) {
+    var list = document.getElementById("edit-task-assignees-list");
+    var select = document.getElementById("edit-task-assignee-select");
+    var addBtn = document.getElementById("edit-task-add-assignee-btn");
+    if (!list || !select || !addBtn || !taskId) return;
+    var canAssign = canAssignTasksToUsers();
+
+    var assignments = getTaskAssignments(taskId);
+    list.innerHTML = "";
+    if (assignments.length === 0) {
+      var emptyLi = document.createElement("li");
+      emptyLi.className = "TaskAssignee";
+      var emptyText = document.createElement("span");
+      emptyText.className = "TaskAssignee-text";
+      emptyText.textContent = "No assignees yet.";
+      emptyLi.appendChild(emptyText);
+      list.appendChild(emptyLi);
+    } else {
+      assignments.forEach(function (assignment) {
+        var li = document.createElement("li");
+        li.className = "TaskAssignee";
+
+        var textEl = document.createElement("span");
+        textEl.className = "TaskAssignee-text";
+        textEl.textContent = assignment.assigned_to || "Unknown user";
+        li.appendChild(textEl);
+
+        if (canAssign) {
+          var removeBtn = document.createElement("button");
+          removeBtn.type = "button";
+          removeBtn.className = "Popup-deadlineRemoveBtn";
+          removeBtn.setAttribute("aria-label", "Remove assignee");
+          removeBtn.innerHTML = "&times;";
+          removeBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (!confirm("Remove this assignee?")) return;
+            fetch(assignment.delete_url, {
+              method: "POST",
+              headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": getCsrfToken(),
+              },
+            })
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                if (data && data.status === "success") {
+                  var all = getTaskAssignments(taskId).filter(function (x) {
+                    return String(x.id) !== String(assignment.id);
+                  });
+                  updateTaskAssignments(taskId, all);
+                  renderAssignees(taskId);
+                } else {
+                  showAssigneeError();
+                }
+              })
+              .catch(showAssigneeError);
+          });
+          li.appendChild(removeBtn);
+        }
+
+        list.appendChild(li);
+      });
+    }
+
+    var assignedUserIds = {};
+    assignments.forEach(function (a) {
+      assignedUserIds[String(a.assigned_to_id)] = true;
+    });
+    var availableUsers = getWorkspaceUsers().filter(function (u) {
+      return !assignedUserIds[String(u.id)];
+    });
+
+    select.innerHTML = "";
+    var placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = availableUsers.length ? "Select a user" : "No users available";
+    select.appendChild(placeholder);
+    availableUsers.forEach(function (u) {
+      var opt = document.createElement("option");
+      opt.value = String(u.id);
+      opt.textContent = u.username || "Unknown user";
+      select.appendChild(opt);
+    });
+    select.value = "";
+    addBtn.disabled = !canAssign || availableUsers.length === 0;
+    select.disabled = !canAssign || availableUsers.length === 0;
+    applyAssigneePermission();
+    syncDashboardAssigneeBadge(taskId);
+  }
+
+  function addSelectedAssignee() {
+    if (!canAssignTasksToUsers()) return;
+    if (!currentTaskId) return;
+    var select = document.getElementById("edit-task-assignee-select");
+    if (!select || !select.value) return;
+    hideAssigneeError();
+
+    var addUrl = getAddAssigneeUrl();
+    if (!addUrl) return;
+
+    var selectedUserId = String(select.value);
+    var selectedOption = select.options[select.selectedIndex];
+    var selectedUsername = selectedOption ? selectedOption.textContent : "";
+    var formData = new FormData();
+    formData.append("csrfmiddlewaretoken", getCsrfToken());
+    formData.append("assigned_to", selectedUserId);
+
+    fetch(addUrl, {
+      method: "POST",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      body: formData,
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && data.status === "success" && data.new_object_id != null) {
+          var all = getTaskAssignments(currentTaskId);
+          all.push({
+            id: String(data.new_object_id),
+            assigned_to_id: selectedUserId,
+            assigned_to: selectedUsername,
+            delete_url: "/task/assigned/delete/" + String(data.new_object_id) + "/",
+          });
+          updateTaskAssignments(currentTaskId, all);
+          renderAssignees(currentTaskId);
+        } else {
+          showAssigneeError();
+        }
+      })
+      .catch(showAssigneeError);
+  }
+
   // ── Reminder notifications ───────────────────────────────────────────────────
 
 
@@ -806,6 +1031,25 @@
     if (scriptEl) scriptEl.textContent = JSON.stringify(attachments);
   }
 
+  function openAttachmentMedia(mediaUrl) {
+    if (!mediaUrl) return;
+    var form = document.createElement("form");
+    form.method = "POST";
+    form.action = mediaUrl;
+    form.target = "_blank";
+    form.style.display = "none";
+
+    var csrfInput = document.createElement("input");
+    csrfInput.type = "hidden";
+    csrfInput.name = "csrfmiddlewaretoken";
+    csrfInput.value = getCsrfToken();
+    form.appendChild(csrfInput);
+
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+  }
+
   function renderAttachments(taskId) {
     var list = document.getElementById("edit-task-attachments-list");
     if (!list) return;
@@ -828,7 +1072,13 @@
       link.rel = "noopener noreferrer";
       var rawAttachmentName = attachment.name || "Attachment";
       link.textContent = rawAttachmentName.replace(/^media\//i, "");
-      if (attachment.url) link.href = attachment.url;
+      link.href = attachment.url || "#";
+      if (attachment.media_url) {
+        link.addEventListener("click", function (e) {
+          e.preventDefault();
+          openAttachmentMedia(attachment.media_url);
+        });
+      }
 
       li.appendChild(link);
 
@@ -1048,6 +1298,19 @@
   function hideCommentError() {
     var el = document.querySelector('[data-role="edit-task-comment-error"]');
     if (el) el.setAttribute('hidden', '');
+  }
+
+  function applyCommentPermission() {
+    var canAdd = canAddTaskComments();
+    var addRow = document.querySelector("#edit-task-comments-body .TaskComment-addRow");
+    var addBtn = document.getElementById("edit-task-add-comment-btn");
+    var inputEl = document.getElementById("edit-task-comment-input");
+    if (addRow) {
+      if (canAdd) addRow.removeAttribute("hidden");
+      else addRow.setAttribute("hidden", "");
+    }
+    if (addBtn) addBtn.disabled = !canAdd;
+    if (inputEl) inputEl.disabled = !canAdd;
   }
 
   function getTaskComments(taskId) {
@@ -1328,6 +1591,7 @@
     if (commentInput) commentInput.value = "";
     hideCommentError();
     renderComments(currentTaskId);
+    applyCommentPermission();
     renderAttachments(currentTaskId);
     var commentsBody = document.getElementById("edit-task-comments-body");
     var commentsToggle = document.getElementById("edit-task-comments-toggle");
@@ -1340,6 +1604,16 @@
       attachmentsToggle.setAttribute("aria-expanded", "true");
       attachmentsToggle.classList.add("is-open");
     }
+    var assigneesBody = document.getElementById("edit-task-assignees-body");
+    var assigneesToggle = document.getElementById("edit-task-assignees-toggle");
+    if (assigneesBody) assigneesBody.setAttribute("hidden", "");
+    if (assigneesToggle) {
+      assigneesToggle.setAttribute("aria-expanded", "false");
+      assigneesToggle.classList.remove("is-open");
+    }
+    renderAssignees(currentTaskId);
+    applyAssigneePermission();
+    hideAssigneeError();
     hideAttachmentError();
     var attachmentInput = document.getElementById("edit-task-attachment-input");
     if (attachmentInput) attachmentInput.value = "";
@@ -1521,6 +1795,38 @@
       });
     }
 
+    var assigneesToggle = document.getElementById("edit-task-assignees-toggle");
+    var assigneesBody = document.getElementById("edit-task-assignees-body");
+    if (assigneesToggle && assigneesBody) {
+      assigneesToggle.addEventListener("click", function () {
+        var hidden = assigneesBody.hasAttribute("hidden");
+        if (hidden) {
+          assigneesBody.removeAttribute("hidden");
+          assigneesToggle.setAttribute("aria-expanded", "true");
+          assigneesToggle.classList.add("is-open");
+          renderAssignees(currentTaskId);
+        } else {
+          assigneesBody.setAttribute("hidden", "");
+          assigneesToggle.setAttribute("aria-expanded", "false");
+          assigneesToggle.classList.remove("is-open");
+        }
+      });
+    }
+    var addAssigneeBtn = document.getElementById("edit-task-add-assignee-btn");
+    if (addAssigneeBtn) {
+      addAssigneeBtn.addEventListener("click", addSelectedAssignee);
+    }
+    var assigneeSelect = document.getElementById("edit-task-assignee-select");
+    if (assigneeSelect) {
+      assigneeSelect.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addSelectedAssignee();
+        }
+      });
+    }
+    applyAssigneePermission();
+
     // Reminder calendar navigation and day selection
     document.body.addEventListener("click", function (e) {
       var navBtn = e.target.closest("[data-reminder-cal-dir]");
@@ -1674,18 +1980,21 @@
     if (commentInputEl) {
       bindAutoResize(commentInputEl);
       commentInputEl.addEventListener("keydown", function (e) {
+        if (!canAddTaskComments()) return;
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           if (addCommentBtn) addCommentBtn.click();
         }
       });
     }
+    applyCommentPermission();
 
     // Auto-resize task name edit textarea
     var taskNameTextarea = document.getElementById("id_edit_task_name");
     if (taskNameTextarea) bindAutoResize(taskNameTextarea);
     if (addCommentBtn) {
       addCommentBtn.addEventListener("click", function () {
+        if (!canAddTaskComments()) return;
         var content = commentInputEl ? commentInputEl.value.trim() : "";
         if (!content || !currentTaskId) return;
         hideCommentError();
@@ -1969,6 +2278,40 @@
 
     window.addEventListener("user-timezone-changed", syncEditTaskSettingsTimezoneLabel);
     syncEditTaskSettingsTimezoneLabel();
+
+    window.addEventListener("webplant-task-data-updated", function (e) {
+      var detail = e && e.detail ? e.detail : null;
+      var updatedTaskId = detail && detail.taskId ? String(detail.taskId) : "";
+      if (!updatedTaskId || !currentTaskId || String(currentTaskId) !== updatedTaskId) return;
+
+      var popup = document.getElementById("edit-task-popup");
+      if (!popup || popup.hasAttribute("hidden")) return;
+
+      var card = getCurrentCard();
+      if (card) {
+        populateDeadline(card.getAttribute("data-task-deadline") || "");
+        var form = document.getElementById("edit-task-form");
+        if (form && !form.classList.contains("is-editing-name")) {
+          var latestName = card.getAttribute("data-task-name") || "";
+          var displayEl = document.getElementById("edit-task-name-display");
+          var nameInput = document.getElementById("id_edit_task_name");
+          if (displayEl) displayEl.textContent = latestName;
+          if (nameInput) {
+            nameInput.value = latestName;
+            nameInput.defaultValue = latestName;
+          }
+        }
+      }
+
+      renderComments(currentTaskId);
+      renderAttachments(currentTaskId);
+      renderAssignees(currentTaskId);
+      renderReminders(currentTaskId);
+      applyCommentPermission();
+      applyAssigneePermission();
+      applyEditTaskDeadlinePermission();
+      updateDeadlineBtn();
+    });
 
     tryRestoreEditTaskPopup(prepare);
   }

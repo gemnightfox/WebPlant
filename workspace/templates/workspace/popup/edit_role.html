@@ -25,6 +25,7 @@
             <label class="WsSettings-toggle"><input type="checkbox" name="can_edit_projects" {% if role.can_edit_projects %}checked{% endif %}><span class="WsSettings-toggleLabel">Can edit projects</span></label>
             <label class="WsSettings-toggle"><input type="checkbox" name="can_edit_groups" {% if role.can_edit_groups %}checked{% endif %}><span class="WsSettings-toggleLabel">Can edit groups</span></label>
             <label class="WsSettings-toggle"><input type="checkbox" name="can_edit_tasks" {% if role.can_edit_tasks %}checked{% endif %}><span class="WsSettings-toggleLabel">Can edit tasks</span></label>
+            <label class="WsSettings-toggle"><input type="checkbox" name="can_assign_tasks_to_users" {% if role.can_assign_tasks_to_users %}checked{% endif %}><span class="WsSettings-toggleLabel">Can assign tasks to users</span></label>
             <label class="WsSettings-toggle"><input type="checkbox" name="can_add_task_comments" {% if role.can_add_task_comments %}checked{% endif %}><span class="WsSettings-toggleLabel">Can add comments</span></label>
             <label class="WsSettings-toggle"><input type="checkbox" name="can_edit_task_deadline" {% if role.can_edit_task_deadline %}checked{% endif %}><span class="WsSettings-toggleLabel">Can edit task deadline</span></label>
           </div>

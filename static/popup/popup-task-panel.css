@@ -145,3 +145,59 @@ a.TaskAttachment-link:hover {
   font-size: 12px;
   color: var(--muted-color);
 }
+
+.TaskAssignees {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.TaskAssignees-body[hidden] {
+  display: none;
+}
+
+.TaskAssignees-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.TaskAssignee {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 6px 8px 16px;
+  gap: 6px;
+  border-radius: 6px;
+}
+
+.TaskAssignee:hover {
+  background: rgba(30, 144, 255, 0.1);
+}
+
+.TaskAssignee-text {
+  font-size: 13px;
+  color: var(--color);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.TaskAssignees-addRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.TaskAssignees-select {
+  flex: 1;
+}
+
+.TaskAssignees-addBtn {
+  padding: 7px 12px;
+}

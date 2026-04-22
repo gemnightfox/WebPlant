@@ -11,7 +11,7 @@
 {% include 'task/popup/add_task.html' %}
 {% include 'task/popup/edit_task.html' %}
 
-<div class="Dashboard{% if project.groups.all %} Dashboard--hasGroups{% endif %}" data-dashboard-path="{{ request.resolver_match.kwargs.project_id|default:'' }}" data-current-user-id="{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.id }}{% endif %}{% endfor %}" data-current-username="{{ request.user.username }}" data-workspace-owner-id="{{ project.workspace.owner.id }}" data-can-edit-task-deadline="{% if project.workspace.owner.user == request.user %}true{% else %}{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.role.can_edit_task_deadline|yesno:'true,false' }}{% endif %}{% endfor %}{% endif %}" data-can-edit-task-attachments="{% if project.workspace.owner.user == request.user %}true{% else %}{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.role.can_edit_task_attachments|yesno:'true,false' }}{% endif %}{% endfor %}{% endif %}">
+<div class="Dashboard{% if project.groups.all %} Dashboard--hasGroups{% endif %}" data-dashboard-path="{{ request.resolver_match.kwargs.project_id|default:'' }}" data-current-user-id="{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.id }}{% endif %}{% endfor %}" data-current-username="{{ request.user.username }}" data-workspace-owner-id="{{ project.workspace.owner.id }}" data-project-get-data-url="{% url 'project:get_data' project.id %}" data-can-edit-task-deadline="{% if project.workspace.owner.user == request.user %}true{% else %}{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.role.can_edit_task_deadline|yesno:'true,false' }}{% endif %}{% endfor %}{% endif %}" data-can-edit-task-attachments="{% if project.workspace.owner.user == request.user %}true{% else %}{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.role.can_edit_task_attachments|yesno:'true,false' }}{% endif %}{% endfor %}{% endif %}" data-can-add-task-comments="{% if project.workspace.owner.user == request.user %}true{% else %}{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.role.can_add_task_comments|yesno:'true,false' }}{% endif %}{% endfor %}{% endif %}" data-can-assign-tasks-to-users="{% if project.workspace.owner.user == request.user %}true{% else %}{% for wu in project.workspace.workspace_user.all %}{% if wu.user == request.user %}{{ wu.role.can_assign_tasks_to_users|yesno:'true,false' }}{% endif %}{% endfor %}{% endif %}">
   <header class="Dashboard-header">
   </header>
 
@@ -53,6 +53,7 @@
           <ul class="Dashboard-tasks Kanban-cards">
             {% for task in group.tasks.all %}
               {% url 'task:add_reminder' task.id as add_reminder_url %}
+              {% url 'task:add_assigned' task.id as add_assigned_url %}
               <li
                 class="Dashboard-task Kanban-card{% if task.is_completed %} Dashboard-task--completed{% endif %}"
                 title="{{ task.name }}"
@@ -63,6 +64,7 @@
                 data-task-deadline="{{ task.deadline.isoformat|default:'' }}"
                 data-task-group-id="{{ group.id }}"
                 data-task-add-reminder-url="{{ add_reminder_url }}"
+                data-task-add-assigned-url="{{ add_assigned_url }}"
               >
                 <input
                   type="checkbox"
@@ -74,6 +76,7 @@
                 <div class="Dashboard-taskBody">
                   <span class="Dashboard-taskName">{{ task.name }}</span>
                   <span class="Dashboard-taskDeadlineBadge" hidden></span>
+                  {% if task.assigned_to.exists %}<span class="Dashboard-assigneeCount"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg> {{ task.assigned_to.count }}</span>{% endif %}
                   {% if task.comments.exists %}<span class="Dashboard-commentCount">{% comment %}speech bubble icon{% endcomment %}<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> {{ task.comments.count }}</span>{% endif %}
                 </div>
                 <div class="Dashboard-menuWrapper Dashboard-menuWrapper--task">
@@ -123,8 +126,13 @@
 {% endfor %}{% endfor %}
 {% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="reminders-{{ task.id }}" type="application/json">[{% for r in task.taskreminder_set.all %}{% if r.workspace_user.user == request.user %}{"id":"{{ r.id }}","send_at":"{{ r.send_at.isoformat }}","delete_url":"{% url 'task:delete_reminder' r.id %}"},{% endif %}{% endfor %}]</script>
 {% endfor %}{% endfor %}
-{% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="attachments-{{ task.id }}" type="application/json">[{% for a in task.attachments.all %}{"id":"{{ a.id }}","name":"{{ a.file.name|cut:'task/'|escapejs }}","url":"{{ a.file.url|escapejs }}","delete_url":"{% url 'task:delete_attachment' a.id %}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+{% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="attachments-{{ task.id }}" type="application/json">[{% for a in task.attachments.all %}{"id":"{{ a.id }}","name":"{{ a.file.name|cut:'task/'|escapejs }}","url":"{{ a.file.url|escapejs }}","media_url":"{% url 'task:attachment_media' a.id %}","delete_url":"{% url 'task:delete_attachment' a.id %}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
 {% endfor %}{% endfor %}
+{% for group in project.groups.all %}{% for task in group.tasks.all %}<script id="assignments-{{ task.id }}" type="application/json">[{% for a in task.assigned_to.all %}{"id":"{{ a.id }}","assigned_to_id":"{{ a.assigned_to.id }}","assigned_to":"{{ a.assigned_to.user.username|escapejs }}","delete_url":"{% url 'task:delete_assigned' a.id %}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+{% endfor %}{% endfor %}
+<script id="workspace-users-data" type="application/json">
+[{% for wu in project.workspace.workspace_user.all %}{"id":"{{ wu.id }}","username":"{{ wu.user.username|escapejs }}","is_active":{{ wu.is_active|yesno:'true,false' }}}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
 <script id="workspace-projects-data" type="application/json">
 [{% for p in project.workspace.projects.all %}{"id":"{{ p.id }}","name":"{{ p.name|escapejs }}","groups":[{% for g in p.groups.all %}{"id":"{{ g.id }}","name":"{{ g.name|escapejs }}","position":{{ g.position }}}{% if not forloop.last %},{% endif %}{% endfor %}]}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>

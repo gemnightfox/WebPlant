@@ -20,7 +20,14 @@ ALLOWED_HOSTS = custom_getenv('ALLOWED_HOSTS', '').split(',') # Env variable 'AL
 if DEBUG:
     ALLOWED_HOSTS += ['127.0.0.1', 'localhost']
 
+MAIN_DOMAIN_NAME = '127.0.0.1:8000' if DEBUG else 'webplant.org'
+if not DEBUG and MAIN_DOMAIN_NAME not in ALLOWED_HOSTS:
+    raise EnvironmentError('MAIN_DOMAIN_NAME has to be inside ALLOWED_HOSTS')
+
 INSTALLED_APPS = [
+    'daphne', # Must be placed at top
+    'channels',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.sites',
@@ -36,7 +43,6 @@ INSTALLED_APPS = [
 
     # 'django_ratelimit' added below
     'anymail',
-    'django_celery_beat',
     'cloudinary',
     'cloudinary_storage',
 
@@ -50,7 +56,10 @@ INSTALLED_APPS = [
     'task',
 ]
 
+ASGI_APPLICATION = 'WebPlant.asgi.application'
+
 REDIS_URL = custom_getenv('REDIS_URL')
+
 if REDIS_URL:
     INSTALLED_APPS += ['django_ratelimit'] # Error thrown out without a valid REDIS_URL (no dummy cache allowed either)
 
@@ -70,22 +79,20 @@ if REDIS_URL:
     }
 
 if REDIS_URL:
-    CELERY_BROKER_URL = REDIS_URL
-    CELERY_RESULT_BACKEND = REDIS_URL
-else:
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_TASK_EAGER_PROPAGATES = True
-
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
-CELERY_BEAT_SCHEDULE = {
-    'run-every-5-minutes': {
-        'task': 'task.tasks.send_task_alert',
-        'schedule': 60 * 5,
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL],
+            }
+        }
     }
-}
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        }
+    }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

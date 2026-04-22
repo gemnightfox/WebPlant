@@ -41,7 +41,7 @@ class Workspace(models.Model):
 
 class WorkspaceInviteCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='invite_codes')
     invite_code = models.CharField(max_length=30, unique=True)
     password = models.CharField(max_length=128, null=True, blank=True) # Note: This is unhashed, treat as unsecure
 
@@ -54,7 +54,7 @@ class WorkspacePreference(models.Model):
         COMPLEX = 'complex', 'Complex'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.OneToOneField(Workspace, on_delete=models.CASCADE)
+    workspace = models.OneToOneField(Workspace, on_delete=models.CASCADE, related_name='preferences')
     custom_roles = models.CharField(max_length=20, choices=PreferenceChoices.choices, default=PreferenceChoices.DISABLED)
 
 
@@ -81,6 +81,7 @@ class WorkspaceRole(models.Model):
     can_edit_task_attachments = models.BooleanField()
     can_add_task_comments = models.BooleanField()
     can_edit_task_deadline = models.BooleanField()
+    can_assign_tasks_to_users = models.BooleanField()
 
     def __str__(self):
         return f'{self.name} - {self.workspace.name}'

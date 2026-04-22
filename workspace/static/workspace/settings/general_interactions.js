@@ -332,6 +332,27 @@
           }).catch(function() { window.alert('Could not delete invite code. Please try again.'); });
       });
     });
+
+    // Keep invite-code password edits lightweight so the current layout stays unchanged.
+    document.querySelectorAll('.ws-edit-invite-password-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var url = btn.getAttribute('data-edit-password-url');
+        if (!url) return;
+        var currentPassword = btn.getAttribute('data-current-password') || '';
+        var promptMessage = 'Enter a new password for this invite code. Leave empty to remove password.';
+        var nextPassword = window.prompt(promptMessage, currentPassword);
+        if (nextPassword === null) return;
+        var fd = new FormData();
+        fd.append('password', nextPassword.trim());
+        fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken }, body: fd })
+          .then(function(r) {
+            return r.json().then(function(data) {
+              if (data && data.status === 'success') window.location.reload();
+              else window.alert('Could not update invite code password. Please try again.');
+            });
+          }).catch(function() { window.alert('Could not update invite code password. Please try again.'); });
+      });
+    });
   })();
 
   function selectHasActiveOptions(select) {

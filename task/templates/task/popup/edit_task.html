@@ -143,6 +143,19 @@
           <button type="button" class="Popup-submit" id="edit-task-set-reminder-btn">Set Reminder</button>
         </div>
         <hr class="Popup-panelDivider">
+        <button type="button" class="Popup-panelRow" id="edit-task-assignees-toggle" aria-expanded="false">
+          <span class="Popup-panelLabel">Assignees</span>
+          <span class="Popup-panelAdd">+</span>
+        </button>
+        <div class="TaskAssignees-body" id="edit-task-assignees-body" hidden>
+          <ul class="TaskAssignees" id="edit-task-assignees-list"></ul>
+          <div class="TaskAssignees-addRow">
+            <select id="edit-task-assignee-select" class="Popup-input TaskAssignees-select" aria-label="Assign task to workspace user"></select>
+            <button type="button" class="Popup-submit TaskAssignees-addBtn" id="edit-task-add-assignee-btn">Assign</button>
+          </div>
+          <small class="Popup-error" data-role="edit-task-assignee-error" hidden>Something went wrong. Please try again.</small>
+        </div>
+        <hr class="Popup-panelDivider">
         <button type="button" class="Popup-panelRow" id="edit-task-attachments-toggle" aria-expanded="false">
           <span class="Popup-panelLabel">Attachments</span>
           <span class="Popup-panelAdd">+</span>

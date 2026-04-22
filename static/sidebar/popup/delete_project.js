@@ -41,6 +41,11 @@
           .then(function (data) {
             if (data && data.status === "success") {
               const deletedId = pendingProjectId;
+              if (window.WebPlantSidebarProjectSync) {
+                if (typeof window.WebPlantSidebarProjectSync.notifyProjectAction === "function" && deletedId) {
+                  window.WebPlantSidebarProjectSync.notifyProjectAction(deletedId, "delete");
+                }
+              }
               if (deletedId && window.location.pathname.includes(deletedId)) {
                 window.location.href = "/";
               } else {

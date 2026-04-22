@@ -9,6 +9,232 @@
 
   const sidebar = document.getElementById("Base-sidebar");
   if (!sidebar) return;
+  var sidebarProjectSyncObserver = null;
+
+  function normalizeProjectAction(action) {
+    var value = String(action || "").toLowerCase();
+    if (value === "create" || value === "delete") return value;
+    return "edit";
+  }
+
+  function initSidebarProjectRealtimeSync() {
+    if (window.WebPlantSidebarProjectSync && window.WebPlantSidebarProjectSync.installed) return;
+    var socketsByProjectId = {};
+    var reconnectTimersByProjectId = {};
+    var reconnectDelayByProjectId = {};
+    var queuedActionByProjectId = {};
+    var maxReconnectDelayMs = 12000;
+
+    function safeId(v) {
+      return String(v || "").replace(/"/g, "");
+    }
+    function getProjectIdsFromSidebar() {
+      var ids = {};
+      document.querySelectorAll(".Base-project-item[data-project-id]").forEach(function (el) {
+        var id = String(el.getAttribute("data-project-id") || "");
+        if (id) ids[id] = true;
+      });
+      return Object.keys(ids);
+    }
+    function hasProjectInSidebar(projectId) {
+      if (!projectId) return false;
+      return !!document.querySelector('.Base-project-item[data-project-id="' + safeId(projectId) + '"]');
+    }
+    function getWebSocketUrl(projectId) {
+      var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+      return protocol + window.location.host + "/websocket/project/update/" + projectId + "/";
+    }
+    function updateProjectNameInSidebar(projectId, projectName) {
+      if (!projectId || typeof projectName !== "string" || !projectName.trim()) return;
+      var projectItem = document.querySelector('.Base-project-item[data-project-id="' + safeId(projectId) + '"]');
+      if (!projectItem) return;
+      var projectLink = projectItem.querySelector(".Base-project-link");
+      var projectLinkLabel = projectItem.querySelector(".Base-project-link-label");
+      if (projectLink) projectLink.setAttribute("title", projectName);
+      if (projectLinkLabel) projectLinkLabel.textContent = projectName;
+      projectItem.querySelectorAll("[data-project-name]").forEach(function (el) {
+        el.setAttribute("data-project-name", projectName);
+      });
+    }
+    function fetchAndApplyProjectData(projectId) {
+      if (!projectId) return;
+      fetch("/project/get-data/" + projectId + "/", {
+        method: "GET",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (payload) {
+          var project = payload && payload.project ? payload.project : null;
+          if (!project || !project.id) return;
+          updateProjectNameInSidebar(String(project.id), project.name);
+        })
+        .catch(function () {});
+    }
+    function closeSocket(projectId) {
+      var socket = socketsByProjectId[projectId];
+      if (!socket) return;
+      delete socketsByProjectId[projectId];
+      if (reconnectTimersByProjectId[projectId]) {
+        window.clearTimeout(reconnectTimersByProjectId[projectId]);
+        reconnectTimersByProjectId[projectId] = null;
+      }
+      delete reconnectDelayByProjectId[projectId];
+      delete queuedActionByProjectId[projectId];
+      try {
+        socket.close();
+      } catch (_) {}
+    }
+    function navigateAwayFromDeletedProject(deletedProjectId) {
+      if (!deletedProjectId || window.location.pathname.indexOf(String(deletedProjectId)) === -1) return;
+      var nextProjectLink = document.querySelector(".Base-project-item .Base-project-link[href]");
+      if (nextProjectLink && nextProjectLink.getAttribute("href")) {
+        window.location.assign(nextProjectLink.getAttribute("href"));
+        return;
+      }
+      var workspaceSettingsLink = document.querySelector('.Base-workspace-dropdown-item[href*="/workspace/settings/"]');
+      if (workspaceSettingsLink && workspaceSettingsLink.getAttribute("href")) {
+        window.location.assign(workspaceSettingsLink.getAttribute("href"));
+        return;
+      }
+      var accountLink =
+        document.querySelector(".Base-account-link--expanded-link[href]") ||
+        document.querySelector(".Base-account-link--collapsed[href]");
+      if (accountLink && accountLink.getAttribute("href")) {
+        window.location.assign(accountLink.getAttribute("href"));
+        return;
+      }
+      window.location.assign("/");
+    }
+    function removeProjectFromSidebar(projectId) {
+      if (!projectId) return;
+      var projectItem = document.querySelector('.Base-project-item[data-project-id="' + safeId(projectId) + '"]');
+      var panel = projectItem ? projectItem.closest(".Base-workspaces-panel") : null;
+      var list = projectItem ? projectItem.closest(".Base-projects-list") : null;
+      if (projectItem && projectItem.parentNode) {
+        projectItem.parentNode.removeChild(projectItem);
+      }
+      if (panel && list && list.querySelectorAll(".Base-project-item").length === 0) {
+        panel.classList.add("Base-workspaces-panel--empty");
+      }
+      closeSocket(String(projectId));
+      navigateAwayFromDeletedProject(String(projectId));
+    }
+    function scheduleReconnect(projectId) {
+      if (!projectId || reconnectTimersByProjectId[projectId]) return;
+      if (!hasProjectInSidebar(projectId)) return;
+      var delay = reconnectDelayByProjectId[projectId] || 1000;
+      reconnectTimersByProjectId[projectId] = window.setTimeout(function () {
+        if (!hasProjectInSidebar(projectId)) {
+          reconnectTimersByProjectId[projectId] = null;
+          closeSocket(projectId);
+          return;
+        }
+        reconnectTimersByProjectId[projectId] = null;
+        reconnectDelayByProjectId[projectId] = Math.min(delay * 2, maxReconnectDelayMs);
+        connectSocket(projectId);
+      }, delay);
+    }
+    function sendOrQueue(projectId, action) {
+      if (!projectId) return;
+      var normalizedAction = normalizeProjectAction(action);
+      var socket = socketsByProjectId[projectId];
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ action: normalizedAction }));
+        return;
+      }
+      if (normalizedAction === "delete") {
+        // Do not queue delete notifications: queuing can reconnect to
+        // soon-to-be-deleted project channels and trigger backend 404 logs.
+        return;
+      }
+      queuedActionByProjectId[projectId] = normalizedAction;
+    }
+    function connectSocket(projectId) {
+      if (!projectId || !hasProjectInSidebar(projectId)) return;
+      var existing = socketsByProjectId[projectId];
+      if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+      var socket;
+      try {
+        socket = new WebSocket(getWebSocketUrl(projectId));
+      } catch (_) {
+        scheduleReconnect(projectId);
+        return;
+      }
+      socketsByProjectId[projectId] = socket;
+      socket.addEventListener("open", function () {
+        reconnectDelayByProjectId[projectId] = 1000;
+        if (queuedActionByProjectId[projectId]) {
+          var queuedAction = queuedActionByProjectId[projectId];
+          delete queuedActionByProjectId[projectId];
+          sendOrQueue(projectId, queuedAction);
+        }
+      });
+      socket.addEventListener("message", function (event) {
+        var data = null;
+        try {
+          data = JSON.parse(event.data);
+        } catch (_) {
+          return;
+        }
+        if (!data || data.object_type !== "project") return;
+        var action = normalizeProjectAction(data.action);
+        var messageProjectId = data.object_id != null ? String(data.object_id) : String(projectId);
+        if (action === "create") {
+          window.location.reload();
+          return;
+        }
+        if (action === "delete") {
+          removeProjectFromSidebar(messageProjectId);
+          return;
+        }
+        fetchAndApplyProjectData(messageProjectId);
+      });
+      socket.addEventListener("close", function () {
+        scheduleReconnect(projectId);
+      });
+      socket.addEventListener("error", function () {
+        try {
+          socket.close();
+        } catch (_) {}
+      });
+    }
+    function reconcileSockets() {
+      var wanted = {};
+      getProjectIdsFromSidebar().forEach(function (projectId) {
+        wanted[projectId] = true;
+        connectSocket(projectId);
+      });
+      Object.keys(socketsByProjectId).forEach(function (projectId) {
+        if (!wanted[projectId]) closeSocket(projectId);
+      });
+    }
+
+    reconcileSockets();
+    if (typeof MutationObserver === "function") {
+      sidebarProjectSyncObserver = new MutationObserver(function () {
+        reconcileSockets();
+      });
+      sidebarProjectSyncObserver.observe(sidebar, { childList: true, subtree: true });
+    }
+
+    window.WebPlantSidebarProjectSync = {
+      installed: true,
+      notifyProjectAction: function (projectId, action) {
+        sendOrQueue(String(projectId || ""), action || "edit");
+      },
+      notifyProjectListChanged: function (action, projectIdToSkip) {
+        var skip = String(projectIdToSkip || "");
+        getProjectIdsFromSidebar().forEach(function (projectId) {
+          if (skip && projectId === skip) return;
+          sendOrQueue(projectId, action || "edit");
+        });
+      },
+      reconcile: reconcileSockets,
+    };
+  }
+  initSidebarProjectRealtimeSync();
 
   /* Pending invites badge for "Check pending invites" */
   function getStoredInvitesCount() {
@@ -450,5 +676,13 @@
 
     url.pathname = `/workspace/settings/${normalized}/`;
     window.location.href = url.toString();
+  });
+
+  window.addEventListener("beforeunload", function () {
+    if (sidebarProjectSyncObserver) {
+      try {
+        sidebarProjectSyncObserver.disconnect();
+      } catch (_) {}
+    }
   });
 })();

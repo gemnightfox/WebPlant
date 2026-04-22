@@ -1,12 +1,12 @@
-from workspace.utils import get_workspace
+from workspace.utils import get_workspace_or_404
 from .models import Project
 from django.shortcuts import get_object_or_404
 
 
 
-def get_project(request, project_id):
+def get_project_or_404(my_user, project_id):
     project = get_object_or_404(Project, id=project_id)
-    get_workspace(request, workspace_id=project.workspace.id) # Verification purposes only (gives error if checks fail, eg. user not in workspace)
+    get_workspace_or_404(my_user=my_user, workspace_id=project.workspace.id) # Verification purposes only (gives error if checks fail, eg. user not in workspace)
     return project
 
 

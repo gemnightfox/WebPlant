@@ -42,6 +42,8 @@
                 id="id_add_user_username"
                 class="WsSettings-input"
                 maxlength="150"
+                pattern="[^@.]+"
+                title="Use username only. Usernames cannot contain @ or ."
                 required
                 placeholder="username"
                 aria-label="Invite user username"
@@ -74,7 +76,7 @@
         </form>
       </li>
     {% endif %}
-    {% for wu in all_workspace_users %}
+    {% for wu in workspace.workspace_user.all %}
       <li
         class="WsSettings-member{% if not wu.is_active %} WsSettings-member--pending{% endif %}"
         data-user-id="{{ wu.user.id }}"

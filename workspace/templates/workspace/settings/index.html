@@ -13,7 +13,7 @@
   class="WsSettings WsSettings--generalActive"
   data-workspace-id="{{ workspace.id }}"
   data-current-user-id="{{ user.id }}"
-  data-custom-roles="{{ workspace_preference.custom_roles }}"
+  data-custom-roles="{{ workspace.preferences.custom_roles }}"
 >
   <header class="WsSettings-header">
     <div class="WsSettings-headerTop">
@@ -26,11 +26,11 @@
             class="WsSettings-btn WsSettings-btnDanger"
             id="ws-delete-workspace-btn"
             data-delete-url="/workspace/remove-user/{{ workspace.id }}/{{ user.id }}/"
-            {% if all_workspace_users|length > 1 %}hidden{% endif %}
+            {% if workspace.workspace_user.all|length > 1 %}hidden{% endif %}
           >
             Leave workspace
           </button>
-          {% if all_workspace_users|length > 1 %}
+          {% if workspace.workspace_user.all|length > 1 %}
             <div class="WsSettings-transferWrapper">
               <button
                 type="button"
@@ -40,7 +40,7 @@
                 Transfer ownership
               </button>
               <div class="WsSettings-transferDropdown" id="ws-transfer-dropdown" hidden>
-                {% for wu in all_workspace_users %}
+                {% for wu in workspace.workspace_user.all %}
                   {% if wu.user != user and wu.is_active %}
                     <div
                       class="WsSettings-transferDropdownItem"

@@ -51,7 +51,7 @@ def send_disable_password_email(request):
     })
     link = request.build_absolute_uri(path)
     content = f'We have received a request to disable your password.\nIf you made this request, please click the link below:\n\n{link}\n\nThis link will expire after some time due to security reasons.'
-    send_email(receiver=request.user, sender=request.user, content=content, save_to_db=False)
+    send_email(request, receiver=request.user, sender=request.user, content=content, save_to_db=False)
     return JsonResponse({'status': 'success'})
 
 
@@ -92,7 +92,7 @@ def send_account_deletion_email(request):
     })
     link = request.build_absolute_uri(path)
     content = f'We have received a request to permanently DELETE your account.\nIf you did NOT request to DELETE your account, please change your login credentials immediately.\nIf you made this request, please click the link below:\n\n{link}\n\nThis link will expire after some time due to security reasons.'
-    send_email(receiver=request.user, sender=request.user, content=content, save_to_db=False)
+    send_email(request, receiver=request.user, sender=request.user, content=content, save_to_db=False)
     return JsonResponse({'status': 'success'})
 
 

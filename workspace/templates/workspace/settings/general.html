@@ -53,7 +53,7 @@
       <label for="id_transfer_user">New owner</label>
       <select name="owner" id="id_transfer_user" class="WsSettings-select" required>
         <option value="">— Select a user —</option>
-        {% for wu in all_workspace_users %}
+        {% for wu in workspace.workspace_user.all %}
           {% if wu.user != user and wu.is_active %}
             <option value="{{ wu.id }}">{{ wu.user.username }}</option>
           {% endif %}
@@ -71,7 +71,7 @@
 {% endif %}
 
 {% if my_workspace_user == workspace.owner %}
-  {% if all_workspace_users|length == 1 %}
+  {% if workspace.workspace_user.all|length == 1 %}
   {# Leave workspace button for sole owner is now shown in the header row above. Keep error message here for responses. #}
   <section class="WsSettings-section WsSettings-leave" hidden>
     <small class="WsSettings-error" data-role="leave-error" hidden>
@@ -160,6 +160,16 @@
           {% if workspace.owner_id == my_workspace_user.id or my_workspace_user.role.can_edit_workspace_invite_codes %}
           <button
             type="button"
+            class="WsSettings-roleCardBtn ws-edit-invite-password-btn"
+            title="{% if code.password %}Edit password{% else %}Set password{% endif %}"
+            aria-label="{% if code.password %}Edit invite code password{% else %}Set invite code password{% endif %}"
+            data-edit-password-url="{% url 'workspace:edit_invite_code_password' workspace.id code.id %}"
+            data-current-password="{{ code.password|default_if_none:'' }}"
+          >
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </button>
+          <button
+            type="button"
             class="WsSettings-roleCardBtn WsSettings-roleCardBtn--delete ws-delete-invite-code-btn"
             title="Delete"
             aria-label="Delete invite code"
@@ -189,7 +199,7 @@
       class="WsSettings-slider"
       id="ws-slider-custom-roles"
       data-url="{% url 'workspace:set_preference' workspace.id %}"
-      data-value="{{ workspace_preference.custom_roles }}"
+      data-value="{{ workspace.preferences.custom_roles }}"
     >
       <button type="button" class="WsSettings-sliderOption" data-value="disabled">Disabled</button>
       <button type="button" class="WsSettings-sliderOption" data-value="simple">Simple</button>

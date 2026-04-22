@@ -1,6 +1,7 @@
 from django import forms
-from .models import Task, TaskAttachment, TaskComment, TaskReminder
+from .models import Task, TaskAttachment, TaskComment, TaskReminder, TaskAssigned
 from workspace.utils import verify_workspace_role
+from notification.utils import can_receive_notifications, send_email
 
 
 
@@ -122,6 +123,36 @@ class AddReminderForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+
+class AddAssignedForm(forms.ModelForm):
+    class Meta:
+        model = TaskAssigned
+        fields = ['assigned_to']
+
+    def __init__(self, *args, form_request, task, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.form_request = form_request
+        self.task = task
+        self.fields['assigned_to'].queryset = TaskAssigned.objects.filter(assigned_to__workspace=task.group.project.workspace)
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.task = self.task
+
+        if commit:
+            instance.save()
+            user = instance.assigned_to.user
+            request = self.form_request
+            workspace = self.task.group.project.workspace
+
+            if can_receive_notifications(user):
+                send_email(request, receiver=user, sender=request.user, content=f'You have been assigned to task ({workspace.name}): {self.task.name}')
+
+        return instance
+
+
 
 
 

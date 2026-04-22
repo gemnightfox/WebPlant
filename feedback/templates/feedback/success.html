@@ -9,9 +9,17 @@
 
 {% block content %}
 <div class="Feedback">
-  <section class="Feedback-card" aria-labelledby="feedback-success-heading">
-    <h2 id="feedback-success-heading" class="Feedback-cardTitle">Feedback submitted</h2>
-    <p class="Feedback-successText">Thank you for your feedback.</p>
+  <section class="Feedback-card Feedback-card--success" aria-labelledby="feedback-success-heading">
+    <div class="Feedback-successIcon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M9.2 16.4 5.8 13l-1.4 1.4 4.8 4.8L20 8.4 18.6 7z"></path>
+      </svg>
+    </div>
+    <p class="Feedback-successBadge">Submitted</p>
+    <h2 id="feedback-success-heading" class="Feedback-cardTitle">Thanks for your feedback</h2>
+    <p class="Feedback-successText">
+      Your message has been sent successfully. We review every submission to improve your experience.
+    </p>
 
     <div class="Feedback-actions Feedback-actions--success">
       <a href="{% url 'feedback:dashboard' %}" class="Feedback-submit">Submit another feedback</a>
