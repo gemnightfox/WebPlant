@@ -57,9 +57,9 @@ Before production scheduling, verify the script's `DJANGO_SETTINGS_MODULE` point
 
 ## Troubleshooting Tips
 
-- If production mode fails at startup, verify all required environment variables are set.
+- If production mode fails at startup, verify all `custom_getenv(...)` variables are present and non-empty.
 - If websocket updates fail across multiple clients, verify `REDIS_URL` and channel-layer connectivity.
 - If reminders are not firing, confirm scheduler execution and script environment settings.
 - If uploads fail, verify `CLOUDINARY_URL` or local media write permissions.
 
-Frontend-specific constraints are documented in `../FRONTEND_INSTRUCTIONS.md`.
+Frontend-specific constraints are documented in `../instructions/frontend.md`.

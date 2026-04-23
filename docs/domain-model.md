@@ -6,7 +6,7 @@ WebPlant models collaboration through workspace-scoped membership and nested wor
 
 - `CustomUser`: account identity (email-first auth, lowercase username normalization)
 - `UserPreference`: per-user UI/notification settings and timezone
-- `Workspace`: top-level collaboration boundary
+- `Workspace`: top-level collaboration boundary with owner/default-role references
 - `WorkspaceUser`: membership join model (user + workspace + role + active status)
 - `WorkspaceRole`: workspace-local permission booleans
 - `WorkspacePreference`: workspace feature toggles (for example custom role behavior)
@@ -17,7 +17,7 @@ WebPlant models collaboration through workspace-scoped membership and nested wor
 - `TaskComment`, `TaskAttachment`, `TaskReminder`, `TaskAssigned`: task collaboration artifacts
 - `WorkspaceLog`: workspace-scoped audit log for project/group/task model changes
 - `Notification` and `NotificationDisabledDuration`: in-app communication and mute windows
-- `Feedback`: user-submitted feedback content
+- `Feedback`: feedback content (authenticated user is optional)
 
 ## Relationship Overview
 
@@ -48,6 +48,7 @@ flowchart TD
 - Access is membership-driven (`WorkspaceUser`) instead of direct foreign keys to `CustomUser`.
 - Membership uniqueness is enforced per `(workspace, user)`.
 - Ownership is workspace-scoped via `Workspace.owner -> WorkspaceUser`.
+- `Workspace.owner` and `Workspace.default_role` use `RESTRICT` delete behavior.
 - Roles are workspace-scoped and unique by `(workspace, role_name)`.
 - Permission checks evaluate booleans on `WorkspaceRole`, with owner-aware behavior in permission utilities.
 
@@ -63,6 +64,7 @@ flowchart TD
 - `WorkspaceLog` stores change metadata (`create`/`edit`/`delete`) in JSON.
 - `WorkspaceLog` references affected domain object type through generic relation (`ContentType` + `object_id`).
 - During object deletion, logs keep model type reference while object ID is nulled.
+- `WorkspaceLog` creation validates `workspace == workspace_user.workspace` when actor context is provided.
 
 ## Communication and Reminder Invariants
 

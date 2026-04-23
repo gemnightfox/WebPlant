@@ -1,79 +1,132 @@
 # Configuration
 
+This document reflects the current behavior in `WebPlant/settings.py`, `WebPlant/urls.py`, and `base_utils.py`.
+
 ## Runtime Modes
 
-- `DJANGO_DEBUG=True`
-  - permissive local-development defaults
-  - console email backend
-  - missing env vars can fall back to defaults
-- `DJANGO_DEBUG=False`
-  - strict env loading (`custom_getenv` raises when values are missing)
-  - production security headers/settings are enabled
-  - online email backend is used
+The project has two behavior switches:
+
+- `DEBUG` in settings uses `os.getenv('DJANGO_DEBUG', 'False') == 'True'`.
+- `custom_getenv(...)` checks `os.getenv('DJANGO_DEBUG') == 'True'`.
+
+In practice:
+
+- **Debug (`DJANGO_DEBUG='True'`)**
+  - `custom_getenv` returns defaults when provided.
+  - Missing vars without defaults return `None`.
+  - Email backend is console.
+  - `127.0.0.1` and `localhost` are auto-added to `ALLOWED_HOSTS`.
+- **Production (`DJANGO_DEBUG` anything else)**
+  - Every `custom_getenv(...)` lookup must be present and non-empty.
+  - Defaults passed to `custom_getenv` are ignored.
+  - Production security settings are enabled.
+  - `MAIN_DOMAIN_NAME` is `webplant.org` and must be in `ALLOWED_HOSTS`.
 
 ## Environment Variables
 
-All variables below are required in production.  
-The table column indicates whether each variable is required during DEBUG/development.
+`DJANGO_DEBUG` is the only key in this project that is not resolved through `custom_getenv`.
+Every key below is read from code and included for completeness.
 
-### Core
+| Variable | Required in Debug | Required in Production | Purpose |
+| --- | --- | --- | --- |
+| `DJANGO_DEBUG` | Yes (set to `'True'` for debug mode) | Yes (set to non-`'True'` for production) | Global debug/production mode switch |
+| `DJANGO_SECRET_KEY` | No (random fallback is used) | Yes | Django signing and encryption key |
+| `ALLOWED_HOSTS` | No (empty allowed, localhost auto-added) | Yes | Comma-separated host list; must include `webplant.org` |
+| `DATABASE_URL` | No (`sqlite:///db.sqlite3` fallback) | Yes | Database DSN used by `dj_database_url` |
+| `URL_SECRET` | No | Yes | Obscures `/admin/` and `/trigger-error/` route suffix |
+| `REDIS_URL` | No | Yes | Enables Redis cache, Redis channel layer, and `django_ratelimit` app loading |
+| `CLOUDINARY_URL` | No | Yes | Cloudinary credential source for media integration |
+| `B2_JSON` | No | Yes | Backblaze B2 backup storage configuration JSON |
+| `RESEND_API_KEY` | No | Yes | Resend key used by Anymail |
+| `DEFAULT_FROM_EMAIL` | No (`email@example.com` fallback) | Yes | Outbound sender identity |
+| `GOOGLE_CLIENT_ID` | No | Yes | Google OAuth client ID for allauth provider config |
+| `GOOGLE_SECRET` | No | Yes | Google OAuth client secret for allauth provider config |
+| `SENTRY_DSN` | No | Yes | Sentry DSN used during `sentry_sdk.init` |
 
-| Variable | Required for DEBUG/Development | Purpose |
-| --- | --- | --- |
-| `DJANGO_DEBUG` | Yes | Enables debug or production behavior |
-| `DJANGO_SECRET_KEY` | No (auto-generated fallback) | Django signing/encryption key |
-| `ALLOWED_HOSTS` | No (localhost defaults are added) | Comma-separated host list |
-| `DATABASE_URL` | No (SQLite fallback: `sqlite:///db.sqlite3`) | Database DSN |
-| `URL_SECRET` | No | Suffixes admin/error-test URLs for obscurity |
-| `SENTRY_DSN` | No | Sentry telemetry destination |
+## Integration and Fallback Behavior
 
-### Infrastructure and Async
+### Redis, Cache, Channels, and Rate Limiting
 
-| Variable | Required for DEBUG/Development | Purpose |
-| --- | --- | --- |
-| `REDIS_URL` | No | Enables Redis cache + Redis channel layer + ratelimit app |
-| `CLOUDINARY_URL` | No | Enables Cloudinary media storage backend |
+When `REDIS_URL` is set:
 
-### Email and Auth
+- `django_ratelimit` is appended to `INSTALLED_APPS`.
+- Default Django cache uses `django_redis`.
+- Channels uses `channels_redis.core.RedisChannelLayer`.
 
-| Variable | Required for DEBUG/Development | Purpose |
-| --- | --- | --- |
-| `DEFAULT_FROM_EMAIL` | No (`email@example.com` default) | Sender used for outbound email |
-| `RESEND_API_KEY` | No (console email backend in debug) | API key for Anymail Resend backend |
-| `GOOGLE_CLIENT_ID` | Only if Google login is enabled | OAuth client ID |
-| `GOOGLE_SECRET` | Only if Google login is enabled | OAuth client secret |
+When `REDIS_URL` is not set (debug only):
 
-## Redis and Channels Behavior
+- Channels falls back to `channels.layers.InMemoryChannelLayer`.
+- Custom cache config is not set, so Django default cache behavior applies.
 
-When `REDIS_URL` is configured:
+### Cloudinary and Media
 
-- default cache backend uses `django_redis`
-- `django_ratelimit` is added to `INSTALLED_APPS`
-- Channels uses Redis channel layer backend (`channels_redis`)
+- `STORAGES['default']` is always `cloudinary_storage.storage.MediaCloudinaryStorage`.
+- `CLOUDINARY_URL` controls runtime `cloudinary.config(...)`.
+- In debug, missing `CLOUDINARY_URL` can still allow local media URL serving via `static(...)` fallback in `WebPlant/urls.py`.
+- In production, `CLOUDINARY_URL` must be set because `custom_getenv` is strict.
 
-When `REDIS_URL` is not configured:
+### Database Backups (`dbbackup`)
 
-- Channels uses in-memory channel layer backend
-- Redis-backed ratelimiting is unavailable
+- `B2_JSON` present:
+  - Uses `storages.backends.s3boto3.S3Boto3Storage`.
+  - Backup location prefix is `development/` in debug and `production/` in production.
+- `B2_JSON` absent (debug only):
+  - Falls back to local filesystem storage at `db_backups/`.
 
-## Email Backend Behavior
+`B2_JSON` expected shape:
 
-- Debug mode: `django.core.mail.backends.console.EmailBackend`
-- Production mode: `anymail.backends.resend.EmailBackend`
-- Email delivery depends on user/workspace notification preferences and mute windows
+```json
+{
+  "B2_REGION": "us-west-000",
+  "B2_ACCESS_KEY": "...",
+  "B2_SECRET_KEY": "...",
+  "B2_BUCKET_NAME": "..."
+}
+```
 
-## Reminder Dispatch Behavior
+### Email and Notifications
 
-- Task reminders are persisted in `task.TaskReminder`.
-- Reminder dispatch currently depends on external scheduling invoking `task/cron_scripts/send_task_reminders.py`.
-- If you deploy reminders, ensure the scheduler environment provides valid Django settings and project env vars.
+- Debug email backend: `django.core.mail.backends.console.EmailBackend`.
+- Production email backend: `anymail.backends.resend.EmailBackend`.
+- Notification emails are filtered by:
+  - user preference (`UserPreference.can_receive_notifications`),
+  - temporary mute windows (`NotificationDisabledDuration`),
+  - rate checks in `notification/utils.py`.
+
+### Observability
+
+- Sentry initializes on startup with:
+  - `traces_sample_rate=1`,
+  - `profiles_sample_rate=1`,
+  - `send_default_pii=True`.
+
+## Reminder Dispatch
+
+- Reminders are stored in `task.TaskReminder`.
+- Dispatch is script-based, not queue-worker based:
+  - `task/cron_scripts/send_task_reminders.py`
+- A scheduler (Task Scheduler/cron/CI schedule) must invoke the script.
 
 ## Production Security Defaults
 
-With `DJANGO_DEBUG=False`, settings enable:
+When `DEBUG` is false:
 
-- HTTPS redirect (`SECURE_SSL_REDIRECT`)
+- `SECURE_SSL_REDIRECT = True`
 - secure session and CSRF cookies
-- HSTS with preload/subdomain support
+- HSTS enabled with subdomains and preload
 - secure proxy SSL header
-- clickjacking/content-type hardening
+- `X_FRAME_OPTIONS = 'DENY'`
+- `SECURE_CONTENT_TYPE_NOSNIFF = True`
+
+## Minimal Local `.env` Example
+
+```env
+DJANGO_DEBUG='True'
+DJANGO_SECRET_KEY='dev-secret'
+# optional in debug:
+# DATABASE_URL='sqlite:///db.sqlite3'
+# REDIS_URL='redis://127.0.0.1:6379/0'
+# CLOUDINARY_URL='cloudinary://...'
+```
+
+

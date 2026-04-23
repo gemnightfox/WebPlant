@@ -1,7 +1,7 @@
 # WebPlant
 
-WebPlant is a Django-based collaboration app for organizing team work inside shared workspaces.  
-Each workspace contains projects, projects contain groups, and groups contain tasks with comments, files, reminders, and notifications.
+WebPlant is a Django collaboration app for organizing team work inside shared workspaces.
+Each workspace contains projects, projects contain groups, and groups contain tasks with comments, attachments, reminders, and notifications.
 
 ## Key Features
 
@@ -10,7 +10,7 @@ Each workspace contains projects, projects contain groups, and groups contain ta
 - Nested work structure: Workspace -> Project -> Group -> Task
 - Task collaboration: comments, attachments, completion status, due reminders
 - Notification pipeline for in-app records and outbound email
-- Optional Redis-backed caching/channel layer for improved realtime behavior
+- Realtime update signaling over Django Channels
 
 ## Tech Stack
 
@@ -19,7 +19,7 @@ Each workspace contains projects, projects contain groups, and groups contain ta
 - `django-allauth` (email/password + Google social login support)
 - PostgreSQL or SQLite (through `DATABASE_URL`)
 - Django Channels + Daphne for realtime collaboration events
-- Cloudinary storage for media files (or local filesystem fallback)
+- Cloudinary storage integration for media
 - WhiteNoise for static asset serving
 - Sentry SDK for runtime error/performance reporting
 
@@ -37,8 +37,7 @@ Each workspace contains projects, projects contain groups, and groups contain ta
 6. Start the web server:
    - `python manage.py runserver`
 
-If `REDIS_URL` is set, websocket fan-out uses Redis channel layer.  
-Reminder sending is currently scheduler/script-driven (see `docs/development.md`).
+Reminder sending is scheduler/script-driven (see `docs/development.md`).
 
 ## Documentation
 
@@ -50,4 +49,4 @@ Reminder sending is currently scheduler/script-driven (see `docs/development.md`
 - `docs/configuration.md`: required/optional environment variables and behavior
 - `docs/development.md`: local setup, commands, and development workflow
 
-Frontend-specific implementation constraints are documented in `FRONTEND_INSTRUCTIONS.md`.
+Frontend-specific implementation constraints are documented in `instructions/frontend.md`.

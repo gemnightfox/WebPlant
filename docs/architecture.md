@@ -2,8 +2,8 @@
 
 ## System Overview
 
-WebPlant is a single Django project package (`WebPlant`) with domain apps at the repository root.
-The backend follows a layered, app-local structure:
+WebPlant is a single Django project package (`WebPlant`) with domain apps at repository root.
+The backend uses app-local layering:
 
 - **Views** orchestrate request flow, access checks, and response shape.
 - **Forms** own validation and object persistence for write operations.
@@ -20,9 +20,9 @@ Primary runtime components:
 
 - Django request/response stack (routing, templates, auth, sessions)
 - Django Channels over ASGI (`daphne`) for realtime update broadcasts
-- Optional Redis (`REDIS_URL`) for cache, channel layer, and ratelimit support
+- Redis-backed cache/channel/rate-limit wiring when `REDIS_URL` is configured
 - Relational database from `DATABASE_URL` (SQLite fallback in debug mode)
-- Cloudinary-backed media storage when `CLOUDINARY_URL` is provided
+- Cloudinary media storage backend (`MediaCloudinaryStorage`)
 - Email backend: console in debug, Anymail/Resend in production
 - Sentry SDK for error and performance telemetry
 
@@ -57,9 +57,9 @@ Operational endpoints:
 
 WebSocket routing (`WebPlant/routing.py`):
 
-- `/websocket/project/update/<project_id>/`
-- `/websocket/group/update/<group_id>/`
-- `/websocket/task/update/<task_id>/`
+- `/websocket/project/update/<project_id>/` via `project/routing.py`
+- `/websocket/group/update/<group_id>/` via `group/routing.py`
+- `/websocket/task/update/<task_id>/` via `task/routing.py`
 
 ## Write Request Lifecycle (Design Pattern)
 
@@ -102,7 +102,7 @@ This separates event signaling from authoritative data reads.
 - Reminders are stored as `TaskReminder`.
 - Email and in-app notification behavior is centralized in `notification/utils.py`.
 - Delivery respects user-level preference toggles and temporary mute windows.
-- Reminder dispatch is currently script-driven (`task/cron_scripts/send_task_reminders.py`) and should be triggered by external scheduling infrastructure.
+- Reminder dispatch is script-driven (`task/cron_scripts/send_task_reminders.py`) and triggered by external scheduling infrastructure.
 
 ## Transaction and Consistency Boundaries
 
@@ -125,6 +125,7 @@ flowchart LR
     NotificationLayer --> EmailProvider[Email Provider]
     Scheduler[External Scheduler] --> ReminderScript[Task Reminder Script]
     ReminderScript --> NotificationLayer
-    Redis[(Redis Optional)] --> DjangoHTTP
+    RedisConfig[REDIS_URL configured] --> Redis[(Redis)]
+    Redis --> DjangoHTTP
     Redis --> DjangoWS
 ```

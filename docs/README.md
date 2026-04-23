@@ -1,7 +1,7 @@
 # Documentation Index
 
-This folder contains backend-focused documentation for WebPlant.  
-Use it as a practical reference while developing, deploying, or reviewing backend behavior.
+This folder contains backend-focused documentation for WebPlant.
+Use it as the detailed reference for architecture, configuration, and development workflows.
 
 ## Read First
 
@@ -28,4 +28,4 @@ Use it as a practical reference while developing, deploying, or reviewing backen
 ## Scope
 
 - These docs focus on backend Django behavior and operational concerns.
-- Frontend contribution constraints live in `../FRONTEND_INSTRUCTIONS.md`.
+- Frontend contribution constraints live in `../instructions/frontend.md`.

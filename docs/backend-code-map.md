@@ -89,4 +89,4 @@ Read endpoints should:
 - Use `transaction.atomic()` for multi-record writes (duplication, transfer flows, bulk reassignment).
 - Keep audit context by passing `workspace_user` to model save/delete paths where logs are expected.
 - Treat WebSocket payloads as event signals; fetch canonical state over HTTP after receiving updates.
-- Keep external integrations optional in dev (Redis, Cloudinary, email provider) via settings fallbacks.
+- In debug mode, external integrations can run with partial fallbacks; in production, `custom_getenv` requires non-empty env values.

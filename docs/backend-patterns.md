@@ -109,16 +109,20 @@ Why:
 
 ## 10) Configuration-Safe Integrations
 
-External services should degrade cleanly in local development:
+External services should be configured so local development remains productive:
 
 - console email backend in debug
-- local filesystem media when Cloudinary is absent
+- local media URL serving fallback when Cloudinary credentials are absent in debug
 - in-memory channel layer when Redis is absent
 
 Why:
 
 - Keeps onboarding lightweight.
 - Reduces "works only in production-like env" friction.
+
+Note:
+
+- Production env loading is strict through `custom_getenv`; missing required integration keys raise at startup.
 
 ## 11) Keep Permission Rules Centralized
 
