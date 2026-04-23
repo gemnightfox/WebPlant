@@ -648,6 +648,13 @@
     }
     function inferMutationAction(pathname) {
       if (!pathname) return "edit";
+      // Treat nested task additions as edits on the existing task object.
+      // Marking them as "create" triggers the task-create reload path.
+      if (
+        /^\/task\/(?:attachment|comment|reminder|assigned)\/add\/[^/]+\//.test(pathname)
+      ) {
+        return "edit";
+      }
       if (pathname.indexOf("/create-new/") !== -1) return "create";
       if (pathname.indexOf("/duplicate/") !== -1) return "create";
       if (pathname.indexOf("/add/") !== -1) return "create";

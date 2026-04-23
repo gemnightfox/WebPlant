@@ -21,7 +21,7 @@ def get_data(request, task_id):
     assigned = [custom_model_to_dict(assigned) for assigned in task.assigned_to.all()]
 
     my_workspace_user = get_workspace_user_or_404(request.user, workspace=task.group.project.workspace)
-    reminders = [custom_model_to_dict(attachment) for attachment in task.attachments.all() if attachment.workspace_user == my_workspace_user]
+    reminders = [custom_model_to_dict(reminder) for reminder in task.reminders.all() if reminder.workspace_user == my_workspace_user]
 
     task = custom_model_to_dict(task)
     task['attachments'] = attachments

@@ -239,7 +239,7 @@ if CLOUDINARY_URL:
     }
 
 STORAGES = {
-    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},
+    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'},
     'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
     # dbbackup added below
 }
