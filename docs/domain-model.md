@@ -14,7 +14,8 @@ WebPlant models collaboration through workspace-scoped membership and nested wor
 - `Project`: belongs to one workspace
 - `Group`: belongs to one project, ordered by `position`
 - `Task`: belongs to one group, ordered by `position`, optional deadline/completion state
-- `TaskComment`, `TaskAttachment`, `TaskReminder`: task collaboration artifacts
+- `TaskComment`, `TaskAttachment`, `TaskReminder`, `TaskAssigned`: task collaboration artifacts
+- `WorkspaceLog`: workspace-scoped audit log for project/group/task model changes
 - `Notification` and `NotificationDisabledDuration`: in-app communication and mute windows
 - `Feedback`: user-submitted feedback content
 
@@ -34,6 +35,9 @@ flowchart TD
     Task --> TaskAttachment
     Task --> TaskComment
     Task --> TaskReminder
+    Task --> TaskAssigned
+    Workspace --> WorkspaceLog
+    WorkspaceUser --> WorkspaceLog
     User --> Notification
     User --> NotificationMute[NotificationDisabledDuration]
     User --> Feedback
@@ -52,6 +56,13 @@ flowchart TD
 - Group order is unique per project via `(project, position)`.
 - Task order is unique per group via `(group, position)`.
 - Deleting parent entities cascades through nested children for project/group/task structures.
+
+## Assignment and Audit Invariants
+
+- `TaskAssigned` enforces workspace consistency (`task.group.project.workspace == assigned_to.workspace`).
+- `WorkspaceLog` stores change metadata (`create`/`edit`/`delete`) in JSON.
+- `WorkspaceLog` references affected domain object type through generic relation (`ContentType` + `object_id`).
+- During object deletion, logs keep model type reference while object ID is nulled.
 
 ## Communication and Reminder Invariants
 

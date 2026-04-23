@@ -2,33 +2,39 @@
 
 ## System Overview
 
-WebPlant is a single Django project (`WebPlant`) split into domain-oriented apps.  
-Most business logic lives in app-level `views.py`, `forms.py`, and `utils.py`, with shared primitives in `base_utils.py`.
+WebPlant is a single Django project package (`WebPlant`) with domain apps at the repository root.
+The backend follows a layered, app-local structure:
+
+- **Views** orchestrate request flow, access checks, and response shape.
+- **Forms** own validation and object persistence for write operations.
+- **Utils** provide app-specific lookups, authorization helpers, and duplication logic.
+- **Models** enforce relational constraints and domain invariants.
+- **Shared helpers** in `base_utils.py` provide reusable request/form patterns.
 
 Primary runtime components:
 
-- Django request/response stack (routing, templates, authentication, sessions)
+- Django request/response stack (routing, templates, auth, sessions)
+- Django Channels over ASGI (`daphne`) for realtime update broadcasts
+- Optional Redis (`REDIS_URL`) for cache, channel layer, and ratelimit support
 - Relational database from `DATABASE_URL` (SQLite fallback in debug mode)
-- Optional Redis (`REDIS_URL`) for cache, Celery broker/backend, and ratelimit support
-- Celery + `django-celery-beat` for periodic task reminders
 - Cloudinary-backed media storage when `CLOUDINARY_URL` is provided
 - Email backend: console in debug, Anymail/Resend in production
-- Sentry SDK for observability
+- Sentry SDK for error and performance telemetry
 
 ## App Responsibilities
 
-- `home`: root pages and landing routes
-- `accounts`: custom user model, user preferences, allauth adapter integration
-- `workspace`: workspaces, membership, invite codes, roles, and workspace preferences
-- `project`: workspace projects
-- `group`: project groups and positional ordering
-- `task`: tasks, task comments, attachments, reminders, reminder job
-- `notification`: in-app notifications and temporary mute durations
-- `feedback`: user feedback collection
+- `home`: landing routes
+- `accounts`: custom user model, account settings, and preference updates
+- `workspace`: workspace membership, role model, invite codes, ownership transfer, audit log model
+- `project`: project CRUD and duplication orchestration
+- `group`: group CRUD, ordering, and duplication
+- `task`: task CRUD, attachments, comments, assignees, reminders
+- `notification`: notification feed, read state, temporary notification mute windows, email dispatch helpers
+- `feedback`: authenticated feedback submission
 
-## URL Topology
+## URL and Protocol Topology
 
-`WebPlant/urls.py` mounts app routes under stable prefixes:
+`WebPlant/urls.py` mounts HTTP routes under:
 
 - `/` (home)
 - `/account/`
@@ -39,38 +45,62 @@ Primary runtime components:
 - `/notification/`
 - `/feedback/`
 
-Operational routes:
+Operational endpoints:
 
-- `/admin/` (or secret-suffixed when `URL_SECRET` is set)
-- `/trigger-error/` (or secret-suffixed), useful for testing error monitoring
+- `/admin/` or `/admin/<URL_SECRET>/`
+- `/trigger-error/` or `/trigger-error/<URL_SECRET>/`
 
-## Request Lifecycle (Mutable Workspace Actions)
+WebSocket routing (`WebPlant/routing.py`):
 
-1. A request enters middleware and resolves through Django URL routing.
-2. The view loads domain objects via helper functions (`get_workspace`, `get_project`, `get_group`, `get_task`).
-3. Membership is validated through `WorkspaceUser` and active state checks.
-4. Role permissions are checked using workspace role booleans (owner logic bypasses role restrictions where appropriate).
-5. Mutations are typically validated and persisted through forms, often wrapped by `reusable_form_submission(...)`.
-6. Responses are returned as rendered templates or JSON for AJAX-style actions.
+- `/websocket/project/update/<project_id>/`
+- `/websocket/group/update/<group_id>/`
+- `/websocket/task/update/<task_id>/`
 
-## Background Processing and Notifications
+## Write Request Lifecycle (Design Pattern)
 
-- `CELERY_BEAT_SCHEDULE` triggers `task.tasks.send_task_alert` every 5 minutes.
-- The alert task selects due `TaskReminder` records.
-- Email sending is routed through notification utilities and respects user/workspace notification settings.
-- Notification operations can write in-app `Notification` records and optionally send external email.
+Most mutable endpoints follow this pattern:
+
+1. Resolve the target resource with scoped lookup helpers (`get_*_or_404`).
+2. Resolve active membership via `WorkspaceUser`.
+3. Verify role permissions with `verify_workspace_role(...)` (owner has bypass behavior).
+4. Delegate validation/save to a form through `reusable_form_submission(...)`.
+5. Return JSON payloads for AJAX clients (`status`, optional `new_object_id`).
+
+This keeps authorization and validation concerns explicit while avoiding repeated boilerplate.
+
+## Audit and Realtime Collaboration
+
+Project, group, and task model mutations can write `WorkspaceLog` entries.
+The model `save()`/`delete()` methods accept `workspace_user` to preserve actor context in logs.
+
+Realtime collaboration uses Channels group fan-out:
+
+- Client sends an action marker (`create`/`edit`/`delete`) over WebSocket.
+- Consumer relays to a channel-layer group keyed by object ID.
+- Connected clients receive a lightweight refresh signal and pull updated data over HTTP.
+
+This separates event signaling from authoritative data reads.
+
+## Reminder and Notification Flow
+
+- Reminders are stored as `TaskReminder`.
+- Email and in-app notification behavior is centralized in `notification/utils.py`.
+- Delivery respects user-level preference toggles and temporary mute windows.
+- Reminder dispatch is currently script-driven (`task/cron_scripts/send_task_reminders.py`) and should be triggered by external scheduling infrastructure.
 
 ## High-Level Component Diagram
 
 ```mermaid
 flowchart LR
-    UserClient[Browser Client] --> DjangoApp[Django App]
-    DjangoApp --> DomainApps[Domain Apps]
+    UserClient[Browser Client] --> DjangoHTTP[Django HTTP Views]
+    UserClient --> DjangoWS[Channels WebSocket Consumers]
+    DjangoHTTP --> DomainApps[Domain Apps]
+    DjangoWS --> DomainApps
     DomainApps --> Database[(Database)]
     DomainApps --> NotificationLayer[Notification Utilities]
     NotificationLayer --> EmailProvider[Email Provider]
-    CeleryBeat[Celery Beat] --> ReminderTask[Task Alert Job]
-    ReminderTask --> NotificationLayer
-    Redis[(Redis Optional)] --> DjangoApp
-    Redis --> ReminderTask
+    Scheduler[External Scheduler] --> ReminderScript[Task Reminder Script]
+    ReminderScript --> NotificationLayer
+    Redis[(Redis Optional)] --> DjangoHTTP
+    Redis --> DjangoWS
 ```

@@ -29,18 +29,23 @@
 - Start Django shell: `python manage.py shell`
 - Collect static files (deployment prep): `python manage.py collectstatic`
 
-## Optional Celery Processes
+## ASGI / Realtime Development
 
-If `REDIS_URL` is configured, run in separate terminals:
+- Dev server (HTTP + websocket support in development): `python manage.py runserver`
+- ASGI server alternative: `daphne WebPlant.asgi:application`
 
-- Worker: `celery -A WebPlant worker -l info`
-- Beat: `celery -A WebPlant beat -l info`
+If `REDIS_URL` is configured, websocket fan-out uses Redis channel layer.
+Without `REDIS_URL`, Channels falls back to in-memory channel layer.
 
-Scheduled task:
+## Reminder Scheduling
 
-- `task.tasks.send_task_alert` (runs every 5 minutes, sends due reminder notifications)
+Reminder sending is script-driven (not Celery-managed in this repository):
 
-Without `REDIS_URL`, Celery tasks run eagerly in-process, which keeps local setup lightweight.
+- Script: `task/cron_scripts/send_task_reminders.py`
+- Trigger it via your scheduler of choice (Task Scheduler, cron, CI scheduled job, etc.)
+- Example manual run from project root: `python task/cron_scripts/send_task_reminders.py`
+
+Before production scheduling, verify the script's `DJANGO_SETTINGS_MODULE` points to the project settings module.
 
 ## Development Conventions
 
@@ -52,7 +57,8 @@ Without `REDIS_URL`, Celery tasks run eagerly in-process, which keeps local setu
 ## Troubleshooting Tips
 
 - If production mode fails at startup, verify all required environment variables are set.
-- If reminders are not firing, confirm `REDIS_URL`, Celery worker, and Celery beat are all running.
+- If websocket updates fail across multiple clients, verify `REDIS_URL` and channel-layer connectivity.
+- If reminders are not firing, confirm scheduler execution and script environment settings.
 - If uploads fail, verify `CLOUDINARY_URL` or local media write permissions.
 
 Frontend-specific constraints are documented in `../FRONTEND_INSTRUCTIONS.md`.

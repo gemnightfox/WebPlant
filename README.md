@@ -10,7 +10,7 @@ Each workspace contains projects, projects contain groups, and groups contain ta
 - Nested work structure: Workspace -> Project -> Group -> Task
 - Task collaboration: comments, attachments, completion status, due reminders
 - Notification pipeline for in-app records and outbound email
-- Optional Redis + Celery execution for asynchronous scheduled reminders
+- Optional Redis-backed caching/channel layer for improved realtime behavior
 
 ## Tech Stack
 
@@ -18,7 +18,7 @@ Each workspace contains projects, projects contain groups, and groups contain ta
 - Custom auth user model (`accounts.CustomUser`)
 - `django-allauth` (email/password + Google social login support)
 - PostgreSQL or SQLite (through `DATABASE_URL`)
-- Celery + `django-celery-beat` for reminder scheduling
+- Django Channels + Daphne for realtime collaboration events
 - Cloudinary storage for media files (or local filesystem fallback)
 - WhiteNoise for static asset serving
 - Sentry SDK for runtime error/performance reporting
@@ -37,12 +37,14 @@ Each workspace contains projects, projects contain groups, and groups contain ta
 6. Start the web server:
    - `python manage.py runserver`
 
-If `REDIS_URL` is set, start Celery worker/beat processes too (commands in `docs/development.md`).
+If `REDIS_URL` is set, websocket fan-out uses Redis channel layer.  
+Reminder sending is currently scheduler/script-driven (see `docs/development.md`).
 
 ## Documentation
 
 - `docs/README.md`: documentation entry point and reading map
 - `docs/architecture.md`: runtime architecture and request/permission flow
+- `docs/backend-patterns.md`: backend design patterns and feature checklist
 - `docs/domain-model.md`: model relationships and domain invariants
 - `docs/configuration.md`: required/optional environment variables and behavior
 - `docs/development.md`: local setup, commands, and development workflow
