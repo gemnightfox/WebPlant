@@ -45,6 +45,7 @@ Reminder sending is currently scheduler/script-driven (see `docs/development.md`
 - `docs/README.md`: documentation entry point and reading map
 - `docs/architecture.md`: runtime architecture and request/permission flow
 - `docs/backend-patterns.md`: backend design patterns and feature checklist
+- `docs/backend-code-map.md`: backend layer map and feature extension entry points
 - `docs/domain-model.md`: model relationships and domain invariants
 - `docs/configuration.md`: required/optional environment variables and behavior
 - `docs/development.md`: local setup, commands, and development workflow

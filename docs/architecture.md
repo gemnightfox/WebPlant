@@ -11,6 +11,11 @@ The backend follows a layered, app-local structure:
 - **Models** enforce relational constraints and domain invariants.
 - **Shared helpers** in `base_utils.py` provide reusable request/form patterns.
 
+Dependency direction (preferred):
+
+- `views` -> `forms`/`utils` -> `models`
+- Keep dependency flow one-way; avoid model/view coupling and duplicated validation logic.
+
 Primary runtime components:
 
 - Django request/response stack (routing, templates, auth, sessions)
@@ -68,6 +73,17 @@ Most mutable endpoints follow this pattern:
 
 This keeps authorization and validation concerns explicit while avoiding repeated boilerplate.
 
+## Read Request Lifecycle (Design Pattern)
+
+Most data-read endpoints follow this pattern:
+
+1. Resolve resource through membership-scoped getter (`get_*_or_404`).
+2. Assemble nested fields with explicit query shaping (`select_related` / `prefetch_related`) as needed.
+3. Serialize with stable response keys and ID normalization helpers.
+4. Return JSON payloads that frontend consumers can cache/refresh safely.
+
+This keeps read behavior secure and predictable while controlling query cost.
+
 ## Audit and Realtime Collaboration
 
 Project, group, and task model mutations can write `WorkspaceLog` entries.
@@ -87,6 +103,14 @@ This separates event signaling from authoritative data reads.
 - Email and in-app notification behavior is centralized in `notification/utils.py`.
 - Delivery respects user-level preference toggles and temporary mute windows.
 - Reminder dispatch is currently script-driven (`task/cron_scripts/send_task_reminders.py`) and should be triggered by external scheduling infrastructure.
+
+## Transaction and Consistency Boundaries
+
+Multi-step writes that touch multiple entities (for example duplication flows) should be wrapped in `transaction.atomic()`:
+
+- ensure parent/child entities are created consistently,
+- avoid partial duplication when a downstream write fails,
+- keep audit logs aligned with committed state.
 
 ## High-Level Component Diagram
 

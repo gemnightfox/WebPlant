@@ -2,7 +2,7 @@
 
 ## Backend Layout
 
-- `WebPlant/`: project package (`settings.py`, `urls.py`, `celery.py`, ASGI/WSGI)
+- `WebPlant/`: project package (`settings.py`, `urls.py`, `routing.py`, ASGI/WSGI)
 - Domain apps: `accounts/`, `workspace/`, `project/`, `group/`, `task/`, `notification/`, `feedback/`, `home/`
 - Shared utilities: `base_utils.py`
 - Templates/static: `templates/`, `static/`
@@ -53,6 +53,7 @@ Before production scheduling, verify the script's `DJANGO_SETTINGS_MODULE` point
 - Mutating endpoints commonly use forms and `reusable_form_submission(...)` for validation/save patterns.
 - Ownership and membership checks happen before domain-level edits.
 - Notification delivery should respect user preference toggles and temporary disable durations.
+- For new backend features, follow `backend-patterns.md` and `backend-code-map.md` to preserve layering and avoid cross-app coupling.
 
 ## Troubleshooting Tips
 

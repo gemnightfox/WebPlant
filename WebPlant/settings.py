@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import dj_database_url
 import cloudinary
 from base_utils import custom_getenv
+import json
 from django.core.management.utils import get_random_secret_key
 
 load_dotenv()
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'anymail',
     'cloudinary',
     'cloudinary_storage',
+    'dbbackup',
 
     'home',
     'feedback',
@@ -239,7 +241,28 @@ if CLOUDINARY_URL:
 STORAGES = {
     'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage' if CLOUDINARY_URL else 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    # dbbackup added below
 }
+
+B2_JSON = custom_getenv('B2_JSON') # JSON dictionary
+
+if B2_JSON:
+    B2_JSON = json.loads(B2_JSON)
+    B2_REGION = B2_JSON['B2_REGION']
+    location = 'development/' if DEBUG else 'production/'
+
+    STORAGES['dbbackup'] = {'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage', 'OPTIONS': {
+        'default_acl': 'private',
+        'location': location,
+        'access_key': B2_JSON['B2_ACCESS_KEY'],
+        'secret_key': B2_JSON['B2_SECRET_KEY'],
+        'bucket_name': B2_JSON['B2_BUCKET_NAME'],
+        'region_name': B2_REGION,
+        'endpoint_url': f'https://s3.{B2_REGION}.backblazeb2.com',
+        }}
+
+else:
+    STORAGES['dbbackup'] = {'BACKEND': 'django.core.files.storage.FileSystemStorage', 'OPTIONS': {'location': BASE_DIR / 'db_backups'}}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -247,8 +270,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-
-
 
 
