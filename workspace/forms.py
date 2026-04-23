@@ -1,6 +1,6 @@
 from django import forms
 from .models import WorkspaceInviteCode, WorkspacePreference, WorkspaceUser, Workspace, WorkspaceRole
-from django.db import transaction
+from django.db import transaction, models
 from .utils import generate_workspace_invite_code
 from notification.utils import send_email
 from accounts.utils import get_user_preferences
@@ -23,25 +23,22 @@ class CreateNewForm(forms.ModelForm):
                 workspace_instance = super().save() # owner=None, default_role=None
 
                 # Default roles provided (Users dont have to create their own roles, unless they want custom functionality)
+                admin_perms = {
+                    field.name: True for field in WorkspaceRole._meta.get_fields()
+                    if isinstance(field, models.BooleanField)
+                }
+                viewer_perms = {
+                    field.name: False for field in WorkspaceRole._meta.get_fields()
+                    if isinstance(field, models.BooleanField) and field.name.startswith('can_')
+                }
+
                 admin_role = WorkspaceRole.objects.create(
                     workspace=workspace_instance,
                     name='Admin',
-                    can_edit_workspace_name=True,
-                    can_edit_workspace_preference=True,
-                    can_edit_workspace_invite_codes=True,
-                    can_add_workspace_users=True,
-                    can_assign_roles_to_workspace_users=True,
-                    can_remove_workspace_users=True,
-                    can_edit_workspace_roles=True,
-                    can_edit_projects=True,
-                    can_edit_groups=True,
-                    can_edit_tasks=True,
-                    can_edit_task_attachments=True,
-                    can_add_task_comments=True,
-                    can_edit_task_deadline=True,
-                    can_assign_tasks_to_users=True,
+                    **admin_perms,
                 )
 
+                # Hard-coded due to mixture of True/False for fields
                 editor_role = WorkspaceRole.objects.create(
                     workspace=workspace_instance,
                     name='Editor',
@@ -64,20 +61,7 @@ class CreateNewForm(forms.ModelForm):
                 WorkspaceRole.objects.create(
                     workspace=workspace_instance,
                     name='Viewer',
-                    can_edit_workspace_name=False,
-                    can_edit_workspace_preference=False,
-                    can_edit_workspace_invite_codes=False,
-                    can_add_workspace_users=False,
-                    can_assign_roles_to_workspace_users=False,
-                    can_remove_workspace_users=False,
-                    can_edit_workspace_roles=False,
-                    can_edit_projects=False,
-                    can_edit_groups=False,
-                    can_edit_tasks=False,
-                    can_edit_task_attachments=False,
-                    can_add_task_comments=False,
-                    can_edit_task_deadline=False,
-                    can_assign_tasks_to_users=False,
+                    **viewer_perms,
                 )
 
                 # Creates a WorkspaceUser object for request.user (current user)
