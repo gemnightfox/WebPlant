@@ -1,5 +1,10 @@
 import os
 import django
+from pathlib import Path
+import sys
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(BASE_DIR))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'WebPlant.settings')
 django.setup()
 
@@ -12,6 +17,7 @@ from datetime import timedelta
 
 
 
+print('Running CRON script...')
 one_day_ago = timezone.now() - timedelta(days=1)
 TaskReminder.objects.filter(send_at__lt=one_day_ago).delete()
 
@@ -21,8 +27,9 @@ for reminder in task_reminders:
     received_by = reminder.workspace_user.user
     send_email(request=None, receiver=received_by, sender=received_by, content=f'This is a reminder for task: {reminder.task.name}')
 
+object_count = task_reminders.count()
 task_reminders.delete()
-
+print(f'CRON script finished! Object count: {object_count}')
 
 
 
