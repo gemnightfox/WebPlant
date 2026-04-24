@@ -63,48 +63,6 @@
     });
   }
 
-  document.querySelectorAll('.WsSettings-slider').forEach(function(slider) {
-    var options = slider.querySelectorAll('.WsSettings-sliderOption');
-    var thumb = slider.querySelector('.WsSettings-sliderThumb');
-    var url = slider.getAttribute('data-url');
-    function positionThumb(activeBtn) { thumb.style.left = activeBtn.offsetLeft + 'px'; thumb.style.width = activeBtn.offsetWidth + 'px'; }
-    function normalizeValue(raw) {
-      if (raw === true || raw === 'true' || raw === 'True' || raw === '1') return 'simple';
-      if (raw === false || raw === 'false' || raw === 'False' || raw === '0') return 'disabled';
-      var s = (raw == null ? '' : String(raw)).trim().toLowerCase();
-      if (s === 'simple') return 'simple';
-      if (s === 'complex') return 'complex';
-      return 'disabled';
-    }
-    function setSliderValue(rawValue, save) {
-      var prevValue = slider.getAttribute('data-value') || 'disabled';
-      var value = normalizeValue(rawValue);
-      slider.setAttribute('data-value', value);
-      options.forEach(function(opt) {
-        var isActive = opt.getAttribute('data-value') === value;
-        opt.classList.toggle('is-active', isActive);
-        if (isActive) positionThumb(opt);
-      });
-      slider.dispatchEvent(new CustomEvent('slider-change', { detail: { value: value } }));
-      if (save && url) {
-        var csrfInput = document.querySelector('[name="csrfmiddlewaretoken"]');
-        var csrf = csrfInput ? csrfInput.value : csrfToken;
-        var fd = new FormData();
-        fd.append('csrfmiddlewaretoken', csrf);
-        fd.append('custom_roles', value);
-        fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrf }, body: fd })
-          .then(function(r) { return r.json().then(function(data) { if (!data || data.status !== 'success') setSliderValue(prevValue, false); }); })
-          .catch(function() { setSliderValue(prevValue, false); });
-      }
-    }
-    setSliderValue(slider.getAttribute('data-value'), false);
-    window.addEventListener('resize', function() {
-      var active = slider.querySelector('.WsSettings-sliderOption.is-active');
-      if (active) positionThumb(active);
-    });
-    options.forEach(function(opt) { opt.addEventListener('click', function() { setSliderValue(opt.getAttribute('data-value'), true); }); });
-  });
-
   function postAndRedirect(url, errorEl) {
     fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken } })
       .then(function(r) {

@@ -47,18 +47,6 @@ class WorkspaceInviteCode(models.Model):
 
 
 
-class WorkspacePreference(models.Model):
-    class PreferenceChoices(models.TextChoices):
-        DISABLED = 'disabled', 'Disabled'
-        SIMPLE = 'simple', 'Simple'
-        COMPLEX = 'complex', 'Complex'
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.OneToOneField(Workspace, on_delete=models.CASCADE, related_name='preferences')
-    custom_roles = models.CharField(max_length=20, choices=PreferenceChoices.choices, default=PreferenceChoices.DISABLED)
-
-
-
 # After editing fields, update frontend templates + workspace.forms.CreateNewForm.save()
 class WorkspaceRole(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -66,7 +54,6 @@ class WorkspaceRole(models.Model):
     name = models.CharField(max_length=100)
 
     can_edit_workspace_name = models.BooleanField()
-    can_edit_workspace_preference = models.BooleanField()
     can_edit_workspace_invite_codes = models.BooleanField()
 
     can_add_workspace_users = models.BooleanField()

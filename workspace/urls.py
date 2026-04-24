@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import create_new, transfer_ownership, set_preference, change_default_role
+from .views import create_new, transfer_ownership, change_default_role
 from .views import check_invites, check_invites_count, accept_invite, reject_invite
 from .views import settings, edit_name, add_users, assign_role_to_user, remove_user
 from .views import add_invite_code, edit_invite_code_password, delete_invite_code, join_using_invite_code
@@ -10,7 +10,6 @@ app_name = 'workspace'
 urlpatterns = [
     path('create-new/', create_new, name='create_new'),
     path('transfer-ownership/<uuid:workspace_id>/', transfer_ownership, name='transfer_ownership'),
-    path('set-preference/<uuid:workspace_id>/', set_preference, name='set_preference'),
     path('change-default-role/<uuid:workspace_id>/', change_default_role, name='change_default_role'),
 
     path('check-invites/', check_invites, name='check_invites'),

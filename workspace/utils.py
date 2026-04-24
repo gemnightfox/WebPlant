@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from .models import Workspace, WorkspaceUser, WorkspacePreference, WorkspaceRole, WorkspaceLog
+from .models import Workspace, WorkspaceUser, WorkspaceRole, WorkspaceLog
 import random
 from django.http import Http404
 from django.db import models
@@ -17,12 +17,6 @@ def get_workspace_user_or_404(user, workspace, allow_false_is_active=False):
         return get_object_or_404(WorkspaceUser, workspace=workspace, user=user)
     else:
         return get_object_or_404(WorkspaceUser, workspace=workspace, user=user, is_active=True)
-
-
-
-def get_workspace_preference(workspace):
-    workspace_preference, _ = WorkspacePreference.objects.get_or_create(workspace=workspace)
-    return workspace_preference
 
 
 

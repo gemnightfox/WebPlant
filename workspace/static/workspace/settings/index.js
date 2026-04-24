@@ -44,26 +44,8 @@
       }
     }
 
-    function toggleRolesTab(customRolesValue) {
-      var v = (customRolesValue + '').toLowerCase();
-      var show = v === 'simple' || v === 'complex' || v === 'true' || v === '1';
-      if (rolesTabBtn) rolesTabBtn.style.display = show ? '' : 'none';
-      if (rolesTabPanel) rolesTabPanel.style.display = show ? '' : 'none';
-      if (!show && rolesTabBtn && rolesTabBtn.classList.contains('is-active')) {
-        setActive(0);
-      }
-    }
-
-    if (container) {
-      toggleRolesTab(container.getAttribute('data-custom-roles') || 'disabled');
-    }
-
-    var slider = document.getElementById('ws-slider-custom-roles');
-    if (slider) {
-      slider.addEventListener('slider-change', function(e) {
-        toggleRolesTab(e.detail.value);
-      });
-    }
+    if (rolesTabBtn) rolesTabBtn.style.display = '';
+    if (rolesTabPanel) rolesTabPanel.style.display = '';
 
     function indexFromHash() {
       var key = (location.hash || '').slice(1).toLowerCase();

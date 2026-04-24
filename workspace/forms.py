@@ -1,5 +1,5 @@
 from django import forms
-from .models import WorkspaceInviteCode, WorkspacePreference, WorkspaceUser, Workspace, WorkspaceRole
+from .models import WorkspaceInviteCode, WorkspaceUser, Workspace, WorkspaceRole
 from django.db import transaction, models
 from .utils import generate_workspace_invite_code
 from notification.utils import send_email
@@ -43,7 +43,6 @@ class CreateNewForm(forms.ModelForm):
                     workspace=workspace_instance,
                     name='Editor',
                     can_edit_workspace_name=False,
-                    can_edit_workspace_preference=True,
                     can_edit_workspace_invite_codes=False,
                     can_add_workspace_users=False,
                     can_assign_roles_to_workspace_users=False,
@@ -86,13 +85,6 @@ class TransferOwnershipForm(forms.ModelForm):
     def __init__(self, *args, my_workspace_user, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['owner'].queryset = WorkspaceUser.objects.filter(workspace=self.instance, is_active=True).exclude(id=my_workspace_user.id)
-
-
-
-class SetPreferenceForm(forms.ModelForm):
-    class Meta:
-        model = WorkspacePreference
-        exclude = ['id','workspace'] # Note: EXCLUDE used
 
 
 

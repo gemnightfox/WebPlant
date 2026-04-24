@@ -1,13 +1,13 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Workspace, WorkspaceUser, WorkspaceInviteCode, WorkspaceRole
-from .forms import CreateNewForm, EditNameForm, AddUsersForm, AssignRoleToUserForm, SetPreferenceForm, ChangeDefaultRoleForm, TransferOwnershipForm, AddInviteCodeForm, EditInviteCodePasswordForm, CreateRoleForm, EditRoleForm
+from .models import Workspace, WorkspaceUser, WorkspaceInviteCode
+from .forms import CreateNewForm, EditNameForm, AddUsersForm, AssignRoleToUserForm, ChangeDefaultRoleForm, TransferOwnershipForm, AddInviteCodeForm, EditInviteCodePasswordForm, CreateRoleForm, EditRoleForm
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse, Http404
 from notification.utils import send_email
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from .utils import get_workspace_or_404, get_workspace_user_or_404, get_workspace_preference, verify_workspace_role, get_workspace_role, get_lowest_level_workspace_role
+from .utils import get_workspace_or_404, get_workspace_user_or_404, verify_workspace_role, get_workspace_role, get_lowest_level_workspace_role
 from base_utils import reusable_form_submission
 
 
@@ -27,17 +27,6 @@ def transfer_ownership(request, workspace_id):
     if my_workspace_user != workspace.owner:
         raise Http404('Current user is not the owner of the specified workspace.')
     return reusable_form_submission(request, TransferOwnershipForm, instance=workspace, my_workspace_user=my_workspace_user)
-
-
-
-@login_required
-@require_POST
-def set_preference(request, workspace_id):
-    workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
-    my_workspace_user = get_workspace_user_or_404(request.user, workspace)
-    workspace_preference = get_workspace_preference(workspace)
-    verify_workspace_role(my_workspace_user, 'can_edit_workspace_preference')
-    return reusable_form_submission(request, SetPreferenceForm, instance=workspace_preference)
 
 
 
@@ -92,7 +81,7 @@ def reject_invite(request, workspace_id):
 
 @login_required
 def settings(request, workspace_id):
-    workspace = Workspace.objects.prefetch_related('workspace_user', 'invite_codes', 'preferences', 'roles').get(id=workspace_id)
+    workspace = Workspace.objects.prefetch_related('workspace_user', 'invite_codes', 'roles').get(id=workspace_id)
     get_workspace_or_404(my_user=request.user, workspace_id=workspace.id) # Verification purposes
     my_workspace_user = get_workspace_user_or_404(request.user, workspace)
 

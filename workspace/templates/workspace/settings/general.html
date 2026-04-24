@@ -192,21 +192,4 @@
   </ul>
 </section>
 
-<section class="WsSettings-section WsSettings-features">
-  <div class="WsSettings-sliderRow">
-    <span class="WsSettings-sliderLabel">Custom roles</span>
-    <div
-      class="WsSettings-slider"
-      id="ws-slider-custom-roles"
-      data-url="{% url 'workspace:set_preference' workspace.id %}"
-      data-value="{{ workspace.preferences.custom_roles }}"
-    >
-      <button type="button" class="WsSettings-sliderOption" data-value="disabled">Disabled</button>
-      <button type="button" class="WsSettings-sliderOption" data-value="simple">Simple</button>
-      <button type="button" class="WsSettings-sliderOption" data-value="complex">Complex</button>
-      <div class="WsSettings-sliderThumb"></div>
-    </div>
-  </div>
-</section>
-
 <script src="{% static 'workspace/settings/general_interactions.js' %}"></script>
