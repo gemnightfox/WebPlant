@@ -315,6 +315,26 @@
   font-size: 28px;
 }
 
+/* --- Assignee floating picker --- */
+#edit-task-assignee-picker {
+  position: fixed;
+  z-index: 1100;
+  background: var(--secondary-background);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  padding: 16px;
+  width: 300px;
+}
+
+#edit-task-assignee-picker[hidden] {
+  display: none;
+}
+
+#edit-task-assignee-picker .TaskAssignees-addRow {
+  margin: 0;
+}
+
 .ReminderPicker-timeRow {
   display: flex;
   align-items: center;

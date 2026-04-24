@@ -394,6 +394,11 @@
   margin: 4px 0;
 }
 
+/* Keep task settings rows vertically consistent with the Deadline row spacing. */
+#edit-task-popup .Popup-panelDivider {
+  margin: 0;
+}
+
 .Popup-panelTimezone {
   margin: 0 0 10px 0;
   padding: 0;

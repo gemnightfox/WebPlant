@@ -75,7 +75,7 @@ class TaskComment(models.Model):
 
 class TaskReminder(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='reminders')
     workspace_user = models.ForeignKey('workspace.WorkspaceUser', on_delete=models.CASCADE)
     send_at = models.DateTimeField()
 

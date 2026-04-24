@@ -1,6 +1,7 @@
 from django import forms
 from .models import Task, TaskAttachment, TaskComment, TaskReminder, TaskAssigned
 from workspace.utils import verify_workspace_role
+from workspace.models import WorkspaceUser
 from notification.utils import can_receive_notifications, send_email
 
 
@@ -135,7 +136,7 @@ class AddAssignedForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.form_request = form_request
         self.task = task
-        self.fields['assigned_to'].queryset = TaskAssigned.objects.filter(assigned_to__workspace=task.group.project.workspace)
+        self.fields['assigned_to'].queryset = WorkspaceUser.objects.filter(workspace=task.group.project.workspace)
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -151,7 +152,6 @@ class AddAssignedForm(forms.ModelForm):
                 send_email(request, receiver=user, sender=request.user, content=f'You have been assigned to task ({workspace.name}): {self.task.name}')
 
         return instance
-
 
 
 

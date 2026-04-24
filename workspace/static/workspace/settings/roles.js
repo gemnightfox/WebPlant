@@ -4,6 +4,59 @@
     return match ? match[2] : null;
   }
   var csrfToken = getCookie('csrftoken');
+  var rolePermissionPresets = {
+    admin: {
+      can_edit_workspace_name: true,
+      can_add_workspace_users: true,
+      can_assign_roles_to_workspace_users: true,
+      can_remove_workspace_users: true,
+      can_edit_workspace_roles: true,
+      can_edit_workspace_invite_codes: true,
+      can_edit_projects: true,
+      can_edit_groups: true,
+      can_edit_tasks: true,
+      can_assign_tasks_to_users: true,
+      can_add_task_comments: true,
+      can_edit_task_deadline: true
+    },
+    editor: {
+      can_edit_workspace_name: false,
+      can_add_workspace_users: false,
+      can_assign_roles_to_workspace_users: false,
+      can_remove_workspace_users: false,
+      can_edit_workspace_roles: false,
+      can_edit_workspace_invite_codes: false,
+      can_edit_projects: true,
+      can_edit_groups: true,
+      can_edit_tasks: true,
+      can_assign_tasks_to_users: true,
+      can_add_task_comments: true,
+      can_edit_task_deadline: true
+    },
+    viewer: {
+      can_edit_workspace_name: false,
+      can_add_workspace_users: false,
+      can_assign_roles_to_workspace_users: false,
+      can_remove_workspace_users: false,
+      can_edit_workspace_roles: false,
+      can_edit_workspace_invite_codes: false,
+      can_edit_projects: false,
+      can_edit_groups: false,
+      can_edit_tasks: false,
+      can_assign_tasks_to_users: false,
+      can_add_task_comments: false,
+      can_edit_task_deadline: false
+    }
+  };
+
+  function applyRolePermissionPreset(form, presetKey) {
+    var preset = rolePermissionPresets[presetKey];
+    if (!preset) return;
+    Object.keys(preset).forEach(function(fieldName) {
+      var checkbox = form.querySelector('input[type="checkbox"][name="' + fieldName + '"]');
+      if (checkbox) checkbox.checked = !!preset[fieldName];
+    });
+  }
 
   var defaultRoleForm = document.getElementById('ws-default-role-form');
   var defaultRoleSelect = document.getElementById('id_default_role');
@@ -29,6 +82,19 @@
         .catch(function() { defaultRoleSelect.value = prevRoleValue; if (errorEl) errorEl.removeAttribute('hidden'); });
     });
   }
+
+  document.body.addEventListener('click', function(e) {
+    var presetButton = e.target.closest('[data-role-preset]');
+    if (!presetButton) return;
+    var presetKey = presetButton.getAttribute('data-role-preset');
+    if (!presetKey || !rolePermissionPresets[presetKey]) return;
+    var parentForm = presetButton.closest('form');
+    if (!parentForm) return;
+    var presetLabel = presetKey.charAt(0).toUpperCase() + presetKey.slice(1);
+    var isConfirmed = window.confirm('Reset all permissions to ' + presetLabel + ' defaults?');
+    if (!isConfirmed) return;
+    applyRolePermissionPreset(parentForm, presetKey);
+  });
 
   var transferForm = document.getElementById('ws-transfer-role-form');
   var transferSelect = document.getElementById('ws-transfer-role-select');

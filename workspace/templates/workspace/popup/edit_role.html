@@ -14,6 +14,14 @@
         </div>
         <div class="WsSettings-field">
           <span class="WsSettings-editRolePermLabel">Permissions</span>
+          <div class="WsSettings-rolePresetWrap">
+            <span class="WsSettings-rolePresetLabel">Reset to defaults</span>
+            <div class="WsSettings-rolePresetButtons">
+              <button type="button" class="WsSettings-btn WsSettings-btnSecondary WsSettings-rolePresetButton" data-role-preset="admin">Admin</button>
+              <button type="button" class="WsSettings-btn WsSettings-btnSecondary WsSettings-rolePresetButton" data-role-preset="editor">Editor</button>
+              <button type="button" class="WsSettings-btn WsSettings-btnSecondary WsSettings-rolePresetButton" data-role-preset="viewer">Viewer</button>
+            </div>
+          </div>
           <div class="WsSettings-toggleList">
             <label class="WsSettings-toggle"><input type="checkbox" name="can_edit_workspace_name" {% if role.can_edit_workspace_name %}checked{% endif %}><span class="WsSettings-toggleLabel">Can edit workspace name</span></label>
             <label class="WsSettings-toggle"><input type="checkbox" name="can_add_workspace_users" {% if role.can_add_workspace_users %}checked{% endif %}><span class="WsSettings-toggleLabel">Can add users</span></label>

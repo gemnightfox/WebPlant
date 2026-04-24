@@ -370,6 +370,28 @@
   color: var(--color);
 }
 
+.WsSettings-rolePresetWrap {
+  margin-bottom: 10px;
+}
+
+.WsSettings-rolePresetLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--color-muted, rgba(127, 127, 127, 0.9));
+}
+
+.WsSettings-rolePresetButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.WsSettings-rolePresetButton {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
 .WsSettings-toggleList {
   display: flex;
   flex-direction: column;

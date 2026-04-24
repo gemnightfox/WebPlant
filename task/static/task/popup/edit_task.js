@@ -13,6 +13,7 @@
   var currentTaskId = null;
   var currentGroupId = null;
   var attachmentUploadInProgress = false;
+  var assigneeAddUnavailable = false;
 
   var EDIT_TASK_POPUP_STORAGE_KEY = "webplant_edit_task_popup";
 
@@ -535,6 +536,60 @@
     picker.style.width = width + "px";
   }
 
+  function measurePickerHeight(picker, fallbackHeight) {
+    if (!picker) return fallbackHeight;
+    var wasHidden = picker.hasAttribute("hidden");
+    if (!wasHidden) {
+      var visibleHeight = picker.getBoundingClientRect().height;
+      return visibleHeight > 0 ? visibleHeight : fallbackHeight;
+    }
+    var previousDisplay = picker.style.display;
+    var previousVisibility = picker.style.visibility;
+    picker.style.visibility = "hidden";
+    picker.style.display = "block";
+    var hiddenHeight = picker.getBoundingClientRect().height;
+    picker.style.display = previousDisplay;
+    picker.style.visibility = previousVisibility;
+    return hiddenHeight > 0 ? hiddenHeight : fallbackHeight;
+  }
+
+  function positionPickerBelowOrAbove(picker, anchorEl, fallbackHeight, options) {
+    if (!picker || !anchorEl) return;
+    var viewportPadding = 8;
+    var gap = 4;
+    var rect = anchorEl.getBoundingClientRect();
+    var pickerHeight = measurePickerHeight(picker, fallbackHeight || 220);
+    var maxWidth = Math.max(180, window.innerWidth - viewportPadding * 2);
+    var width = Math.min(300, maxWidth);
+    var left = rect.left;
+    if (options && options.alignRightToAnchorLeft) {
+      left = rect.left - width;
+    }
+    if (options && typeof options.leftOffset === "number") {
+      left += options.leftOffset;
+    }
+    if (left < viewportPadding) left = viewportPadding;
+    if (left + width > window.innerWidth - viewportPadding) {
+      left = Math.max(viewportPadding, window.innerWidth - viewportPadding - width);
+    }
+    var spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
+    var spaceAbove = rect.top - viewportPadding;
+    var top = rect.bottom + gap;
+
+    // Default to opening downward; flip upward only when bottom space is tighter.
+    if (pickerHeight > spaceBelow && spaceAbove > spaceBelow) {
+      top = rect.top - gap - pickerHeight;
+    }
+    if (top < viewportPadding) top = viewportPadding;
+    if (top + pickerHeight > window.innerHeight - viewportPadding) {
+      top = Math.max(viewportPadding, window.innerHeight - viewportPadding - pickerHeight);
+    }
+
+    picker.style.top = top + "px";
+    picker.style.left = left + "px";
+    picker.style.width = width + "px";
+  }
+
   function showDeadlinePicker(anchorEl) {
     if (!canEditTaskDeadline()) return;
     var picker = document.getElementById("edit-task-deadline-picker");
@@ -790,14 +845,68 @@
     if (picker) picker.setAttribute("hidden", "");
   }
 
+  function showAssigneePicker(anchorEl) {
+    var picker = document.getElementById("edit-task-assignee-picker");
+    if (!picker || !anchorEl) return;
+    positionPickerBelowOrAbove(picker, anchorEl, 220, { leftOffset: -20 });
+    picker.removeAttribute("hidden");
+  }
+
+  function hideAssigneePicker() {
+    var picker = document.getElementById("edit-task-assignee-picker");
+    if (picker) picker.setAttribute("hidden", "");
+  }
+
   function showAssigneeError() {
     var el = document.querySelector('[data-role="edit-task-assignee-error"]');
     if (el) el.removeAttribute("hidden");
   }
 
+  function setAssigneeErrorMessage(message) {
+    var el = document.querySelector('[data-role="edit-task-assignee-error"]');
+    if (!el) return;
+    if (typeof message === "string" && message.trim()) {
+      el.textContent = message.trim();
+    } else {
+      el.textContent = "Something went wrong. Please try again.";
+    }
+    el.removeAttribute("hidden");
+  }
+
   function hideAssigneeError() {
     var el = document.querySelector('[data-role="edit-task-assignee-error"]');
-    if (el) el.setAttribute("hidden", "");
+    if (!el) return;
+    el.textContent = "Something went wrong. Please try again.";
+    el.setAttribute("hidden", "");
+  }
+
+  function hasInvalidAssigneeChoiceError(data) {
+    var raw = "";
+    if (data && typeof data.message === "string") raw += " " + data.message;
+    if (data && typeof data.error === "string") raw += " " + data.error;
+    if (data && typeof data.errors === "string") raw += " " + data.errors;
+    if (data && data.errors && typeof data.errors.assigned_to === "string") {
+      raw += " " + data.errors.assigned_to;
+    }
+    if (data && data.errors && Array.isArray(data.errors.assigned_to)) {
+      raw += " " + data.errors.assigned_to.join(" ");
+    }
+    if (!raw) return false;
+    return (
+      /assigned_to/i.test(raw) &&
+      /(select a valid choice|not one of the available choices)/i.test(raw)
+    );
+  }
+
+  function markAssigneeAddUnavailable() {
+    assigneeAddUnavailable = true;
+    var select = document.getElementById("edit-task-assignee-select");
+    var addBtn = document.getElementById("edit-task-add-assignee-btn");
+    if (select) select.disabled = true;
+    if (addBtn) addBtn.disabled = true;
+    setAssigneeErrorMessage(
+      "Assign is temporarily unavailable due to invalid server choices for assignees."
+    );
   }
 
   function getTaskAssignments(taskId) {
@@ -854,7 +963,6 @@
   function applyAssigneePermission() {
     var canAssign = canAssignTasksToUsers();
     var toggleBtn = document.getElementById("edit-task-assignees-toggle");
-    var addRow = document.querySelector("#edit-task-assignees-body .TaskAssignees-addRow");
     var select = document.getElementById("edit-task-assignee-select");
     var addBtn = document.getElementById("edit-task-add-assignee-btn");
     if (toggleBtn) {
@@ -866,12 +974,9 @@
         toggleBtn.setAttribute("aria-disabled", "true");
       }
     }
-    if (addRow) {
-      if (canAssign) addRow.removeAttribute("hidden");
-      else addRow.setAttribute("hidden", "");
-    }
-    if (select) select.disabled = !canAssign;
-    if (addBtn) addBtn.disabled = !canAssign || addBtn.disabled;
+    if (!canAssign || assigneeAddUnavailable) hideAssigneePicker();
+    if (select) select.disabled = !canAssign || assigneeAddUnavailable || select.disabled;
+    if (addBtn) addBtn.disabled = !canAssign || assigneeAddUnavailable || addBtn.disabled;
   }
 
   function renderAssignees(taskId) {
@@ -883,15 +988,7 @@
 
     var assignments = getTaskAssignments(taskId);
     list.innerHTML = "";
-    if (assignments.length === 0) {
-      var emptyLi = document.createElement("li");
-      emptyLi.className = "TaskAssignee";
-      var emptyText = document.createElement("span");
-      emptyText.className = "TaskAssignee-text";
-      emptyText.textContent = "No assignees yet.";
-      emptyLi.appendChild(emptyText);
-      list.appendChild(emptyLi);
-    } else {
+    if (assignments.length > 0) {
       assignments.forEach(function (assignment) {
         var li = document.createElement("li");
         li.className = "TaskAssignee";
@@ -958,13 +1055,19 @@
       select.appendChild(opt);
     });
     select.value = "";
-    addBtn.disabled = !canAssign || availableUsers.length === 0;
-    select.disabled = !canAssign || availableUsers.length === 0;
+    addBtn.disabled = !canAssign || assigneeAddUnavailable || availableUsers.length === 0;
+    select.disabled = !canAssign || assigneeAddUnavailable || availableUsers.length === 0;
     applyAssigneePermission();
     syncDashboardAssigneeBadge(taskId);
   }
 
   function addSelectedAssignee() {
+    if (assigneeAddUnavailable) {
+      setAssigneeErrorMessage(
+        "Assign is temporarily unavailable due to invalid server choices for assignees."
+      );
+      return;
+    }
     if (!canAssignTasksToUsers()) return;
     if (!currentTaskId) return;
     var select = document.getElementById("edit-task-assignee-select");
@@ -998,11 +1101,23 @@
           });
           updateTaskAssignments(currentTaskId, all);
           renderAssignees(currentTaskId);
+          hideAssigneePicker();
+          var toggleBtn = document.getElementById("edit-task-assignees-toggle");
+          if (toggleBtn) {
+            toggleBtn.setAttribute("aria-expanded", "false");
+            toggleBtn.classList.remove("is-open");
+          }
         } else {
-          showAssigneeError();
+          if (hasInvalidAssigneeChoiceError(data)) {
+            markAssigneeAddUnavailable();
+          } else {
+            showAssigneeError();
+          }
         }
       })
-      .catch(showAssigneeError);
+      .catch(function () {
+        showAssigneeError();
+      });
   }
 
   // ── Reminder notifications ───────────────────────────────────────────────────
@@ -1606,7 +1721,8 @@
     }
     var assigneesBody = document.getElementById("edit-task-assignees-body");
     var assigneesToggle = document.getElementById("edit-task-assignees-toggle");
-    if (assigneesBody) assigneesBody.setAttribute("hidden", "");
+    hideAssigneePicker();
+    if (assigneesBody) assigneesBody.removeAttribute("hidden");
     if (assigneesToggle) {
       assigneesToggle.setAttribute("aria-expanded", "false");
       assigneesToggle.classList.remove("is-open");
@@ -1680,6 +1796,7 @@
           calendarYear = parseInt(p[0], 10);
           calendarMonth = parseInt(p[1], 10) - 1;
         }
+        hideAssigneePicker();
         renderCalendar();
         showDeadlinePicker(this);
       });
@@ -1724,6 +1841,7 @@
         if (picker && !picker.hasAttribute("hidden")) { picker.setAttribute("hidden", ""); return; }
         var deadlinePicker = document.getElementById("edit-task-deadline-picker");
         if (deadlinePicker) dismissDeadlinePicker(true);
+        hideAssigneePicker();
         if (reminderDay === 0) {
           var tz = getEffectiveTaskTz();
           var p = ymdInTz(Date.now(), tz).split("-");
@@ -1796,20 +1914,26 @@
     }
 
     var assigneesToggle = document.getElementById("edit-task-assignees-toggle");
-    var assigneesBody = document.getElementById("edit-task-assignees-body");
-    if (assigneesToggle && assigneesBody) {
-      assigneesToggle.addEventListener("click", function () {
-        var hidden = assigneesBody.hasAttribute("hidden");
-        if (hidden) {
-          assigneesBody.removeAttribute("hidden");
-          assigneesToggle.setAttribute("aria-expanded", "true");
-          assigneesToggle.classList.add("is-open");
-          renderAssignees(currentTaskId);
-        } else {
-          assigneesBody.setAttribute("hidden", "");
+    if (assigneesToggle) {
+      assigneesToggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (!canAssignTasksToUsers()) return;
+        var picker = document.getElementById("edit-task-assignee-picker");
+        if (!picker) return;
+        var isOpen = !picker.hasAttribute("hidden");
+        if (isOpen) {
+          hideAssigneePicker();
           assigneesToggle.setAttribute("aria-expanded", "false");
           assigneesToggle.classList.remove("is-open");
+          return;
         }
+        var deadlinePicker = document.getElementById("edit-task-deadline-picker");
+        if (deadlinePicker && !deadlinePicker.hasAttribute("hidden")) dismissDeadlinePicker(true);
+        hideReminderPicker();
+        renderAssignees(currentTaskId);
+        showAssigneePicker(this);
+        assigneesToggle.setAttribute("aria-expanded", "true");
+        assigneesToggle.classList.add("is-open");
       });
     }
     var addAssigneeBtn = document.getElementById("edit-task-add-assignee-btn");
@@ -1950,6 +2074,20 @@
       if (picker.contains(e.target)) return;
       if (e.target.closest("#edit-task-add-reminder-btn")) return;
       picker.setAttribute("hidden", "");
+    });
+
+    // Close assignee picker on outside click
+    document.addEventListener("click", function (e) {
+      var picker = document.getElementById("edit-task-assignee-picker");
+      if (!picker || picker.hasAttribute("hidden")) return;
+      if (picker.contains(e.target)) return;
+      if (e.target.closest("#edit-task-assignees-toggle")) return;
+      hideAssigneePicker();
+      var toggleBtn = document.getElementById("edit-task-assignees-toggle");
+      if (toggleBtn) {
+        toggleBtn.setAttribute("aria-expanded", "false");
+        toggleBtn.classList.remove("is-open");
+      }
     });
 
 
@@ -2095,10 +2233,21 @@
         newBackdrop.addEventListener("click", function () {
           var deadlinePicker = document.getElementById("edit-task-deadline-picker");
           var reminderPicker = document.getElementById("edit-task-reminder-picker");
+          var assigneePicker = document.getElementById("edit-task-assignee-picker");
           var deadlineOpen = deadlinePicker && !deadlinePicker.hasAttribute("hidden");
           var reminderOpen = reminderPicker && !reminderPicker.hasAttribute("hidden");
+          var assigneeOpen = assigneePicker && !assigneePicker.hasAttribute("hidden");
           if (deadlineOpen) { dismissDeadlinePicker(true); return; }
           if (reminderOpen) { reminderPicker.setAttribute("hidden", ""); return; }
+          if (assigneeOpen) {
+            hideAssigneePicker();
+            var toggleBtn = document.getElementById("edit-task-assignees-toggle");
+            if (toggleBtn) {
+              toggleBtn.setAttribute("aria-expanded", "false");
+              toggleBtn.classList.remove("is-open");
+            }
+            return;
+          }
           window.closePopup(popup);
         });
       }
@@ -2262,6 +2411,7 @@
 
     document.addEventListener("popup-closed", function (e) {
       if (e.detail && e.detail.id === "edit-task-popup") {
+        hideAssigneePicker();
         clearEditTaskPopupPersist();
       }
     });
