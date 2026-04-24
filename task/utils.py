@@ -15,11 +15,12 @@ def get_task_or_404(my_user, task_id):
 def duplicate_task_only(task, my_workspace_user, group_changed_to=None, position_changed_to=None, is_name_changed=False): # Doesn't duplicate task comments or reminders
     with transaction.atomic():
         task.id = None
+        task._state.adding = True
 
         if group_changed_to:
             task.group = group_changed_to
         
-        if position_changed_to:
+        if isinstance(position_changed_to, float):
             task.position = position_changed_to
 
         if is_name_changed:
@@ -36,4 +37,6 @@ def duplicate_task_only(task, my_workspace_user, group_changed_to=None, position
             task_attachment.save()
 
     return task
+
+
 

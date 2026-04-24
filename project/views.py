@@ -70,7 +70,7 @@ def duplicate(request, project_id):
     verify_workspace_role(my_workspace_user, 'can_edit_groups')
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
 
-    groups = Group.objects.prefetch_related('tasks__attachments', 'tasks_assigned_to').filter(project=project)
+    groups = Group.objects.prefetch_related('tasks__attachments').filter(project=project)
     with transaction.atomic():
         new_project = duplicate_project_only(project, my_workspace_user=my_workspace_user, is_name_changed=True)
 

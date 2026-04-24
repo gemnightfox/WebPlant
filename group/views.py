@@ -62,7 +62,7 @@ def duplicate(request, group_id, position):
 
     new_group_position = float(position)
     with transaction.atomic():
-        tasks = Task.objects.prefetch_related('attachments', 'assigned_to').filter(group=group)
+        tasks = Task.objects.prefetch_related('attachments').filter(group=group)
         new_group = duplicate_group_only(group, my_workspace_user=my_workspace_user, position_changed_to=new_group_position, is_name_changed=True)
 
         for task in tasks:

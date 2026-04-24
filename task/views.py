@@ -70,7 +70,7 @@ def duplicate(request, task_id, position):
     my_workspace_user = get_workspace_user_or_404(request.user, workspace=task.group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
 
-    task = Task.objects.prefetch_related('attachments', 'assigned_to').get(id=task.id) # Sole purpose is to avoid N+1 queries (found inside task.utils.duplicate_task_only task attachments for loop)
+    task = Task.objects.prefetch_related('attachments').get(id=task.id) # Sole purpose is to avoid N+1 queries (found inside task.utils.duplicate_task_only task attachments for loop)
     new_position = float(position)
     duplicate_task_only(task, my_workspace_user=my_workspace_user, position_changed_to=new_position, is_name_changed=True)
     return JsonResponse({'status': 'success'})

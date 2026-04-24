@@ -32,13 +32,14 @@ class Task(models.Model):
 
     def save(self, workspace_user=None, *args, **kwargs): # Avoid setting workspace_user=None during .save()
         with transaction.atomic():
-            if self._state.adding:
+            is_new_object = self._state.adding
+            if is_new_object:
                 old_object = None
             else:
                 old_object = get_object_or_404(Task, id=self.id)
 
-            save_changes_to_model_logs(new_object=self, workspace_user=workspace_user, old_object=old_object, IGNORED_FIELDS=['position'])
             super().save(*args, **kwargs)
+            save_changes_to_model_logs(new_object=self, is_new_object=is_new_object, workspace_user=workspace_user, old_object=old_object, IGNORED_FIELDS=['position'])
 
     def delete(self, workspace_user=None, *args, **kwargs): # Avoid setting workspace_user=None during .save()
         with transaction.atomic():

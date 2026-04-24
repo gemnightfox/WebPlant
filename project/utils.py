@@ -13,6 +13,7 @@ def get_project_or_404(my_user, project_id):
 
 def duplicate_project_only(project, my_workspace_user, is_name_changed=False): # Doesn't bring over groups/tasks inside (done by other functions)
     project.id = None
+    project._state.adding = True
 
     if is_name_changed:
         name_max_length = project._meta.get_field('name').max_length
@@ -22,7 +23,6 @@ def duplicate_project_only(project, my_workspace_user, is_name_changed=False): #
 
     project.save(workspace_user=my_workspace_user)
     return project
-
 
 
 

@@ -85,12 +85,12 @@ def get_fields_being_edited(new_object, old_object) -> dict:
 
 
 
-def save_changes_to_model_logs(new_object, workspace_user, old_object=None, IGNORED_FIELDS=None):
+def save_changes_to_model_logs(new_object, is_new_object: bool, workspace_user, old_object=None, IGNORED_FIELDS=None):
     if not workspace_user: # Occurs in default Django admin page edits (default save method does not include workspace_user argument)
         print('\n\nALERT: WorkspaceLog object has been created without a workspace_user argument. If this is from project/group/task models, please add a workspace_user argument during .save() or .delete().\n\n')
         return
 
-    if new_object._state.adding:
+    if is_new_object:
         WorkspaceLog.objects.create(
             workspace=workspace_user.workspace,
             workspace_user=workspace_user,
@@ -98,21 +98,24 @@ def save_changes_to_model_logs(new_object, workspace_user, old_object=None, IGNO
             changes=custom_model_to_dict(new_object),
             content_object=new_object,
             )
+        return
 
-    else:
-        changes = get_fields_being_edited(new_object=new_object, old_object=old_object) # Returns a dictionary
-        changes['id'] = str(new_object.id)
-        if IGNORED_FIELDS:
-            for field in IGNORED_FIELDS:
-                changes.pop(field, None)
+    if not old_object:
+        raise ValueError('old_object argument must be passed when editing (is_new_object=False) existing objects.')
 
-        WorkspaceLog.objects.create(
-            workspace=workspace_user.workspace,
-            workspace_user=workspace_user,
-            change_type=WorkspaceLog.ChangeTypeChoices.EDIT,
-            changes=changes,
-            content_object=new_object,
-        )
+    changes = get_fields_being_edited(new_object=new_object, old_object=old_object) # Returns a dictionary
+    changes['id'] = str(new_object.id)
+    if IGNORED_FIELDS:
+        for field in IGNORED_FIELDS:
+            changes.pop(field, None)
+
+    WorkspaceLog.objects.create(
+        workspace=workspace_user.workspace,
+        workspace_user=workspace_user,
+        change_type=WorkspaceLog.ChangeTypeChoices.EDIT,
+        changes=changes,
+        content_object=new_object,
+    )
 
 
 

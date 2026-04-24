@@ -13,11 +13,12 @@ def get_group_or_404(my_user, group_id):
 
 def duplicate_group_only(group, my_workspace_user, project_changed_to=None, position_changed_to=None, is_name_changed=False): # Doesn't bring over tasks inside (done by other functions)
     group.id = None
+    group._state.adding = True
 
     if project_changed_to:
         group.project = project_changed_to
-    
-    if position_changed_to:
+
+    if isinstance(position_changed_to, float):
         group.position = position_changed_to
 
     if is_name_changed:
@@ -28,8 +29,6 @@ def duplicate_group_only(group, my_workspace_user, project_changed_to=None, posi
 
     group.save(workspace_user=my_workspace_user)
     return group
-
-
 
 
 
