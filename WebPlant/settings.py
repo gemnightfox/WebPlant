@@ -144,14 +144,13 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-if DEBUG:
+RESEND_API_KEY = custom_getenv('RESEND_API_KEY')
+if RESEND_API_KEY:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # Prints to console
 else:
     EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend' # Actual emails are sent online
 
-ANYMAIL = {
-    'RESEND_API_KEY': custom_getenv('RESEND_API_KEY'),
-}
+ANYMAIL = {'RESEND_API_KEY': RESEND_API_KEY}
 DEFAULT_FROM_EMAIL = custom_getenv('DEFAULT_FROM_EMAIL', default='email@example.com')
 
 AUTH_PASSWORD_VALIDATORS = [

@@ -1,52 +1,64 @@
 # WebPlant
 
-WebPlant is a Django collaboration app for organizing team work inside shared workspaces.
-Each workspace contains projects, projects contain groups, and groups contain tasks with comments, attachments, reminders, and notifications.
+WebPlant is a Django task management collaboration app for organizing tasks inside shared workspaces (can be used for solo projects as well).
+Each workspace contains projects, groups, and tasks with comments, attachments, reminders, and notifications.
+
+
 
 ## Key Features
 
-- Workspace membership model with invite flows and activation state
-- Workspace-scoped roles with granular permission booleans
+- Workspaces with roles and user invitations (invite users to join)
 - Nested work structure: Workspace -> Project -> Group -> Task
-- Task collaboration: comments, attachments, completion status, due reminders
-- Notification pipeline for in-app records and outbound email
-- Realtime update signaling over Django Channels
+- Task collaboration: Comments, Attachments, Completion status, Due dates, Reminders
+- Real-time collaboration syncing (Channels + Daphne)
+
+
 
 ## Tech Stack
 
-- Python + Django 6
-- Custom auth user model (`accounts.CustomUser`)
-- `django-allauth` (email/password + Google social login support)
+- Python + Django
+- Custom User model (`accounts.CustomUser`)
+- Django allauth (email/password + Google social login support)
 - PostgreSQL or SQLite (through `DATABASE_URL`)
 - Django Channels + Daphne for realtime collaboration events
-- Cloudinary storage integration for media
-- WhiteNoise for static asset serving
-- Sentry SDK for runtime error/performance reporting
+- Cloudinary (user uploaded media files)
+- WhiteNoise (static files)
+- Sentry SDK (errors)
+
+
+
+## Activating .venv
+> This requires `python -m venv .venv` to be run first (view **Quick Start** for more information). Using the wrong cmd will result in an error (nothing breaks, no worries, just run the other command mentioned).
+
+- Windows: `.venv\Scripts\Activate`
+- MacOS/Linux: `source .venv/bin/activate`
+
+
 
 ## Quick Start
+> Create an .env file and add: DJANGO_DEBUG='True'
+> Note: Different Operating Systems have different ways to activate .venv (view **Activating .venv** for more information)
 
-1. Create and activate a virtual environment.
-2. Install dependencies:
-   - `pip install -r requirements.txt`
-3. Configure environment variables:
-   - see `docs/configuration.md`
-4. Run database migrations:
-   - `python manage.py migrate`
-5. Create an admin user:
-   - `python manage.py createsuperuser`
-6. Start the web server:
-   - `python manage.py runserver`
+```bash
+python -m venv .venv
+.venv\Scripts\Activate
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
 
-Reminder sending is scheduler/script-driven (see `docs/development.md`).
 
-## Documentation
 
-- `docs/README.md`: documentation entry point and reading map
-- `docs/architecture.md`: runtime architecture and request/permission flow
-- `docs/backend-patterns.md`: backend design patterns and feature checklist
-- `docs/backend-code-map.md`: backend layer map and feature extension entry points
-- `docs/domain-model.md`: model relationships and domain invariants
-- `docs/configuration.md`: required/optional environment variables and behavior
-- `docs/development.md`: local setup, commands, and development workflow
+## Notes
 
-Frontend-specific implementation constraints are documented in `instructions/frontend.md`.
+- Only use environment variable `DJANGO_DEBUG='True'` for development/DEBUG mode (never in production).
+- It is recommended to add `DJANGO_SECRET_KEY='shh-rand0m-value'` (If not present, server auto logs out all users if server restarts during file changes)
+- Instructions folder (instructions/...): Files inside holds prompts to be used to guide AI agents (if necessary).
+
+
+
+
+
