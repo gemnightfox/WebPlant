@@ -7,7 +7,7 @@ Each workspace contains projects, groups, and tasks with comments, attachments, 
 
 ## Key Features
 
-- Workspaces with roles and user invitations (invite users to join)
+- Workspaces with user roles and invitations (invite users to join)
 - Nested work structure: Workspace -> Project -> Group -> Task
 - Task collaboration: Comments, Attachments, Completion status, Due dates, Reminders
 - Real-time collaboration syncing (Channels + Daphne)
@@ -72,13 +72,6 @@ python manage.py runserver
 | GOOGLE_SECRET | No | - | Google Oauth (Google login) |
 | SENTRY_DSN | No | - | Error logging |
 
-
-
-## Notes
-
-- Only use environment variable `DJANGO_DEBUG='True'` for development/DEBUG mode (never in production)
-- It is recommended to add `DJANGO_SECRET_KEY='shh-rand0m-value'` (If not present, server auto logs out all users if server restarts during file changes)
-- Instructions folder (instructions/...): Files inside holds prompts to be used to guide AI agents (if necessary)
 
 
 
