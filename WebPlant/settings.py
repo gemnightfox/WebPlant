@@ -65,7 +65,6 @@ REDIS_URL = custom_getenv('REDIS_URL')
 if REDIS_URL:
     INSTALLED_APPS += ['django_ratelimit'] # Error thrown out without a valid REDIS_URL (no dummy cache allowed either)
 
-if REDIS_URL:
     CACHES = {
         'default': {
             'BACKEND': 'django_redis.cache.RedisCache',
@@ -80,7 +79,6 @@ if REDIS_URL:
         }
     }
 
-if REDIS_URL:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -89,6 +87,7 @@ if REDIS_URL:
             }
         }
     }
+
 else:
     CHANNEL_LAYERS = {
         'default': {

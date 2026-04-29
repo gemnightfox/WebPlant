@@ -11,9 +11,9 @@ from notification.models import NotificationDisabledDuration
 from django.http import JsonResponse, Http404
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from django.db import transaction
-from workspace.models import Workspace
-from .utils import transfer_workspace_ownership_to_successor, get_user_preferences
+from django.db import transaction, models
+from workspace.models import Workspace, WorkspaceRole, WorkspaceUser
+from .utils import get_user_preferences
 
 
 
@@ -62,7 +62,7 @@ def disable_password(request, user_id, token):
     token_generator = CustomTokenGenerator(purpose='disable-password')
     is_token_valid = token_generator.check_token(user, token)
 
-    if not is_token_valid: # IMPORTANT STEP (verifying account deletion token)
+    if not is_token_valid: # IMPORTANT STEP (verifying token)
         raise Http404('Token is not valid')
 
     if not user.has_usable_password():
@@ -100,13 +100,47 @@ def send_account_deletion_email(request):
 # No login required to delete account
 # Note: Since all owned workspaces need to be deleted before the user can be deleted, its a lot harder to delete users from the default Django admin page (URL: /admin/)
 def delete_account(request, user_id, token):
+    def transfer_workspace_ownership_to_successor(owner, workspace):
+        if workspace.owner != owner:
+            return
+
+        if workspace.users.count() == 1:
+            workspace.delete()
+            return
+
+        workspace_roles = WorkspaceRole.objects.filter(workspace=workspace)
+        highest_roles = [] # Example: [Role(can_add_workspace_users=False, can_remove_workspace_users=True), Role(can_add_workspace_users=True, can_remove_workspace_users=False)]
+        highest_count = 0
+
+        for role in workspace_roles:
+            # This is the amount of True that is in each WorkspaceRole permission fields (can_...)
+            # Example: Role(can_add_workspace_users=True, can_remove_workspace_users=False), count = 1
+            # Example: Role(can_add_workspace_users=True, can_remove_workspace_users=True), count = 2
+            count = sum(
+                getattr(role, field.name)
+                for field in role._meta.concrete_fields
+                if isinstance(field, models.BooleanField)
+            )
+
+            if count == highest_count:
+                highest_roles.append(role)
+
+            elif count > highest_count:
+                highest_count = count
+                highest_roles = [] # Removes everything from the list
+                highest_roles.append(role)
+        
+        successor = WorkspaceUser.objects.filter(workspace=workspace, role__in=highest_roles).exclude(user=owner).order_by('joined_at').first()
+        workspace.owner = successor
+        workspace.save()
+
     user = get_object_or_404(get_user_model(), id=user_id)
     token_generator = CustomTokenGenerator(purpose='delete-account')
     is_token_valid = token_generator.check_token(user, token)
 
-    if not is_token_valid: # IMPORTANT STEP (verifying account deletion token)
+    if not is_token_valid: # IMPORTANT STEP (verifying token)
         raise Http404('Token is not valid')
-    
+
     if request.method == 'POST':
         owned_workspaces = Workspace.objects.filter(owner__user=user)
         for workspace in owned_workspaces:

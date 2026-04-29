@@ -69,8 +69,8 @@ class UserPreference(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    color_theme = models.CharField(max_length=10, choices=COLOR_THEMES, default='dark') # Used in accounts.context_processors (used in html body class)
-    can_receive_notifications = models.BooleanField(default=True) # Server is not allowed to send email notifications to user if disabled
+    color_theme = models.CharField(max_length=10, choices=COLOR_THEMES, default='dark')
+    can_receive_notifications = models.BooleanField(default=True) # If disabled, server is not allowed to send email notifications to user
     allows_workspace_invites = models.BooleanField(default=True)
     timezone = models.CharField(max_length=100, null=True, blank=True)
 

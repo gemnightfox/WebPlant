@@ -7,7 +7,7 @@ import cloudinary.uploader
 
 
 @receiver(post_delete, sender=TaskAttachment)
-def delete_cloudinary_image(sender, instance, **kwargs):
+def delete_cloudinary_file(sender, instance, **kwargs):
     if settings.CLOUDINARY_URL:
         cloudinary.uploader.destroy(public_id=instance.file.public_id, resource_type=instance.file.resource_type)
 
