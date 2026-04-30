@@ -2,7 +2,7 @@ from django import forms
 from .models import Task, TaskAttachment, TaskComment, TaskReminder, TaskAssigned
 from workspace.utils import verify_workspace_role
 from workspace.models import WorkspaceUser
-from notification.utils import can_receive_notifications, send_email
+from notification.utils import send_email
 
 
 
@@ -147,11 +147,11 @@ class AddAssignedForm(forms.ModelForm):
             user = instance.assigned_to.user
             request = self.form_request
             workspace = self.task.group.project.workspace
-
-            if can_receive_notifications(user):
-                send_email(request, receiver=user, sender=request.user, content=f'You have been assigned to task ({workspace.name}): {self.task.name}')
+            send_email(request, receiver=user, sender=request.user, content=f'You have been assigned to task ({workspace.name}): {self.task.name}')
 
         return instance
+
+
 
 
 

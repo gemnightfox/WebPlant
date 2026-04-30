@@ -17,7 +17,7 @@ class Task(models.Model):
     name = models.CharField(max_length=3000)
 
     is_completed = models.BooleanField(default=False)
-    position = models.FloatField()
+    position = models.FloatField() # Task objects (in the same group) are ordered in ascending order
     deadline = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -30,7 +30,7 @@ class Task(models.Model):
             models.UniqueConstraint(fields=['group', 'position'], name='unique_task_position'),
         ]
 
-    def save(self, workspace_user=None, *args, **kwargs): # Avoid setting workspace_user=None during .save()
+    def save(self, workspace_user=None, *args, **kwargs): # Don't set workspace_user=None during .save()
         with transaction.atomic():
             is_new_object = self._state.adding
             if is_new_object:
@@ -41,7 +41,7 @@ class Task(models.Model):
             super().save(*args, **kwargs)
             save_changes_to_model_logs(new_object=self, is_new_object=is_new_object, workspace_user=workspace_user, old_object=old_object, IGNORED_FIELDS=['position'])
 
-    def delete(self, workspace_user=None, *args, **kwargs): # Avoid setting workspace_user=None during .save()
+    def delete(self, workspace_user=None, *args, **kwargs): # Don't set workspace_user=None during .delete()
         with transaction.atomic():
             if workspace_user:
                 WorkspaceLog.objects.create(

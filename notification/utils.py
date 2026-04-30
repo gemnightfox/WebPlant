@@ -13,27 +13,25 @@ from base_utils import CustomTokenGenerator
 
 
 
-def can_receive_notifications(user):
-    user_preferences = get_user_preferences(user)
-    if not user_preferences.can_receive_notifications:
-        return False # Immediately stop checks (already confirmed that user does not allow emails)
-
-    try:
-        disabled_duration = user.notification_disabled_duration # Using related_name so I don't have to initialise Django inside this file
-    except ObjectDoesNotExist:
-        return True # No disabled duration present
-
-    if disabled_duration.ends_at < timezone.now():
-        disabled_duration.delete() # Deletes object if ends_at is expired (in the past)
-        return True
-    else:
-        return False # Means that the disabled duration is still active
-
-
-
 # Don't save to DB for things that requires email verification (eg. account deletion) -> If not, users can access the link given (token used) in sidebar notifications popup, and skip email verification
-# Note: request might be given as None (request=None) for non-views (eg. CRON jobs)
+# Note: request might be given as None (request=None) for non-views (eg. CRON jobs), however it is more reliable to pass request argument where applicable
 def send_email(request, receiver, sender, content, save_to_db=True):
+    def can_receive_notifications(user): # Checks if notification.models.NotificationDisabledDuration is active, OR if accounts.models.UserPreference.can_receive_notifications=False. If either/both is True, return True, else if both are False, return False.
+        user_preferences = get_user_preferences(user)
+        if not user_preferences.can_receive_notifications:
+            return False
+
+        try:
+            disabled_duration = user.notification_disabled_duration # OneToOneField (returns object, not queryset)
+        except ObjectDoesNotExist:
+            return True # No disabled duration present
+
+        if disabled_duration.ends_at < timezone.now():
+            disabled_duration.delete() # Deletes object if ends_at is expired (in the past)
+            return True
+        else:
+            return False # Means that the disabled duration is still active
+
     if save_to_db:
         Notification.objects.create(
             receiver=receiver,
@@ -90,9 +88,7 @@ def generate_temporary_disable_notifications_link(request, receiver):
 
 
 
-def get_temp_disabled_duration(request):
-    duration = request.POST.get('disable_notifications_duration') # In hours (int)
-
+def save_temp_disabled_duration(user, duration: int | str):
     try:
         duration = int(duration)
     except:
@@ -101,29 +97,22 @@ def get_temp_disabled_duration(request):
     if not 1 <= duration <= 100:
         raise Http404('Duration given is not in the allowed range')
 
-    return duration
-
-
-
-def save_temp_disabled_duration(user, duration: int):
     ends_at = timezone.now() + timedelta(hours=duration)
-    temp_disabled_duration = NotificationDisabledDuration.objects.filter(user=user).first()
+    old_disabled_duration = NotificationDisabledDuration.objects.filter(user=user).first()
 
-    if not temp_disabled_duration:
+    if not old_disabled_duration:
         NotificationDisabledDuration.objects.create(
             user=user,
             ends_at=ends_at,
         )
 
-    elif ends_at > temp_disabled_duration.ends_at: # Only update model object if the new object.ends_at is later than old object.ends_at
+    elif ends_at > old_disabled_duration.ends_at: # Only update model object if the new_object.ends_at is later than old_object.ends_at
         with transaction.atomic():
-            temp_disabled_duration.delete()
+            old_disabled_duration.delete()
             NotificationDisabledDuration.objects.create( # Creates a new ID instead of using the old one
                 user=user,
                 ends_at=ends_at,
             )
-
-
 
 
 

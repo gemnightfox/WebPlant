@@ -14,7 +14,7 @@ class Group(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='groups')
     name = models.CharField(max_length=300)
 
-    position = models.FloatField()
+    position = models.FloatField() # Group objects (in the same project) are ordered in ascending order
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -23,7 +23,7 @@ class Group(models.Model):
             models.UniqueConstraint(fields=['project', 'position'], name='unique_group_position'),
         ]
 
-    def save(self, workspace_user=None, *args, **kwargs): # Avoid setting workspace_user=None during .save()
+    def save(self, workspace_user=None, *args, **kwargs): # Don't set workspace_user=None during .save()
         with transaction.atomic():
             is_new_object = self._state.adding
             if is_new_object:
@@ -34,7 +34,7 @@ class Group(models.Model):
             super().save(*args, **kwargs)
             save_changes_to_model_logs(new_object=self, is_new_object=is_new_object, workspace_user=workspace_user, old_object=old_object, IGNORED_FIELDS=['position'])
 
-    def delete(self, workspace_user=None, *args, **kwargs): # Avoid setting workspace_user=None during .save()
+    def delete(self, workspace_user=None, *args, **kwargs): # Don't set workspace_user=None during .delete()
         with transaction.atomic():
             if workspace_user:
                 WorkspaceLog.objects.create(
@@ -48,7 +48,6 @@ class Group(models.Model):
             content_type = ContentType.objects.get_for_model(self)
             WorkspaceLog.objects.filter(content_type=content_type, object_id=self.id).update(object_id=None) # Deletes reference to object, while keeping reference to model (content_type)
             super().delete(*args, **kwargs)
-
 
 
 

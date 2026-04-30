@@ -6,7 +6,7 @@ import uuid
 
 class Notification(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL) # Set to NULL if no 
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL) # Can use the same user as 'receiver' field, set to NULL/None if user is deleted
     receiver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
     content = models.CharField(max_length=9000)
     read_status = models.BooleanField(default=False)

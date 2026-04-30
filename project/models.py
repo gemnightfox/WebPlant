@@ -13,7 +13,7 @@ class Project(models.Model):
     workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='projects')
     name = models.CharField(max_length=300)
 
-    def save(self, workspace_user=None, *args, **kwargs): # Avoid setting workspace_user=None during .save()
+    def save(self, workspace_user=None, *args, **kwargs): # Don't set workspace_user=None during .save()
         with transaction.atomic():
             is_new_object = self._state.adding
             if is_new_object:
@@ -24,7 +24,7 @@ class Project(models.Model):
             super().save(*args, **kwargs)
             save_changes_to_model_logs(new_object=self, is_new_object=is_new_object, workspace_user=workspace_user, old_object=old_object)
 
-    def delete(self, workspace_user=None, *args, **kwargs): # Avoid setting workspace_user=None during .save()
+    def delete(self, workspace_user=None, *args, **kwargs): # Don't set workspace_user=None during .delete()
         with transaction.atomic():
             if workspace_user:
                 WorkspaceLog.objects.create(

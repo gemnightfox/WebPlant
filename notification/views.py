@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
 from base_utils import CustomTokenGenerator
 from .models import Notification, NotificationDisabledDuration
-from .utils import get_temp_disabled_duration, save_temp_disabled_duration
+from .utils import save_temp_disabled_duration
 from django.http import JsonResponse, Http404
 
 
@@ -41,8 +41,8 @@ def temp_disable(request, user_id, token):
         raise Http404('Token is not valid')
 
     if request.method == 'POST':
-        duration = get_temp_disabled_duration(request)
-        save_temp_disabled_duration(user, duration)
+        duration = request.POST.get('disable_notifications_duration') # In hours (int)
+        save_temp_disabled_duration(user=user, duration=duration)
         return redirect('notification:temp_disable_success')
     return render(request, 'notification/temp_disable_notifications.html', {'email': user.email, 'username': user.username})
 
@@ -51,8 +51,8 @@ def temp_disable(request, user_id, token):
 @login_required
 @require_POST
 def login_temp_disable(request):
-    duration = get_temp_disabled_duration(request)
-    save_temp_disabled_duration(request.user, duration)
+    duration = request.POST.get('disable_notifications_duration') # In hours (int)
+    save_temp_disabled_duration(user=request.user, duration=duration)
     return JsonResponse({'status': 'success'})
 
 
