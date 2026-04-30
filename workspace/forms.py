@@ -1,8 +1,8 @@
 from django import forms
 from .models import WorkspaceInviteCode, WorkspaceUser, Workspace, WorkspaceRole
 from django.db import transaction, models
-from .utils import generate_workspace_invite_code
 from notification.utils import send_email
+import random
 from accounts.utils import get_user_preferences
 from django.contrib.auth import get_user_model
 
@@ -177,10 +177,15 @@ class AddInviteCodeForm(forms.ModelForm):
         self.workspace = workspace
 
     def save(self, commit=True):
+        def generate_workspace_invite_code():
+            ALLOWED_CHARACTERS = 'ACDEFHJKMNPQRTUVWXY3479'
+            list_of_random_characters = random.choices(ALLOWED_CHARACTERS, k=16)
+            return ''.join(list_of_random_characters)
+
         instance = super().save(commit=False)
         instance.workspace = self.workspace
         
-        for _ in range(5): # In practice, its very rare that it runs a second time, let alone 5 times
+        for _ in range(5): # In practice, its very rare that it runs a second time, let alone 5 times (low possibility of clashes)
             invite_code = generate_workspace_invite_code()
             if not WorkspaceInviteCode.objects.filter(invite_code=invite_code).exists():
                 instance.invite_code = invite_code

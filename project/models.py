@@ -2,7 +2,7 @@ from django.db import models, transaction
 from django.shortcuts import get_object_or_404
 from workspace.models import WorkspaceLog
 from base_utils import custom_model_to_dict
-from workspace.utils import save_changes_to_model_logs
+from workspace.utils import save_changes_to_workspace_logs
 import uuid
 from django.contrib.contenttypes.models import ContentType
 
@@ -22,7 +22,7 @@ class Project(models.Model):
                 old_object = get_object_or_404(Project, id=self.id)
 
             super().save(*args, **kwargs)
-            save_changes_to_model_logs(new_object=self, is_new_object=is_new_object, workspace_user=workspace_user, old_object=old_object)
+            save_changes_to_workspace_logs(new_object=self, is_new_object=is_new_object, workspace_user=workspace_user, old_object=old_object)
 
     def delete(self, workspace_user=None, *args, **kwargs): # Don't set workspace_user=None during .delete()
         with transaction.atomic():

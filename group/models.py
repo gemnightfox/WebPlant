@@ -4,7 +4,7 @@ from project.models import Project
 from workspace.models import WorkspaceLog
 from base_utils import custom_model_to_dict
 from django.shortcuts import get_object_or_404
-from workspace.utils import save_changes_to_model_logs
+from workspace.utils import save_changes_to_workspace_logs
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -32,7 +32,7 @@ class Group(models.Model):
                 old_object = get_object_or_404(Group, id=self.id)
 
             super().save(*args, **kwargs)
-            save_changes_to_model_logs(new_object=self, is_new_object=is_new_object, workspace_user=workspace_user, old_object=old_object, IGNORED_FIELDS=['position'])
+            save_changes_to_workspace_logs(new_object=self, is_new_object=is_new_object, workspace_user=workspace_user, old_object=old_object, IGNORED_FIELDS=['position'])
 
     def delete(self, workspace_user=None, *args, **kwargs): # Don't set workspace_user=None during .delete()
         with transaction.atomic():

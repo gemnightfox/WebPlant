@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
 from .models import Workspace, WorkspaceUser, WorkspaceRole, WorkspaceLog
-import random
 from django.http import Http404
 from django.db import models
 from base_utils import custom_model_to_dict
@@ -20,14 +19,7 @@ def get_workspace_user_or_404(user, workspace, allow_false_is_active=False):
 
 
 
-def generate_workspace_invite_code():
-    ALLOWED_CHARACTERS = 'ACDEFHJKMNPQRTUVWXY3479'
-    list_of_random_characters = random.choices(ALLOWED_CHARACTERS, k=16)
-    return ''.join(list_of_random_characters)
-
-
-
-def get_workspace_role(workspace, workspace_role_id):
+def get_workspace_role_or_404(workspace, workspace_role_id):
     return get_object_or_404(WorkspaceRole, workspace=workspace, id=workspace_role_id)
 
 
@@ -42,50 +34,20 @@ def verify_workspace_role(my_workspace_user, permission_field_name: str): # perm
 
 
 
-def get_lowest_level_workspace_role(workspace):
-    workspace_roles = WorkspaceRole.objects.filter(workspace=workspace)
-    lowest_role_ids = []
-    lowest_count = -1
+def save_changes_to_workspace_logs(new_object, is_new_object: bool, workspace_user, old_object=None, IGNORED_FIELDS=None):
+    def get_fields_being_edited(new_object, old_object) -> dict:
+        old_object_dict = custom_model_to_dict(old_object)
+        new_object_dict = custom_model_to_dict(new_object)
 
-    for role in workspace_roles:
-        # This is the amount of True that is in each WorkspaceRole permission fields (can_...)
-        # Example: Role(can_add_workspace_users=True, can_remove_workspace_users=False), count = 1
-        # Example: Role(can_add_workspace_users=False, can_remove_workspace_users=False), count = 0
-        count = sum(
-            getattr(role, field.name)
-            for field in role._meta.concrete_fields
-            if isinstance(field, models.BooleanField)
-        )
+        edited_fields = {}
+        for field_name in new_object_dict:
+            old_value = old_object_dict[field_name]
+            new_value = new_object_dict[field_name]
 
-        if count == lowest_count:
-            lowest_role_ids.append(role.id)
+            if old_value != new_value:
+                edited_fields[field_name] = new_value
+        return edited_fields
 
-        elif count == -1 or count < lowest_count:
-            lowest_count = count
-            lowest_role_ids = [] # Removes everything from the list
-            lowest_role_ids.append(role.id)
-
-    lowest_role = WorkspaceRole.objects.filter(workspace=workspace, id__in=lowest_role_ids).first()
-    return lowest_role
-
-
-
-def get_fields_being_edited(new_object, old_object) -> dict:
-    old_object_dict = custom_model_to_dict(old_object)
-    new_object_dict = custom_model_to_dict(new_object)
-
-    edited_fields = {}
-    for field_name in new_object_dict:
-        old_value = old_object_dict[field_name]
-        new_value = new_object_dict[field_name]
-
-        if old_value != new_value:
-            edited_fields[field_name] = new_value
-    return edited_fields
-
-
-
-def save_changes_to_model_logs(new_object, is_new_object: bool, workspace_user, old_object=None, IGNORED_FIELDS=None):
     if not workspace_user: # Occurs in default Django admin page edits (default save method does not include workspace_user argument)
         print('\n\nALERT: WorkspaceLog object has been created without a workspace_user argument. If this is from project/group/task models, please add a workspace_user argument during .save() or .delete().\n\n')
         return
@@ -116,6 +78,7 @@ def save_changes_to_model_logs(new_object, is_new_object: bool, workspace_user, 
         changes=changes,
         content_object=new_object,
     )
+
 
 
 
