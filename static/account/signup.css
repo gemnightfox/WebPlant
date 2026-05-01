@@ -1,4 +1,38 @@
 /* ==========================================================================
-   Signup page. All styles come from account/base.css; this file is a
-   placeholder so signup.html can load base + signup for consistency.
+   Signup page styles.
+   Most layout/typography is shared via account/base.css; this file holds
+   signup-specific overrides only.
    ========================================================================== */
+
+/* --- Fix unwanted horizontal scrollbar on the signup page ---
+   templates/base.html applies an inline `min-width: 100vw` to
+   <main class="Base-content"> for unauthenticated users. Because the
+   `vw` unit includes the vertical scrollbar width, once the signup form
+   is tall enough to trigger a vertical scrollbar the <main> becomes
+   slightly wider than the visible viewport, which in turn forces a
+   horizontal scrollbar.
+
+   The signup card is centered (`max-width: 400px; margin: 0 auto`), so
+   nothing useful lives off-screen. Clipping horizontal overflow at the
+   body removes the scrollbar without altering the layout, and applies
+   equally in light and dark themes.
+
+   Scoped via :has() so this only affects the signup page and not other
+   templates that also extend base.html. */
+body:has(.Account-card--signup) {
+  overflow-x: hidden;
+}
+
+/* --- Inline "(optional)" tag next to a field label ---
+   Used on the Password label since password1 is optional in
+   settings.ACCOUNT_SIGNUP_FIELDS. Visually de-emphasised (lower weight,
+   smaller, partially transparent) so the main label text still reads as
+   the primary content. Theme-agnostic: opacity is applied to the
+   inherited `var(--color)` so it adapts to both light and dark themes. */
+.Account-labelHint {
+  margin-left: 6px;
+  font-size: 12.8px;
+  font-weight: 400;
+  color: var(--color);
+  opacity: 0.6;
+}

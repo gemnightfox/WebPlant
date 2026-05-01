@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
-{# Signup: username + email + password. Uses account/signup.css. #}
-{# Kept under project templates/ (DIRS): see login.html comment. #}
+{# Signup: email + username (required) + password (optional, single entry). #}
+{# Field set / required-ness is driven by settings.ACCOUNT_SIGNUP_FIELDS and #}
+{# ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE; keep this template in sync if those change. #}
+{# Uses account/signup.css. Kept under project templates/ (DIRS): see login.html comment. #}
 
 {% block css %}
     <link rel="stylesheet" href="{% static 'account/base.css' %}">
@@ -62,33 +64,24 @@
             {% endif %}
         </div>
 
+        {# Password is optional: settings.ACCOUNT_SIGNUP_FIELDS lists 'password1' without #}
+        {# the trailing '*' marker, and ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE is False, so #}
+        {# we render a single password input with no `required` attribute. Users who skip #}
+        {# it can sign in via the email-code flow (ACCOUNT_LOGIN_BY_CODE_ENABLED). #}
         <div class="Account-field">
-            <label class="Account-label" for="id_password1">Password</label>
+            <label class="Account-label" for="id_password1">
+                Password
+                <span class="Account-labelHint">(optional)</span>
+            </label>
             <input
                 type="password"
                 name="password1"
                 id="id_password1"
                 class="Account-input{% if form.password1.errors %} Account-input--error{% endif %}"
-                required
                 autocomplete="off"
             >
             {% if form.password1.errors %}
                 <span class="Account-field-error">{{ form.password1.errors.0 }}</span>
-            {% endif %}
-        </div>
-
-        <div class="Account-field">
-            <label class="Account-label" for="id_password2">Confirm Password</label>
-            <input
-                type="password"
-                name="password2"
-                id="id_password2"
-                class="Account-input{% if form.password2.errors %} Account-input--error{% endif %}"
-                required
-                autocomplete="off"
-            >
-            {% if form.password2.errors %}
-                <span class="Account-field-error">{{ form.password2.errors.0 }}</span>
             {% endif %}
         </div>
 

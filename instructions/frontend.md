@@ -5,6 +5,7 @@
 3. Ensure that the design considers both light and dark modes.
 4. Make sure that the file/code structure follows good design patterns, and is easy to understand for humans (with good comments as well).
 5. Make each page optimized for SEO.
+6. Check that there are no security issues in the frontend code. If there is, fix it immediately.
 
 
 
