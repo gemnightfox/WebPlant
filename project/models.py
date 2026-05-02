@@ -1,7 +1,7 @@
 from django.db import models, transaction
 from django.shortcuts import get_object_or_404
 from workspace.models import WorkspaceLog
-from base_utils import custom_model_to_dict
+from django.forms.models import model_to_dict
 from workspace.utils import save_changes_to_workspace_logs
 import uuid
 from django.contrib.contenttypes.models import ContentType
@@ -31,7 +31,7 @@ class Project(models.Model):
                     workspace=workspace_user.workspace,
                     workspace_user=workspace_user,
                     change_type=WorkspaceLog.ChangeTypeChoices.DELETE,
-                    changes=custom_model_to_dict(self),
+                    changes=model_to_dict(self),
                     content_object=self,
                 )
 

@@ -3,12 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from .forms import PreferenceForm, EditUsernameForm
-from base_utils import CustomTokenGenerator, reusable_form_submission
+from base_utils import CustomTokenGenerator, reusable_form_submission, CustomJsonResponse
 from notification.utils import send_email
 from django.contrib.messages import get_messages
 from django.contrib.sessions.models import Session
 from notification.models import NotificationDisabledDuration
-from django.http import JsonResponse, Http404
+from django.http import Http404
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.db import transaction, models
@@ -33,7 +33,7 @@ def dashboard(request):
 
 @login_required
 def check_password_present(request): # Accounts which used Google login may not have usable local password set up yet
-    return JsonResponse({'is_password_present': request.user.has_usable_password()})
+    return CustomJsonResponse({'is_password_present': request.user.has_usable_password()})
 
 
 
@@ -52,7 +52,7 @@ def send_disable_password_email(request):
     link = request.build_absolute_uri(path)
     content = f'We have received a request to disable your password.\nIf you made this request, please click the link below:\n\n{link}\n\nThis link will expire after some time due to security reasons.'
     send_email(request, receiver=request.user, sender=request.user, content=content, save_to_db=False)
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -93,7 +93,7 @@ def send_account_deletion_email(request):
     link = request.build_absolute_uri(path)
     content = f'We have received a request to permanently DELETE your account.\nIf you did NOT request to DELETE your account, please change your login credentials immediately.\nIf you made this request, please click the link below:\n\n{link}\n\nThis link will expire after some time due to security reasons.'
     send_email(request, receiver=request.user, sender=request.user, content=content, save_to_db=False)
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -168,7 +168,7 @@ def logout_all_devices(request): # Note: This wouldn't scale well. Best to impro
             user_id = session.get_decoded().get('_auth_user_id')
             if str(request.user.id) == str(user_id):
                 session.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 

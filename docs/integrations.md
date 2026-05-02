@@ -1,5 +1,6 @@
 ## Django allauth + Google Oauth (django allauth socialaccount)
 - Email and email verification is mandatory during account signup
+- Password is optional
 - Changing of email is allowed
 - Local and Google account will link together if email is the same
 - User can login via an email code

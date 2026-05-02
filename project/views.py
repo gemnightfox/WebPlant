@@ -3,12 +3,12 @@ from group.utils import duplicate_group_only
 from task.utils import duplicate_task_only
 from .forms import CreateNewForm, EditNameForm
 from django.views.decorators.http import require_POST
-from base_utils import reusable_form_submission, custom_model_to_dict
+from base_utils import reusable_form_submission, CustomJsonResponse
+from django.forms.models import model_to_dict
 from workspace.utils import get_workspace_or_404, get_workspace_user_or_404, verify_workspace_role
 from .models import Project
 from django.db import transaction
 from group.models import Group
-from django.http import JsonResponse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
@@ -25,8 +25,8 @@ def dashboard(request, project_id):
 @login_required
 def get_data(request, project_id):
     project = get_project_or_404(my_user=request.user, project_id=project_id) # Note: Can't access group/task objects (look inside their respective get_data views)
-    project = custom_model_to_dict(project)
-    return JsonResponse({'project': project})
+    project = model_to_dict(project)
+    return CustomJsonResponse({'project': project})
 
 
 
@@ -57,7 +57,7 @@ def delete(request, project_id):
     my_workspace_user = get_workspace_user_or_404(request.user, workspace=project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_projects')
     project.delete(workspace_user=my_workspace_user)
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -80,7 +80,7 @@ def duplicate(request, project_id):
             for task in group.tasks.all():
                 duplicate_task_only(task, my_workspace_user=my_workspace_user, group_changed_to=new_group)
 
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 

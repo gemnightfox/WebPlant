@@ -3,17 +3,17 @@ from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
-from base_utils import CustomTokenGenerator
+from base_utils import CustomTokenGenerator, CustomJsonResponse
 from .models import Notification, NotificationDisabledDuration
 from .utils import save_temp_disabled_duration
-from django.http import JsonResponse, Http404
+from django.http import Http404
 
 
 
 @login_required
 def get_unread_count(request):
     unread_count = request.user.notifications.filter(read_status=False).count()
-    return JsonResponse({'unread_count': unread_count})
+    return CustomJsonResponse({'unread_count': unread_count})
 
 
 
@@ -27,7 +27,7 @@ def get_notifications(request):
     paginated_notifications = paginator.get_page(page_number).object_list
 
     payload = list(paginated_notifications.values('id', 'sender__email', 'content', 'read_status', 'sent_at')) # Makes it compatible for JSON, turns a Django queryset into a Python list
-    return JsonResponse({'notifications': payload, 'last_page': paginator.num_pages})
+    return CustomJsonResponse({'notifications': payload, 'last_page': paginator.num_pages})
 
 
 
@@ -53,7 +53,7 @@ def temp_disable(request, user_id, token):
 def login_temp_disable(request):
     duration = request.POST.get('disable_notifications_duration') # In hours (int)
     save_temp_disabled_duration(user=request.user, duration=duration)
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -67,7 +67,7 @@ def temp_disable_success(request):
 @require_POST
 def remove_temp_disabled(request):
     NotificationDisabledDuration.objects.filter(user=request.user).delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -77,7 +77,7 @@ def read(request, notification_id):
     notification = get_object_or_404(Notification, receiver=request.user, id=notification_id)
     notification.read_status = True
     notification.save()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -87,7 +87,7 @@ def unread(request, notification_id):
     notification = get_object_or_404(Notification, receiver=request.user, id=notification_id)
     notification.read_status = False
     notification.save()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -96,7 +96,7 @@ def unread(request, notification_id):
 def delete(request, notification_id):
     notification = get_object_or_404(Notification, receiver=request.user, id=notification_id)
     notification.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -105,7 +105,7 @@ def delete(request, notification_id):
 def read_all(request):
     notifications = Notification.objects.filter(receiver=request.user, read_status=False)
     notifications.update(read_status=True)
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -114,7 +114,7 @@ def read_all(request):
 def delete_read(request):
     notifications = Notification.objects.filter(receiver=request.user, read_status=True)
     notifications.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 

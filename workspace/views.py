@@ -2,13 +2,13 @@ from django.shortcuts import render, get_object_or_404
 from .models import Workspace, WorkspaceUser, WorkspaceInviteCode
 from .forms import CreateNewForm, EditNameForm, AddUsersForm, AssignRoleToUserForm, ChangeDefaultRoleForm, TransferOwnershipForm, AddInviteCodeForm, EditInviteCodePasswordForm, CreateRoleForm, EditRoleForm
 from django.views.decorators.http import require_POST
-from django.http import JsonResponse, Http404
+from django.http import Http404
 from notification.utils import send_email
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from .utils import get_workspace_or_404, get_workspace_user_or_404, verify_workspace_role, get_workspace_role_or_404
-from base_utils import reusable_form_submission
+from base_utils import reusable_form_submission, CustomJsonResponse
 
 
 
@@ -49,14 +49,14 @@ def check_invites(request):
             'id': workspace.id,
             'name': workspace.name,
         })
-    return JsonResponse({'invited_workspaces': payload})
+    return CustomJsonResponse({'invited_workspaces': payload})
 
 
 
 @login_required
 def check_invites_count(request):
     invited_workspaces = Workspace.objects.filter(users=request.user, workspace_user__is_active=False)
-    return JsonResponse({'invite_count': invited_workspaces.count()})
+    return CustomJsonResponse({'invite_count': invited_workspaces.count()})
 
 
 
@@ -66,7 +66,7 @@ def accept_invite(request, workspace_id):
     my_workspace_user = get_object_or_404(WorkspaceUser, user=request.user, workspace__id=workspace_id, is_active=False)
     my_workspace_user.is_active = True
     my_workspace_user.save()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -75,7 +75,7 @@ def accept_invite(request, workspace_id):
 def reject_invite(request, workspace_id):
     workspace_user = get_object_or_404(WorkspaceUser, user=request.user, workspace__id=workspace_id, is_active=False)
     workspace_user.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -141,7 +141,7 @@ def remove_user(request, workspace_id, user_id):
         workspace.delete()
         content = f'You have left workspace: {workspace.name}'
         send_email(request, receiver=user, sender=request.user, content=content)
-        return JsonResponse({'status': 'success'})
+        return CustomJsonResponse({'status': 'success'})
 
     elif workspace_user == workspace.owner:
         raise Exception('Owner has to transfer ownership before leaving.')
@@ -158,7 +158,7 @@ def remove_user(request, workspace_id, user_id):
             content = f'You have been removed from the workspace: {workspace.name}'
 
         send_email(request, receiver=user, sender=request.user, content=content)
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -177,11 +177,11 @@ def join_using_invite_code(request):
 
     if my_workspace_user:
         if my_workspace_user.is_active:
-            return JsonResponse({'status': 'error'})
+            return CustomJsonResponse({'status': 'error'})
         else:
             my_workspace_user.is_active = True
             my_workspace_user.save()
-            return JsonResponse({'status': 'success', 'workspace_name': workspace.name})
+            return CustomJsonResponse({'status': 'success', 'workspace_name': workspace.name})
 
     WorkspaceUser.objects.create(
         workspace=workspace,
@@ -189,7 +189,7 @@ def join_using_invite_code(request):
         role=workspace.default_role,
         is_active=True,
     )
-    return JsonResponse({'status': 'success', 'workspace_name': workspace.name})
+    return CustomJsonResponse({'status': 'success', 'workspace_name': workspace.name})
 
 
 
@@ -222,7 +222,7 @@ def delete_invite_code(request, workspace_id, workspace_invite_code_id):
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_invite_codes')
     workspace_invite_code = WorkspaceInviteCode(id=workspace_invite_code_id, workspace=workspace)
     workspace_invite_code.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -262,7 +262,7 @@ def delete_role(request, workspace_id, workspace_role_id):
         raise ValueError('Default role can not be deleted. Change default role to another role before deleting.')
 
     workspace_role.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -278,7 +278,7 @@ def transfer_role(request, workspace_id, old_workspace_role_id, new_workspace_ro
 
     workspace_users = WorkspaceUser.objects.filter(role=old_workspace_role)
     workspace_users.update(role=new_workspace_role)
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 

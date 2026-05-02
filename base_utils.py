@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 import os
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.forms.models import model_to_dict
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 
@@ -17,6 +17,13 @@ def custom_getenv(env_var: str, default=None):
 
 
 
+class CustomJsonResponse(JsonResponse):
+    def __init__(self, data, **kwargs):
+        kwargs.setdefault('encoder', DjangoJSONEncoder)
+        super().__init__(data, **kwargs)
+
+
+
 # POST is required (@require_POST is used in views)
 def reusable_form_submission(request, form, return_new_object=False, **kwargs):
     form_instance = form(request.POST, request.FILES, **kwargs)
@@ -27,8 +34,7 @@ def reusable_form_submission(request, form, return_new_object=False, **kwargs):
     if return_new_object:
         return new_object
     else:
-        new_object_id = str(new_object.id)
-        return JsonResponse({'status': 'success', 'new_object_id': new_object_id})
+        return CustomJsonResponse({'status': 'success', 'new_object_id': new_object.id})
 
 
 
@@ -39,15 +45,6 @@ class CustomTokenGenerator(PasswordResetTokenGenerator):
 
     def _make_hash_value(self, user, timestamp):
         return f'{self.purpose}___{timestamp}__{user.id}__{user.email}'
-
-
-
-def custom_model_to_dict(object):
-    result = model_to_dict(object)
-    result['id'] = str(object.id)
-    return result
-
-
 
 
 

@@ -1,12 +1,12 @@
 from .utils import get_task_or_404, duplicate_task_only
 from group.utils import get_group_or_404
-from django.http import JsonResponse
 from .forms import CreateNewForm, EditForm, AddAttachmentForm, AddCommentForm, EditCommentForm, AddReminderForm, AddAssignedForm
 from .models import Task, TaskAttachment, TaskComment, TaskReminder, TaskAssigned
 from django.shortcuts import get_object_or_404, redirect
 from workspace.utils import get_workspace_user_or_404, verify_workspace_role
 from django.views.decorators.http import require_POST
-from base_utils import reusable_form_submission, custom_model_to_dict
+from base_utils import reusable_form_submission, CustomJsonResponse
+from django.forms.models import model_to_dict
 import cloudinary
 import time
 from django.contrib.auth.decorators import login_required
@@ -16,19 +16,19 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def get_data(request, task_id):
     task = get_task_or_404(my_user=request.user, task_id=task_id)
-    attachments = [custom_model_to_dict(attachment) for attachment in task.attachments.all()]
-    comments = [custom_model_to_dict(comments) for comments in task.comments.all()]
-    assigned = [custom_model_to_dict(assigned) for assigned in task.assigned_to.all()]
+    attachments = [model_to_dict(attachment) for attachment in task.attachments.all()]
+    comments = [model_to_dict(comments) for comments in task.comments.all()]
+    assigned = [model_to_dict(assigned) for assigned in task.assigned_to.all()]
 
     my_workspace_user = get_workspace_user_or_404(request.user, workspace=task.group.project.workspace)
-    reminders = [custom_model_to_dict(reminder) for reminder in task.reminders.all() if reminder.workspace_user == my_workspace_user]
+    reminders = [model_to_dict(reminder) for reminder in task.reminders.all() if reminder.workspace_user == my_workspace_user]
 
-    task = custom_model_to_dict(task)
+    task = model_to_dict(task)
     task['attachments'] = attachments
     task['comments'] = comments
     task['assigned'] = assigned
     task['reminders'] = reminders
-    return JsonResponse({'task': task})
+    return CustomJsonResponse({'task': task})
 
 
 
@@ -59,7 +59,7 @@ def delete(request, task_id):
     my_workspace_user = get_workspace_user_or_404(request.user, workspace=task.group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
     task.delete(workspace_user=my_workspace_user)
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -73,7 +73,7 @@ def duplicate(request, task_id, position):
     task = Task.objects.prefetch_related('attachments').get(id=task.id) # Sole purpose is to avoid N+1 queries (found inside task.utils.duplicate_task_only task attachments for loop)
     new_position = float(position)
     duplicate_task_only(task, my_workspace_user=my_workspace_user, position_changed_to=new_position, is_name_changed=True)
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -95,7 +95,7 @@ def delete_attachment(request, task_attachment_id):
     my_workspace_user = get_workspace_user_or_404(request.user, workspace=task.group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_task_attachments')
     task_attachment.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -153,7 +153,7 @@ def delete_comment(request, task_comment_id):
         raise Exception('User can not delete comment.')
 
     task_comment.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -177,7 +177,7 @@ def delete_reminder(request, task_reminder_id):
         raise Exception('User can not delete reminder.')
 
     task_reminder.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 
@@ -197,7 +197,7 @@ def delete_assigned(request, task_assigned_id):
     my_workspace_user = get_workspace_user_or_404(request.user, workspace=task.group.project.workspace)
     verify_workspace_role(my_workspace_user, 'can_assign_tasks_to_users')
     task_assigned.delete()
-    return JsonResponse({'status': 'success'})
+    return CustomJsonResponse({'status': 'success'})
 
 
 

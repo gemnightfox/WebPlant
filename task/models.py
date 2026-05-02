@@ -3,7 +3,7 @@ from django.db import models, transaction
 import uuid
 from workspace.models import WorkspaceUser, WorkspaceLog
 from group.models import Group
-from base_utils import custom_model_to_dict
+from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404
 from cloudinary.models import CloudinaryField
 from django.contrib.contenttypes.models import ContentType
@@ -48,7 +48,7 @@ class Task(models.Model):
                     workspace=workspace_user.workspace,
                     workspace_user=workspace_user,
                     change_type=WorkspaceLog.ChangeTypeChoices.DELETE,
-                    changes=custom_model_to_dict(self),
+                    changes=model_to_dict(self),
                     content_object=self,
                 )
 

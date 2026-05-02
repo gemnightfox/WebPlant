@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404
 from .models import Workspace, WorkspaceUser, WorkspaceRole, WorkspaceLog
 from django.http import Http404
-from django.db import models
-from base_utils import custom_model_to_dict
+from django.forms.models import model_to_dict
+from base_utils import model_to_dict
 
 
 
@@ -36,8 +36,8 @@ def verify_workspace_role(my_workspace_user, permission_field_name: str): # perm
 
 def save_changes_to_workspace_logs(new_object, is_new_object: bool, workspace_user, old_object=None, IGNORED_FIELDS=None):
     def get_fields_being_edited(new_object, old_object) -> dict:
-        old_object_dict = custom_model_to_dict(old_object)
-        new_object_dict = custom_model_to_dict(new_object)
+        old_object_dict = model_to_dict(old_object)
+        new_object_dict = model_to_dict(new_object)
 
         edited_fields = {}
         for field_name in new_object_dict:
@@ -57,7 +57,7 @@ def save_changes_to_workspace_logs(new_object, is_new_object: bool, workspace_us
             workspace=workspace_user.workspace,
             workspace_user=workspace_user,
             change_type=WorkspaceLog.ChangeTypeChoices.CREATE,
-            changes=custom_model_to_dict(new_object),
+            changes=model_to_dict(new_object),
             content_object=new_object,
             )
         return
