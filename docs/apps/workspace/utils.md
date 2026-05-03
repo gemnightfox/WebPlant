@@ -26,6 +26,7 @@
 ## save_changes_to_workspace_logs
 - Creates a WorkspaceLog object when a project/group/task object is created/edited/deleted
 - Helper function used in Project/Group/Task models custom save methods
+- Note: If `workspace_user` argument is None (eg. during default Django admin page), no WorkspaceLog objects are created
 
 
 
