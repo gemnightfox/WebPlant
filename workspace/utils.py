@@ -3,6 +3,7 @@ from .models import Workspace, WorkspaceUser, WorkspaceRole, WorkspaceLog
 from django.http import Http404
 from django.forms.models import model_to_dict
 from base_utils import model_to_dict
+import logging
 
 
 
@@ -49,7 +50,8 @@ def save_changes_to_workspace_logs(new_object, is_new_object: bool, workspace_us
         return edited_fields
 
     if not workspace_user: # Occurs in default Django admin page edits (default save method does not include workspace_user argument)
-        print('\n\nALERT: WorkspaceLog object has been created without a workspace_user argument. If this is from project/group/task models, please add a workspace_user argument during .save() or .delete().\n\n')
+        logger = logging.getLogger(__name__)
+        logger.warning('WorkspaceLog object has been created without a workspace_user argument. If this is from project/group/task models, please add a workspace_user argument during .save() or .delete().')
         return
 
     if is_new_object:

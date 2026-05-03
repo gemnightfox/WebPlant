@@ -209,13 +209,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-sentry_sdk.init(
-    dsn=custom_getenv('SENTRY_DSN'),
-    traces_sample_rate=1,
-    profiles_sample_rate=1,
-    send_default_pii=True,
-)
-
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 PASSWORD_RESET_TIMEOUT = 60 * 15 # 15 mins
@@ -268,5 +261,45 @@ MEDIA_ROOT = BASE_DIR / 'media'
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+sentry_sdk.init(
+    dsn=custom_getenv('SENTRY_DSN'),
+    traces_sample_rate=1,
+    profiles_sample_rate=1,
+    send_default_pii=True,
+)
+
+LOGGING = {
+    'version': 1, # Ensures future compatibility
+    'disable_existing_loggers': False, # Allows default built-in Django loggers (eg. 500 error code)
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {pathname} {process:d} {thread:d} {message}', # Note: NOT a formatted string (f-string)
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {pathname} {message}', # Note: NOT a formatted string (f-string)
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'sentry': { # Ignores if Sentry environment variable is not setup yet (doesn't send data)
+            'level': 'ERROR',
+            'class': 'sentry_sdk.integrations.logging.EventHandler',
+        },
+    },
+    'loggers': {
+        '': { # This catches everything (Django + every apps)
+            'handlers': ['console', 'sentry'],
+            'level': 'DEBUG',
+        },
+    },
+}
+
 
 
