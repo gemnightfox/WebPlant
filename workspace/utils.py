@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from .models import Workspace, WorkspaceUser, WorkspaceRole, WorkspaceLog
-from django.http import Http404
+from django.core.exceptions import PermissionDenied
 from django.forms.models import model_to_dict
 from base_utils import model_to_dict
 import logging
@@ -31,7 +31,7 @@ def verify_workspace_role(my_workspace_user, permission_field_name: str): # perm
 
     is_allowed = getattr(my_workspace_user.role, permission_field_name)
     if not is_allowed:
-        raise Http404('The current workspace role you have does not have permission to access this resource.')
+        raise PermissionDenied('The current workspace role you have does not have permission to access this resource.')
 
 
 

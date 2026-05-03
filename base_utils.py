@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 import os
+from django.core.exceptions import ValidationError
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -28,7 +29,7 @@ class CustomJsonResponse(JsonResponse):
 def reusable_form_submission(request, form, return_new_object=False, **kwargs):
     form_instance = form(request.POST, request.FILES, **kwargs)
     if not form_instance.is_valid():
-        raise Exception(f'Error encountered during form submission. Error: {form_instance.errors}')
+        raise ValidationError(f'Error encountered during form submission. Error: {form_instance.errors}')
     
     new_object = form_instance.save()
     if return_new_object:

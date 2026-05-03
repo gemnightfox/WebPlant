@@ -5,6 +5,7 @@ from .models import Task, TaskAttachment, TaskComment, TaskReminder, TaskAssigne
 from django.shortcuts import get_object_or_404, redirect
 from workspace.utils import get_workspace_user_or_404, verify_workspace_role
 from django.views.decorators.http import require_POST
+from django.core.exceptions import PermissionDenied
 from base_utils import reusable_form_submission, CustomJsonResponse
 from django.forms.models import model_to_dict
 import cloudinary
@@ -135,7 +136,7 @@ def edit_comment(request, task_comment_id):
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
     workspace = task.group.project.workspace
     if my_workspace_user != workspace.owner and my_workspace_user != task_comment.added_by:
-        raise Exception('User can not edit comment.')
+        raise PermissionDenied('User can not edit comment.')
     return reusable_form_submission(request, EditCommentForm, instance=task_comment)
 
 
@@ -150,7 +151,7 @@ def delete_comment(request, task_comment_id):
     verify_workspace_role(my_workspace_user, 'can_edit_tasks')
     workspace = task.group.project.workspace
     if my_workspace_user != workspace.owner and my_workspace_user != task_comment.added_by:
-        raise Exception('User can not delete comment.')
+        raise PermissionDenied('User can not delete comment.')
 
     task_comment.delete()
     return CustomJsonResponse({'status': 'success'})
@@ -174,7 +175,7 @@ def delete_reminder(request, task_reminder_id):
 
     my_workspace_user = get_workspace_user_or_404(request.user, workspace=task.group.project.workspace)
     if my_workspace_user != task_reminder.workspace_user:
-        raise Exception('User can not delete reminder.')
+        raise PermissionDenied('User can not delete reminder.')
 
     task_reminder.delete()
     return CustomJsonResponse({'status': 'success'})

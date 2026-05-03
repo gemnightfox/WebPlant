@@ -125,7 +125,7 @@ class AddUsersForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         username = cleaned_data.get('username').lower()
-        user = get_user_model().objects.filter(username=username).first() # Don't raise 404-obj-not-found, ensures that users cant check whether a username has been registered to an account (Read VALIDATION_ERROR_MESSAGE for more info)
+        user = get_user_model().objects.filter(username=username).first() # Don't raise 404-obj-not-found, ensures that users cant check whether a username has been registered to an account (Read VALIDATION_ERROR_MESSAGE variable comments for more info)
 
         VALIDATION_ERROR_MESSAGE = 'Given username is not registered to an account, or does not accept workspace invites.' # Ensures that users cant check whether a username has been registered to an account
         if not user:

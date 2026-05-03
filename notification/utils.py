@@ -5,7 +5,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.urls import reverse
 from .models import Notification, NotificationDisabledDuration
-from django.http import Http404
+from django.core.exceptions import ValidationError
 from accounts.utils import get_user_preferences
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -92,10 +92,10 @@ def save_temp_disabled_duration(user, duration: int | str):
     try:
         duration = int(duration)
     except:
-        raise Http404('Duration given is not an integer')
+        raise ValueError('Duration given is not an integer')
 
     if not 1 <= duration <= 100:
-        raise Http404('Duration given is not in the allowed range')
+        raise ValidationError('Duration given is not in the allowed range')
 
     ends_at = timezone.now() + timedelta(hours=duration)
     old_disabled_duration = NotificationDisabledDuration.objects.filter(user=user).first()

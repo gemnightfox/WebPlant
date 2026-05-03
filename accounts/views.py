@@ -10,6 +10,7 @@ from django.contrib.sessions.models import Session
 from notification.models import NotificationDisabledDuration
 from django.http import Http404
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.db import transaction, models
 from workspace.models import Workspace, WorkspaceRole, WorkspaceUser
@@ -41,7 +42,7 @@ def check_password_present(request): # Accounts which used Google login may not 
 @require_POST
 def send_disable_password_email(request):
     if not request.user.has_usable_password():
-        raise Http404('User already does not have a password')
+        raise ValidationError('User already has a disabled password.')
 
     token_generator = CustomTokenGenerator(purpose='disable-password')
     token = token_generator.make_token(request.user)
@@ -66,7 +67,7 @@ def disable_password(request, user_id, token):
         raise Http404('Token is not valid')
 
     if not user.has_usable_password():
-        raise Http404('User already does not have a password')
+        raise ValidationError('User already has a disabled password.')
 
     if request.method == 'POST':
         user.set_unusable_password()

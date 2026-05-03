@@ -50,7 +50,7 @@ def temp_disable(request, user_id, token):
 
 @login_required
 @require_POST
-def login_temp_disable(request):
+def login_temp_disable(request): # This one is for LOGGED IN users only (no token needed)
     duration = request.POST.get('disable_notifications_duration') # In hours (int)
     save_temp_disabled_duration(user=request.user, duration=duration)
     return CustomJsonResponse({'status': 'success'})
