@@ -91,7 +91,7 @@ def generate_temporary_disable_notifications_link(request, receiver):
 def save_temp_disabled_duration(user, duration: int | str):
     try:
         duration = int(duration)
-    except:
+    except (ValueError, TypeError):
         raise ValueError('Duration given is not an integer')
 
     if not 1 <= duration <= 100:

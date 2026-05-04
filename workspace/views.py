@@ -209,7 +209,7 @@ def edit_invite_code_password(request, workspace_id, workspace_invite_code_id):
     workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
     my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_invite_codes')
-    workspace_invite_code = WorkspaceInviteCode(id=workspace_invite_code_id, workspace=workspace)
+    workspace_invite_code = get_object_or_404(id=workspace_invite_code_id, workspace=workspace)
     return reusable_form_submission(request, EditInviteCodePasswordForm, instance=workspace_invite_code)
 
 
@@ -220,7 +220,7 @@ def delete_invite_code(request, workspace_id, workspace_invite_code_id):
     workspace = get_workspace_or_404(my_user=request.user, workspace_id=workspace_id)
     my_workspace_user = get_workspace_user_or_404(request.user, workspace)
     verify_workspace_role(my_workspace_user, 'can_edit_workspace_invite_codes')
-    workspace_invite_code = WorkspaceInviteCode(id=workspace_invite_code_id, workspace=workspace)
+    workspace_invite_code = get_object_or_404(id=workspace_invite_code_id, workspace=workspace)
     workspace_invite_code.delete()
     return CustomJsonResponse({'status': 'success'})
 
